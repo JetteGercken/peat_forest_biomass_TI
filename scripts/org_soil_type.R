@@ -56,7 +56,7 @@ for (i in 1:length(data_table_names)) {
   # name dataframe and export it to raw data folder
   write.csv(df, paste0(here("data/raw"), "/", my.table.name, ".csv"), row.names = FALSE)
 }
-# 2.1.2. copy code files from raw data general to input general fo -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# 0.2.4. copy code files from raw data general to input general fo -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # copy everything imported from database from raw folder to input folder
 # 1. create raw data path: 
 raw.path.code <- paste0(here("data/raw"), "/")
@@ -70,90 +70,161 @@ file.copy(from = paste0(raw.path.code, code.in.files),
           overwrite = TRUE)
 
 
-
-
-
+# 0.3. import data --------------------------------------------------------
 # soil types database
-soil_types_bze2_db <-  read.delim(file = here("data/input/paper/vm_allgemeintab_2.csv"), sep = ",", dec = ".") 
-soil_profiles_bze2_db <- read.delim(file = here("data/input/paper/vm_minboden_profil_2.csv"), sep = ",", dec = ".")
+soil_types_bze2_db <-  read.delim(file = here("data/input/vm_allgemeintab_2.csv"), sep = ",", dec = ".") 
+# soil types 
+soil_profiles_bze2_db <- read.delim(file = here("data/input/vm_minboden_profil_2.csv"), sep = ",", dec = ".")
   
-# select only organic soil types from database dataset
-org_soils_db <- soil_types_db %>% 
-  filter(bodentyp_2 %in% org_soil_types & erhebjahr_2 > 2000) %>% 
+# organic soil types analysis from Eric Grüneberg
+org_soils_analysis <-  read.delim(file = here("data/input/org_soil_types_BZE2.csv"), sep = ",", dec = ".")
+
+# organic soil types from Carina Peatzel
+org_soils_paetzel <- read.delim(file = here("data/input/org_plots_BZE2_BZE1_Paetzel.csv"), sep = ",", dec = ".")
+
+
+
+# 1. identify organic sites ---------------------------------------------------------
+# possible names of organic soil types according to KA5
+org_soil_types <- c("GH", "GM", "GH", "HH", "HN", "KH", "KV",  "KM", "SGm" )
+org_horizonts <- c("Aa", "H")
+
+
+# 1.1. plots with org soil types -----------------------------------------
+org_soils_types_db <- soil_types_bze2_db %>%
+  filter(grepl(paste(org_soil_types, collapse = "|"), bodentyp_2, text, ignore.case = F) & erhebjahr_2 > 2000) %>% 
   select(bfhnr_2, bodentyp_2) %>% 
   rename(., bfhnr = bfhnr_2) %>% 
+  rename(., plot_bodtyp = bodentyp_2) %>% 
   distinct()
 
 
 
-# soil types analysis from Eric Grüneberg
-org_soils_analysis <-  read.delim(file = here("data/input/paper/org_soil_types_BZE2.csv"), sep = ",", dec = ".")%>% 
-  mutate(plot_bodtyp = toupper(plot_bodtyp)) %>% 
-  filter(plot_bodtyp %in% org_soil_types) %>% 
+# 1.2. plots with characteristics defining them organic -------------------
+
+# 1.2.1. organic layer ---------------------------------------------------
+# if organic layer is Aa the horizont has to be at least 10cm thick
+# if organic layer contains H the horizont has to be at least 30cm thick? --> not true look at niedermoorgley :/ 
+
+org_horizonts_db <- 
+soil_profiles_bze2_db %>% 
+  filter(
+    # filter for organic horizonts only 
+  grepl(paste(org_horizonts, collapse = "|"), horizont, text, ignore.case = F) & 
+    # filter for BZE2 data only
+    erhebjahr > 2000) %>% 
+  arrange(bfhnr, inventur, erhebjahr, horinr) %>% 
+  # select only the deepest horizont
+  semi_join(., 
+    soil_profiles_bze2_db %>% filter(
+      # select organic horizonts only 
+    grepl(paste(org_horizonts, collapse = "|"), horizont, text, ignore.case = F) & 
+     # select bze2 data only
+       erhebjahr > 2000) %>% 
+      # select only max horizint number per plot among organic horizonts 
+      group_by(bfhnr, inventur, erhebjahr) %>% 
+      summarise(horinr  = max(horinr)), 
+    by = c("bfhnr", "inventur", "erhebjahr", "horinr")
+    ) %>% 
+  filter(ut >= 10) 
+
+org_plots_according_to_hori <- soil_types_bze2_db %>% 
+  semi_join(., org_horizonts_db, by = c("bfhnr_2" = "bfhnr"))
+
+
+
+
+
+
+
+
+# 4. filter for organic soil types only -----------------------------------
+
+# 4.1. filter for organic soil types --------------------------------------
+# offical bze2 database
+# select only organic soil types from database dataset
+org_soils_types_db <- soil_types_bze2_db %>%
+  filter(grepl(paste(org_soil_types, collapse = "|"), bodentyp_2, text, ignore.case = F) & erhebjahr_2 > 2000) %>% 
+  select(bfhnr_2, bodentyp_2) %>% 
+  rename(., bfhnr = bfhnr_2) %>% 
+  rename(., plot_bodtyp = bodentyp_2) %>% 
+  distinct()
+
+# eric grünebergs analysis database
+org_soils_analysis <- org_soils_analysis %>% 
+  filter(grepl(paste(org_soil_types, collapse = "|"), plot_bodtyp, text, ignore.case = F) & plot_inventur == 2) %>% 
   select(bfhnr, plot_bodtyp ) %>% distinct()
 
 
-org_soils_paetzel <- read.delim(file = here("data/input/paper/org_plots_BZE2_BZE1_Paetzel.csv"), sep = ",", dec = ".")
+# 4.2. comparisson org soil types bd and analysis --------------------------------------------------------
 
+# 4.2.1. bze2 database to erics data --------------------------------------
+anti_join(org_soils_types_db, org_soils_analysis, by = c("bfhnr")) #,  "plot_bodtyp"))
+# plot present in org_soils_types_db but not in soil_types_analysis 
+#   bfhnr    bodentyp_2
+# 1 70109         HN
+# 2 80058      HN-SG
+# 3 80206         KV
 
+nrow(org_soils_types_db)
+# numrber of rows: 38
 
-org_soil_types <- c("GH", "GM", "GMg", "HH", "HN", "HN-SG", "KH", "KV", "KV-KM")
-
-
-
-
-# 1. comparisson org soil types bd and analysis --------------------------------------------------------
-anti_join(org_soils_db, org_soils_analysis, by = "bfhnr" )
-# plot present in org_soils_db but not in soil_types_analysis 
-#     bfhnr    bodentyp_2
-# 1   10026         HN
-# 2   10029         GH
-# 3   30169         GH
-# 4   30521         GH
-# 5   70109         HN
-# 6   80058      HN-SG
-# 7   80206         KV
-# 8   80223         KV
-# 9   90525         HN
-# 10  90557         HN
-# 11  90594         GM
-# 12  90630         HN
-# 13  90660         HN
-# 14  90677         HH
-# 15  90845         HN
-# 16  90849         HN
-# 17  90877         GM
-# 18 120080         GH
-# 19 120098         GH
-# 20 120119         GM
-# 21 120132         KV
-# 22 120154         GM
-# 23 130069         GH
-
-nrow(org_soils_db)
-# numrber of rows: 37
-
-anti_join(org_soils_analysis, org_soils_db, by = "bfhnr" )
-# plot present in soil_types_analysis but not in org_soils_db 
-#     bfhnr    plot_bodtyp
-# 1   30035          HH
-# 2   30113          HH
-# 3   30143          HH
-# 4   30145          HH
-# 5   30190          HH
-# 6   30636          HH
-# 7   90063          HH
-# 8   90156          HH
-# 9   90187          HH
-# 10  90261          HH
-# 11  90277          HH
-# 12  90305          HH
-# 13  90381          HH
-# 14 130003          HH
-# 15 130004          HH
-# 16 130009          HH
-# 17 130034          HH
-# 18 130058          HH
+anti_join(org_soils_analysis, org_soils_types_db,  by = c("bfhnr")) #,  "plot_bodtyp"))
+# plot present in org_soils_analysis but not in org_soils_db 
+# bfhnr      plot_bodtyp
+# 1 30519         KVu
 
 nrow(org_soils_analysis)
-# numrber of rows: 32
+# numrber of rows: 36
+
+# these plots differ from 
+org_soil_types_comp <- 
+  full_join(org_soils_analysis, org_soils_types_db,  by = c("bfhnr")) %>% 
+  mutate(same_same_but_different = ifelse(plot_bodtyp.x != plot_bodtyp.y | 
+                                            is.na(plot_bodtyp.x) & !is.na(plot_bodtyp.y)| 
+                                            !is.na(plot_bodtyp.x) & is.na(plot_bodtyp.y), "different", "same")) 
+
+
+
+# 4.2.2. bze databse by soil types vs. bze2 org plots due to horizont chracteristics  -------------
+# compare bze2 org soil types to org soil plots idientified by horziont characteristics
+anti_join(org_soils_types_db, org_plots_according_to_hori,  by = c("bfhnr" = "bfhnr_2") ) #,  "plot_bodtyp"))
+# plot present in org_soils_types_db but not in org_soils_db 
+#    bfhnr    plot_bodtyp
+# 1  70109          HN
+# 2  80058       HN-SG
+# 3  80112          KV
+# 4  80206          KV
+# 5  80223          KV
+# 6  90877          GM
+# 7 120080          GH
+
+anti_join(org_plots_according_to_hori, org_soils_types_db,  by = c("bfhnr_2" = "bfhnr") ) %>% select(bfhnr_2 , bodentyp_2 )
+# plot present in org_plots_according_to_hori but not in org_soils_types_db 
+#      bfhnr_2    bodentyp_2
+# 1    30186         SS
+# 2    30519         LF
+# 3    30602         SS
+# 4    70096         GG
+# 5    90578         GG
+# 6    90787      SS-GG
+# 7    90875      BB-RN
+# 8   120004         RZ
+# 9   120127         BB
+# 10  120129      RQ-BB
+# 11  120137         PP
+# 12  120150      GG-PP
+# 13  120159         GG
+# 14  120170         BB
+
+
+nrow(org_plots_according_to_hori)
+# numrber of rows: 45
+
+# the following plots do not qualy as organic due to their organic horizont thickness 
+# tho their soil type indicates they are organic
+soil_profiles_bze2_db %>% 
+  semi_join(., anti_join(org_soils_types_db, org_plots_according_to_hori,  by = c("bfhnr" = "bfhnr_2") ), by =  "bfhnr" )
+
+
+
