@@ -33,21 +33,50 @@ db_port <- "5432"
 db_user <-  rstudioapi::askForPassword(prompt = "Please enter your username")
 my_db_password <- rstudioapi::askForPassword(prompt = "Please enter your password")
 
-
-
 # 0.2.2. enable connection ----------------------------------------------------------
 con <- sqlconnection(db_name, db_server,db_port, db_user, my_db_password)
-# datasets name 
-my.schema.name = "bze2_extern" 
-my.table.name = "vm_allgemeintab_2"
 
 # 0.2.3. import dataset ----------------------------------------------------------------
-org_soil_types <- c("GH", "GM", "GMg", "HH", "HN", "HN-SG", "KH", "KV", "KV-KM")
+# names of the tables we want to import to our raw data folder: 
+data_table_names <- c("vm_allgemeintab_2", "vm_minboden_profil_2")
+my.schema.name <- "bze2_extern"
+
+for (i in 1:length(data_table_names)) {
+  # i = 1
+  # get table name
+  my.table.name <- data_table_names[i]
+  # set schema name
+  my.schema.name <- "bze2_extern"
+  # set database name 
+  db_name <- 'bze2'
+  # set db connection
+  con <- sqlconnection(db_name, db_server, db_port, db_user, my_db_password)
+  # get table from database and transform into dataframe
+  df <- dbGetQuery(con, paste0("SELECT * FROM"," ", my.schema.name,".", my.table.name))
+  # name dataframe and export it to raw data folder
+  write.csv(df, paste0(here("data/raw"), "/", my.table.name, ".csv"), row.names = FALSE)
+}
+# 2.1.2. copy code files from raw data general to input general fo -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# copy everything imported from database from raw folder to input folder
+# 1. create raw data path: 
+raw.path.code <- paste0(here("data/raw"), "/")
+# 2. get names of all files in the momok outout folder: https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/list.files
+code.in.files <- list.files(raw.path.code) 
+# 3. create input path
+input.path.code <- paste0(here("data/input"), "/")
+# copy the files from one filder to the other: https://statisticsglobe.com/move-files-between-folders-r
+file.copy(from = paste0(raw.path.code, code.in.files),
+          to = paste0(input.path.code, code.in.files),
+          overwrite = TRUE)
+
+
+
+
 
 # soil types database
-soil_types_db <- dbGetQuery(con, paste0("SELECT * FROM"," ", my.schema.name,".", my.table.name)) %>% 
-  mutate(bodentyp_2 = toupper(bodentyp_2))
-
+soil_types_bze2_db <-  read.delim(file = here("data/input/paper/vm_allgemeintab_2.csv"), sep = ",", dec = ".") 
+soil_profiles_bze2_db <- read.delim(file = here("data/input/paper/vm_minboden_profil_2.csv"), sep = ",", dec = ".")
+  
 # select only organic soil types from database dataset
 org_soils_db <- soil_types_db %>% 
   filter(bodentyp_2 %in% org_soil_types & erhebjahr_2 > 2000) %>% 
@@ -55,9 +84,7 @@ org_soils_db <- soil_types_db %>%
   rename(., bfhnr = bfhnr_2) %>% 
   distinct()
 
-# stocks database
-soil_stocks_db <- dbGetQuery(con, paste0("SELECT * FROM"," ", my.schema.name,".", my.table.name)) %>% 
-  mutate(bodentyp_2 = toupper(bodentyp_2))
+
 
 # soil types analysis from Eric Grüneberg
 org_soils_analysis <-  read.delim(file = here("data/input/paper/org_soil_types_BZE2.csv"), sep = ",", dec = ".")%>% 
@@ -66,7 +93,13 @@ org_soils_analysis <-  read.delim(file = here("data/input/paper/org_soil_types_B
   select(bfhnr, plot_bodtyp ) %>% distinct()
 
 
-org_soils_paetzel <- 
+org_soils_paetzel <- read.delim(file = here("data/input/paper/org_plots_BZE2_BZE1_Paetzel.csv"), sep = ",", dec = ".")
+
+
+
+org_soil_types <- c("GH", "GM", "GMg", "HH", "HN", "HN-SG", "KH", "KV", "KV-KM")
+
+
 
 
 # 1. comparisson org soil types bd and analysis --------------------------------------------------------
