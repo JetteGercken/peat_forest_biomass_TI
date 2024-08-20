@@ -6,7 +6,12 @@
 # database and those occuring in bze2 analysis are identical
 
 
-
+# peat land definition:  
+# Trepel, Michael & Zeitz, Jutta & Pfadenhauer, Jörg & Jeschke, Lebrecht. (2017). Germany. 10.1127/mireseurope/2017/0001. : 
+# The German soil Classification System uses the term ‘Moor’ (‘peatland’) for soil 
+# layers with 30% organic matter/humus content and a minimum depth of 30 cm (AG Boden 2005)
+# does that mean there has to be any horizont of 30cm depth that holds 30% SOM? 
+# or does it have to be the upper one? 
 
 
 # 0.SETUP --------------------------------------------------------------------------------------------------------------------
@@ -160,7 +165,7 @@ org_soils_analysis <- org_soils_analysis %>%
 
 # 4.2.1. bze2 database to erics data --------------------------------------
 anti_join(org_soils_types_db, org_soils_analysis, by = c("bfhnr")) #,  "plot_bodtyp"))
-# plot present in org_soils_types_db but not in soil_types_analysis 
+# plot present in org_soils_types_db but not in soil_types_analysis (EG) 
 #   bfhnr    bodentyp_2
 # 1 70109         HN
 # 2 80058      HN-SG
@@ -178,7 +183,7 @@ nrow(org_soils_analysis)
 # numrber of rows: 36
 
 # these plots differ from 
-org_soil_types_comp <- 
+org_soil_types_comp_db_EG <- 
   full_join(org_soils_analysis, org_soils_types_db,  by = c("bfhnr")) %>% 
   mutate(same_same_but_different = ifelse(plot_bodtyp.x != plot_bodtyp.y | 
                                             is.na(plot_bodtyp.x) & !is.na(plot_bodtyp.y)| 
@@ -226,5 +231,11 @@ nrow(org_plots_according_to_hori)
 soil_profiles_bze2_db %>% 
   semi_join(., anti_join(org_soils_types_db, org_plots_according_to_hori,  by = c("bfhnr" = "bfhnr_2") ), by =  "bfhnr" )
 
+
+org_soil_types_comp_db_hori <- 
+  full_join(org_soils_types_db, org_plots_according_to_hori %>% select(bfhnr_2, bodentyp_2), by = c("bfhnr" = "bfhnr_2")) %>% 
+  mutate(same_same_but_different = ifelse(plot_bodtyp != bodentyp_2 | 
+                                            is.na(plot_bodtyp) & !is.na(bodentyp_2)| 
+                                            !is.na(plot_bodtyp) & is.na(bodentyp_2), "different", "same"))
 
 
