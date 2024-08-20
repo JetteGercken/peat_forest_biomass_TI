@@ -11,7 +11,7 @@
 # The German soil Classification System uses the term ‘Moor’ (‘peatland’) for soil 
 # layers with 30% organic matter/humus content and a minimum depth of 30 cm (AG Boden 2005)
 # does that mean there has to be any horizont of 30cm depth that holds 30% SOM? 
-# or does it have to be the upper one? 
+# or does it have to be the upper on? 
 
 
 # 0.SETUP --------------------------------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ con <- sqlconnection(db_name, db_server,db_port, db_user, my_db_password)
 
 # 0.2.3. import dataset ----------------------------------------------------------------
 # names of the tables we want to import to our raw data folder: 
-data_table_names <- c("vm_allgemeintab_2", "vm_minboden_profil_2")
+data_table_names <- c("vm_allgemeintab_2", "vm_minboden_profil_2", "vm_minboden_element_gehalte_2")
 my.schema.name <- "bze2_extern"
 
 for (i in 1:length(data_table_names)) {
@@ -87,7 +87,7 @@ org_soils_analysis <-  read.delim(file = here("data/input/org_soil_types_BZE2.cs
 # organic soil types from Carina Peatzel
 org_soils_paetzel <- read.delim(file = here("data/input/org_plots_BZE2_BZE1_Paetzel.csv"), sep = ",", dec = ".")
 
-
+element_bze2_db <- read.delim(file = here("data/input/vm_minboden_element_gehalte_2.csv"), sep = ",", dec = ".") 
 
 # 1. identify organic sites ---------------------------------------------------------
 # possible names of organic soil types according to KA5
@@ -137,6 +137,17 @@ org_plots_according_to_hori <- soil_types_bze2_db %>%
   semi_join(., org_horizonts_db, by = c("bfhnr_2" = "bfhnr"))
 
 
+
+# for thickness we need: upper boarder of min horizin tnumber - lower boarder of max horizontnummer
+soil_profiles_bze2_db %>% filter(
+  # select organic horizonts only 
+  grepl(paste(org_horizonts, collapse = "|"), horizont, text, ignore.case = F) & 
+    # select bze2 data only
+    erhebjahr > 2000) %>% 
+  # select only max horizint number per plot among organic horizonts 
+  group_by(bfhnr, inventur, erhebjahr) %>% 
+  summarise(horinr_min  = min(horinr), 
+            horinr_max  = max(horinr))
 
 
 
@@ -238,4 +249,12 @@ org_soil_types_comp_db_hori <-
                                             is.na(plot_bodtyp) & !is.na(bodentyp_2)| 
                                             !is.na(plot_bodtyp) & is.na(bodentyp_2), "different", "same"))
 
+
+
+
+
+# 5. filter by carbon content in depth steps ------------------------------
+element_bze2_db %>% mutate(corg_percent = (m_ea_corg2/1000)*100, 
+                           thicknes = ut-ot) %>% filter(corg_percent >= 15 & thicknes >= 10) %>% 
+  
 
