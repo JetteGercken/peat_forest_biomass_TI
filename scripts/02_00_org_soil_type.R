@@ -42,10 +42,9 @@ my_db_password <- rstudioapi::askForPassword(prompt = "Please enter your passwor
 con <- sqlconnection(db_name, db_server,db_port, db_user, my_db_password)
 
 # 0.2.3. import dataset ----------------------------------------------------------------
+# 0.2.3.1. soil data ------------------------------------------------------
 # names of the tables we want to import to our raw data folder: 
-data_table_names <- c("vm_allgemeintab_2", "vm_minboden_profil_2", "vm_minboden_element_gehalte_2")
-my.schema.name <- "bze2_extern"
-
+soil_data_table_names <- c("vm_allgemeintab_2", "vm_minboden_profil_2", "vm_minboden_element_gehalte_2")
 for (i in 1:length(data_table_names)) {
   # i = 1
   # get table name
@@ -61,7 +60,8 @@ for (i in 1:length(data_table_names)) {
   # name dataframe and export it to raw data folder
   write.csv(df, paste0(here("data/raw"), "/", my.table.name, ".csv"), row.names = FALSE)
 }
-# 0.2.4. copy code files from raw data general to input general fo -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+## copy soil data files from raw data general to input general fo
 # copy everything imported from database from raw folder to input folder
 # 1. create raw data path: 
 raw.path.code <- paste0(here("data/raw"), "/")
@@ -73,6 +73,79 @@ input.path.code <- paste0(here("data/input"), "/")
 file.copy(from = paste0(raw.path.code, code.in.files),
           to = paste0(input.path.code, code.in.files),
           overwrite = TRUE)
+
+# 0.2.3.2. forest data ------------------------------------------------------
+# names of the tables we want to import to our raw data folder: 
+forest_data_table_names <- c("b2beab", "tit_1", "be", "beab", "be_waldraender", "bej", "bejb", "bedw", "bedw_liste", "punkt", "HBI_location")
+for (i in 1:length(forest_data_table_names)) {
+  # i = 1
+  # get table name
+  my.table.name <- forest_data_table_names[i]
+  # set schema name
+  my.schema.name <- "data"
+  # set database name 
+  db_name <- 'bze3_altdaten'
+  # set db connection
+  con <- sqlconnection(db_name, db_server, db_port, db_user, my_db_password)
+  # get table from database and transform into dataframe
+  df <- dbGetQuery(con, paste0("SELECT * FROM"," ", my.schema.name,".", my.table.name))
+  # name dataframe and export it to raw data folder
+  write.csv(df, paste0(here("data/raw"), "/", my.table.name, ".csv"), row.names = FALSE)
+}
+
+## copy soil data files from raw data general to input general fo
+# copy everything imported from database from raw folder to input folder
+# 1. create raw data path: 
+raw.path.code <- paste0(here("data/raw"), "/")
+# 2. get names of all files in the momok outout folder: https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/list.files
+code.in.files <- list.files(raw.path.code) 
+# 3. create input path
+input.path.code <- paste0(here("data/input"), "/")
+# copy the files from one filder to the other: https://statisticsglobe.com/move-files-between-folders-r
+file.copy(from = paste0(raw.path.code, code.in.files),
+          to = paste0(input.path.code, code.in.files),
+          overwrite = TRUE)
+
+
+
+
+
+
+
+
+# 0.2.3.3. code data ------------------------------------------------------
+# names of the tables we want to import to our raw data folder: 
+code_table_names <- c("neu_x_ld", "neu_k_tangenz", "x_bart_neu")
+for (i in 1:length(code_table_names)) {
+  # i = 1
+  # get table name
+  my.table.name <- code_table_names[i]
+  # set schema name
+  my.schema.name <- "code"
+  # set database name 
+  db_name <- 'bze3_altdaten'
+  # set db connection
+  con <- sqlconnection(db_name, db_server, db_port, db_user, my_db_password)
+  # get table from database and transform into dataframe
+  df <- dbGetQuery(con, paste0("SELECT * FROM"," ", my.schema.name,".", my.table.name))
+  # name dataframe and export it to raw data folder
+  write.csv(df, paste0(here("data/raw"), "/", my.table.name, ".csv"), row.names = FALSE)
+}
+
+## copy soil data files from raw data general to input general fo
+# copy everything imported from database from raw folder to input folder
+# 1. create raw data path: 
+raw.path.code <- paste0(here("data/raw"), "/")
+# 2. get names of all files in the momok outout folder: https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/list.files
+code.in.files <- list.files(raw.path.code) 
+# 3. create input path
+input.path.code <- paste0(here("data/input"), "/")
+# copy the files from one filder to the other: https://statisticsglobe.com/move-files-between-folders-r
+file.copy(from = paste0(raw.path.code, code.in.files),
+          to = paste0(input.path.code, code.in.files),
+          overwrite = TRUE)
+
+
 
 
 # 0.3. import data --------------------------------------------------------
@@ -111,46 +184,54 @@ org_soils_types_db <- soil_types_bze2_db %>%
 # if organic layer is Aa the horizont has to be at least 10cm thick
 # if organic layer contains H the horizont has to be at least 30cm thick? --> not true look at niedermoorgley :/ 
 
+
 org_horizonts_db <- 
-soil_profiles_bze2_db %>% 
-  filter(
-    # filter for organic horizonts only 
-  grepl(paste(org_horizonts, collapse = "|"), horizont, text, ignore.case = F) & 
-    # filter for BZE2 data only
-    erhebjahr > 2000) %>% 
-  arrange(bfhnr, inventur, erhebjahr, horinr) %>% 
-  # select only the deepest horizont
-  semi_join(., 
-    soil_profiles_bze2_db %>% filter(
-      # select organic horizonts only 
-    grepl(paste(org_horizonts, collapse = "|"), horizont, text, ignore.case = F) & 
-     # select bze2 data only
-       erhebjahr > 2000) %>% 
-      # select only max horizint number per plot among organic horizonts 
-      group_by(bfhnr, inventur, erhebjahr) %>% 
-      summarise(horinr  = max(horinr)), 
-    by = c("bfhnr", "inventur", "erhebjahr", "horinr")
-    ) %>% 
-  filter(ut >= 10) 
-
-org_plots_according_to_hori <- soil_types_bze2_db %>% 
-  semi_join(., org_horizonts_db, by = c("bfhnr_2" = "bfhnr"))
-
-
-
-# for thickness we need: upper boarder of min horizin tnumber - lower boarder of max horizontnummer
+  soil_profiles_bze2_db %>% 
+semi_join(., 
+  # for thickness we need: upper boarder of min horizin tnumber - lower boarder of max horizontnummer
 soil_profiles_bze2_db %>% filter(
   # select organic horizonts only 
   grepl(paste(org_horizonts, collapse = "|"), horizont, text, ignore.case = F) & 
     # select bze2 data only
-    erhebjahr > 2000) %>% 
+    inventur == 2) %>% 
+  mutate(org_hori_type = ifelse(grepl("H", horizont, text, ignore.case = F) == T, "H", "Aa")) %>% 
   # select only max horizint number per plot among organic horizonts 
-  group_by(bfhnr, inventur, erhebjahr) %>% 
-  summarise(horinr_min  = min(horinr), 
-            horinr_max  = max(horinr))
+  group_by(bfhnr, inventur, org_hori_type) %>% 
+  # select hghest and lowest boarder of organic horizionts
+  summarise(begin_org_hori  = min(ot), 
+            end_org_hori  = max(ut)) %>% 
+  # calcaulte depth of the AA or H horizont
+  mutate(depth = end_org_hori - begin_org_hori ) %>%
+  # select only those plots and horizonts where the organic horizont is thicket then 10cm
+  # due to the grouping by plot and organic horizint type (Aa or H) the filter will only select plots, that have at least one, or both organic horizonts with a depth of 10cm
+  filter(depth >= 10),
+by = c("bfhnr", "inventur"))
 
 
+# try to turn horizints into depth steps
+org_horizonts_db %>% 
+  mutate(org_hori_type = ifelse(grepl("H", horizont, text, ignore.case = F) == T, "H", "Aa"))
 
+soil_profiles_bze2_db %>% filter(
+  # select organic horizonts only 
+  grepl(paste(org_horizonts, collapse = "|"), horizont, text, ignore.case = F) & 
+    # select bze2 data only
+    inventur == 2) %>% 
+  mutate(org_hori_type = ifelse(grepl("H", horizont, text, ignore.case = F) == T, "H", "Aa")) %>% 
+  # select only max horizint number per plot among organic horizonts 
+  group_by(bfhnr, inventur, org_hori_type) %>% 
+  # select hghest and lowest boarder of organic horizionts
+  summarise(begin_org_hori  = min(ot), 
+            end_org_hori  = max(ut)) %>% 
+  # calcaulte depth of the AA or H horizont
+  mutate(depth = end_org_hori - begin_org_hori ) %>%
+  # select only those plots and horizonts where the organic horizont is thicket then 10cm
+  # due to the grouping by plot and organic horizint type (Aa or H) the filter will only select plots, that have at least one, or both organic horizonts with a depth of 10cm
+  filter(depth >= 10)
+
+
+org_plots_according_to_hori <- soil_types_bze2_db %>% 
+ semi_join(., org_horizonts_db %>% select(bfhnr) %>% distinct(), by = c("bfhnr_2" = "bfhnr"))
 
 
 
@@ -160,7 +241,7 @@ soil_profiles_bze2_db %>% filter(
 # offical bze2 database
 # select only organic soil types from database dataset
 org_soils_types_db <- soil_types_bze2_db %>%
-  filter(grepl(paste(org_soil_types, collapse = "|"), bodentyp_2, text, ignore.case = F) & erhebjahr_2 > 2000) %>% 
+  filter(grepl(paste(org_soil_types, collapse = "|"), bodentyp_2, text, ignore.case = F) ) %>%  # & erhebjahr_2 > 2000
   select(bfhnr_2, bodentyp_2) %>% 
   rename(., bfhnr = bfhnr_2) %>% 
   rename(., plot_bodtyp = bodentyp_2) %>% 
@@ -207,13 +288,8 @@ org_soil_types_comp_db_EG <-
 anti_join(org_soils_types_db, org_plots_according_to_hori,  by = c("bfhnr" = "bfhnr_2") ) #,  "plot_bodtyp"))
 # plot present in org_soils_types_db but not in org_soils_db 
 #    bfhnr    plot_bodtyp
-# 1  70109          HN
-# 2  80058       HN-SG
-# 3  80112          KV
-# 4  80206          KV
-# 5  80223          KV
-# 6  90877          GM
-# 7 120080          GH
+# 1  90877          GM
+# 2 120080          GH
 
 anti_join(org_plots_according_to_hori, org_soils_types_db,  by = c("bfhnr_2" = "bfhnr") ) %>% select(bfhnr_2 , bodentyp_2 )
 # plot present in org_plots_according_to_hori but not in org_soils_types_db 
@@ -223,19 +299,20 @@ anti_join(org_plots_according_to_hori, org_soils_types_db,  by = c("bfhnr_2" = "
 # 3    30602         SS
 # 4    70096         GG
 # 5    90578         GG
-# 6    90787      SS-GG
-# 7    90875      BB-RN
-# 8   120004         RZ
-# 9   120127         BB
-# 10  120129      RQ-BB
-# 11  120137         PP
-# 12  120150      GG-PP
-# 13  120159         GG
-# 14  120170         BB
+# 6    90755         SS
+# 7    90787      SS-GG
+# 8    90875      BB-RN
+# 9   120004         RZ
+# 10  120127         BB
+# 11  120129      RQ-BB
+# 12  120137         PP
+# 13  120150      GG-PP
+# 14  120159         GG
+# 15  120170         BB
 
 
 nrow(org_plots_according_to_hori)
-# numrber of rows: 45
+# numrber of rows: 51
 
 # the following plots do not qualy as organic due to their organic horizont thickness 
 # tho their soil type indicates they are organic
