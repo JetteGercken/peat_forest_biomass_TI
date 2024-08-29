@@ -1,0 +1,46 @@
+Jittered Boxplots with r-package "ggstatsplot"
+
+code example from Marius Moeller MA 2023:
+
+ggbetweenstats(data = box, x = group, y = SWC10,  # Change the color to red 
+                       group.order = group_order, messages = FALSE, 
+                       mean.color = "black", results.subtitle = FALSE,
+                       pairwise.comparisons = F, boxplot = F,
+                       centrality.point.args = 
+                         list(size = 7, color = "black"),
+                       boxplot.args = 
+                         list(width = 0.1, alpha = 0.1,na.rm = TRUE),
+                       centrality.label.args = 
+                         list(size = 7, nudge_x = 0.4,segment.linetype = 4,
+                              min.segment.length = 0),
+                       point.args = 
+                         list(position = ggplot2::position_jitterdodge(dodge.width = 1),
+                              alpha = 0.1, size = 3, stroke = 0, na.rm = TRUE))+
+  scale_color_manual(values = c("cornflowerblue", "cornflowerblue",
+                                "cornflowerblue",
+                                "cornflowerblue", "cornflowerblue",
+                                "cornflowerblue"))+
+# this section is just for plot appearance
+  labs(x="", y="SWC10 [vol%]")+
+  theme_gray()+
+  theme(
+    plot.title = element_text(face = "bold"),
+    text = element_text(size = 22),
+    axis.text = element_text(size = 25, color = "black"),
+    axis.title.y = element_text(size = 25, color = "black", face = "bold"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 25),
+    axis.text.x = element_text(angle = 50, hjust = 1, color = "black"),
+    legend.key.size = unit(2, "cm"),
+    legend.position = "none") +
+  coord_cartesian(ylim = c(0, 60))
+
+
+usefull links about this package:
+
+https://cran.r-project.org/web/packages/ggstatsplot/readme/README.html
+
+https://www.rdocumentation.org/packages/ggstatsplot/versions/0.5.0/topics/ggbetweenstats
+
+https://indrajeetpatil.github.io/ggstatsplot/reference/ggbetweenstats.html
+https://indrajeetpatil.github.io/ggstatsplot/articles/web_only/ggbetweenstats.html

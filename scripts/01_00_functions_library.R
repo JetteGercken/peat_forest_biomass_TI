@@ -6,102 +6,105 @@
 # ----- 0. SETUP ---------------------------------------------------------------
 # ----- 0.1. Packages  ---------------------------------------------------------
 ## datamanagement
-#   install.packages("usethis")
-#   install.packages('RPostgreSQL')
-#   install.packages("RPostgres")
-#   install.packages("DBI")
-#    install.packages("here")
-#    install.packages("readr")
-#    install.packages("tidyverse")
-#    install.packages("tibble")
-#    install.packages("dplyr")
-#    install.packages("data.table")
-#    install.packages("broom")
-#    install.packages("purrr")
-#    install.packages("devtools")
-#    install.packages("plyr")
-#   install.packages("RODBC")
-#   install.packages("rstudioapi")
-#   install.packages("gsubfn")
-#   install.packages("sjmisc")
-#    ## laTex
-#    install.packages("stargazer")  #for compatability with Latex
-#    install.packages("tikzDevice") #for compatability with Latex#
-#    # visualisation
-#    install.packages("ggthemes")
-#    install.packages("ggplot2")
-#    install.packages("reshape2") #for multiple y values
-#    install.packages("ggforce") #for zooming in parts of the plot
-#    install.packages("ggrepel")
-#    options(tz="CA")
-#    install.packages("reshape2")
-#    install.packages("gridExtra")
-#  # analysis
-#    install.packages("corrplot")
-#    install.packages("AICcmodavg")
-#  # forest related
-#     install.packages("forestmangr")
-#    install.packages("rBDAT")
-#    install.packages("TapeR")
-#   install.packages("pkgbuild")
-#  require("devtools")
-#    if (! require("remotes")) 
-#      install.packages("remotes")
-# #   remotes::install_gitlab("vochr/tapes", build_vignettes = TRUE)
-# #  remotes::install_gitlab("vochr/TapeS", build_vignettes = TRUE)
-#   install.packages("magrittr")
-# 
-#   if(!require(devtools)) install.packages("devtools")
-#   devtools::install_github("kassambara/ggcorrplot")
+ #  install.packages("usethis")
+ #   install.packages('RPostgreSQL')
+ #   install.packages("RPostgres")
+ #   install.packages("DBI")
+ #    install.packages("here")
+ #    install.packages("readr")
+ #   install.packages("tidyverse")
+ #    install.packages("tibble")
+ #    install.packages("dplyr")
+ #    install.packages("data.table")
+ #    install.packages("broom")
+ #    install.packages("purrr")
+ #    install.packages("devtools")
+ #    install.packages("plyr")
+ #   install.packages("RODBC")
+ #   install.packages("rstudioapi")
+ #   install.packages("gsubfn")
+ #   install.packages("sjmisc")
+ #   install.packages("stringr")
+ #    ## laTex
+ #    install.packages("stargazer")  #for compatability with Latex
+ #    install.packages("tikzDevice") #for compatability with Latex#
+ #    # visualisation
+ #    install.packages("ggthemes")
+ #    install.packages("ggplot2")
+ #    install.packages("reshape2") #for multiple y values
+ #    install.packages("ggforce") #for zooming in parts of the plot
+ #    install.packages("ggrepel")
+ #    options(tz="CA")
+ #    install.packages("reshape2")
+ #    install.packages("gridExtra")
+ #  # analysis
+ #    install.packages("corrplot")
+ #    install.packages("AICcmodavg")
+ #  # forest related
+ #     install.packages("forestmangr")
+ #    install.packages("rBDAT")
+ #    install.packages("TapeR")
+ #   install.packages("pkgbuild")
+ #  require("devtools")
+ #    if (! require("remotes")) 
+ #      install.packages("remotes")
+ # #   remotes::install_gitlab("vochr/tapes", build_vignettes = TRUE)
+ # #  remotes::install_gitlab("vochr/TapeS", build_vignettes = TRUE)
+ #   install.packages("magrittr")
+ # 
+ #   if(!require(devtools)) install.packages("devtools")
+ #   devtools::install_github("kassambara/ggcorrplot")
+ # 
+ #  # spatial
+ #   install.packages("sf")
+ #   install.packages("rgdal")
+ #   install.packages("terra")
+ #  install.packages("sfheaders")
+ # install.packages("splancs")
 
 
-#  # spatial
-#   install.packages("sf")
-#   install.packages("rgdal")
-#   install.packages("terra")
-#  install.packages("sfheaders")
-# install.packages("splancs")
- 
- 
 # ----- 0.2. require   ---------------------------------------------------------
-# datamanagement
-require(usethis)
+## datamanagement
+library(usethis)
+library(DBI)
 library(RPostgreSQL)
 library(RPostgres)
-library(DBI)
-require(here)
-require(readr)
-require(tidyverse)
-require(tibble)
-require(dplyr)
-require(data.table)
-require(broom)
-require(purrr)
-require(remotes)
-require(devtools)
+library(here)
+library(readr)
+## library(tidyverse)
+library(tidyr)
+library(tibble)
+library(dplyr)
+library(data.table)
+library(broom)
+library(purrr)
+library(remotes)
+# library(devtools)
 library(RODBC)
 library(rstudioapi)
 library(gsubfn)
+library(stringr)
 #require(plyr)
-# laTex
-require(stargazer)  #for compatability with Latex
-require(tikzDevice) #for compatability with Latex
-# visualisation
-require(ggthemes)
-require(ggplot2)
-require(reshape2) #for multiple y values
-require(ggforce) #for zooming in parts of the plot
-require(ggrepel)
-require(gridExtra)
+## laTex
+library(stargazer)  #for compatability with Latex
+library(tikzDevice) #for compatability with Latex
+## visualisation
+library(ggthemes)
+library(ggplot2)
+library(reshape2) #for multiple y values
+library(ggforce) #for zooming in parts of the plot
+library(ggrepel)
+library(gridExtra)
 options(tz="CA")
-# analysis
-require(corrplot)
-require(AICcmodavg)
-require(ggcorrplot)
-# forest related
-require(forestmangr)
-require(rBDAT)
-require(TapeR)
+## analysis
+library(corrplot)
+library(AICcmodavg)
+library(ggcorrplot)
+## forest related
+library(forestmangr)
+library(rBDAT)
+library(TapeR)
+
 if (! require("remotes")) 
   install.packages("remotes")
 require(remotes)
@@ -109,14 +112,14 @@ require(remotes)
 #remotes::install_gitlab("vochr/TapeS", build_vignettes = TRUE)
 require(TapeS)
 #require(tapes)
-require(magrittr)
-require(sjmisc)
-require(ggforce)                      # Load ggforce package
-# spatial 
-require(sf)
+library(magrittr)
+library(sjmisc)
+library(ggforce)                      # Load ggforce package
+## spatial 
+library(sf)
 # require(rgdal)
-require(terra)
-require(sfheaders)
+library(terra)
+library(sfheaders)
 library(splancs)
 
 
@@ -275,7 +278,7 @@ DBH_Dahm <- function(plot.id, d.mm, d.h.cm, spec){
   # the DBH tangez region 
   # https://www.geeksforgeeks.org/count-number-of-characters-in-string-in-r/
   # https://stackoverflow.com/questions/61954941/extract-first-x-digits-of-n-digit-numbers
-  ld_icode <- ifelse(str_length(plot.id) == 5, substr(plot.id, 1, 1), substr(plot.id, 1, 2))
+  ld_icode <- ifelse(stringr::str_length(plot.id) == 5, substr(plot.id, 1, 1), substr(plot.id, 1, 2))
   #ld <- DBH_region$icode_reg[which(grepl(ld_plot, DBH_region$icode_reg))]
   # select the region belonign to the state that belongs to the plot_ID from DBH_region dataset 
   reg_tan <- unique(DBH_region$region[which(DBH_region$icode_reg %in% ld_icode)])
@@ -1229,7 +1232,7 @@ h_proportional <- function(dg.cm, hg.m, dbh.cm){
 # https://www.geeksforgeeks.org/check-if-a-numeric-value-falls-between-a-range-in-r-programming-between-function/
 inv_name <- function(inv.year){
   inv <- ifelse(inv.year < 2004, "warning", 
-                ifelse(between(inv.year, 2005, 2007), "BZE2", 
+                ifelse(between(inv.year, 2005, 2010), "BZE2", 
                 ifelse(between(inv.year, 2011, 2013), "HBI", 
                 ifelse(between(inv.year, 2022, 2025), "BZE3",
                        ifelse(between(inv.year, 2033, 2035) , "BZE4", "BZE5"
@@ -1838,6 +1841,25 @@ sqlconnection <- function(my_db, my_server, my_port, my_username, my_passwort){
   return(dbconnection)
   }
  
+
+
+# 1.20. horizont to depth steps -------------------------------------------
+# goal of this function is to translate the horizont boarders in depth steps 
+# or to identify the depth step the horizont is located in we first assign the 
+# depth step to the upper and lower boarder of the horizont
+
+depth_class <- function(hori.limit.cm){
+ depth.class <-  ifelse(hori.limit.cm <=5, 1, 
+                        ifelse(hori.limit.cm > 5 & hori.limit.cm <=10, 2, 
+                               ifelse(hori.limit.cm > 10 & hori.limit.cm <=30, 3,
+                                      ifelse(hori.limit.cm > 30 & hori.limit.cm <=60, 4, 
+                                             ifelse(hori.limit.cm > 60, 5, 
+                                                    NA
+                                      )))));
+ return(depth.class)
+}
+
+
 
 
 # 2. writing datasets 11.12.2023 ----------------------------------------------------------------

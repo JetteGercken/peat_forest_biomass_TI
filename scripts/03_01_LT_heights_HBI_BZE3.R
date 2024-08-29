@@ -13,21 +13,21 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 # ----- 0.2. working directory -------------------------------------------------
 here::here()
 
-out.path.BZE3 <- ("output/out_data/out_data_BZE/") 
+out.path <- here("output/out_data/") 
 
 # ----- 0.3 data import --------------------------------------------------------
 # LIVING TREES
 # hbi BE dataset: 
   # this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
   # here we import a dataset called "HBI_LT_update_2.csv" which contains plot area and stand data additionally to the original tree data
-HBI_trees <- read.delim(file = here(paste0(out.path.BZE3, "HBI_LT_update_1.csv")), sep = ",", dec = ".")
-HBI_trees_removed <- read.delim(file = here(paste0(out.path.BZE3, (HBI_trees$inv)[1], "_LT_removed.csv")), sep = ",", dec = ".")
+HBI_trees <- read.delim(file = here(out.path, "HBI_LT_update_1.csv"), sep = ",", dec = ".")
+HBI_trees_removed <- read.delim(file = here(out.path, paste0((HBI_trees$inv)[1], "_LT_removed.csv")), sep = ";", dec = ".")
 
 # BZE3 BE dataset: 
 # this dataset contains the inventory data of the tree inventory accompanying the third national soil inventory
 # here we import a dataset called "BZE3_LT_update_2.csv" which contains plot area and stand data additionally to the original tree data
-BZE3_trees <- read.delim(file = here(paste0(out.path.BZE3, "BZE3_LT_update_2.csv")), sep = ",", dec = ".")
-BZE3_trees_removed <- read.delim(file = here(paste0(out.path.BZE3, (BZE3_trees$inv)[1], "_LT_removed.csv")), sep = ",", dec = ".")
+BZE3_trees <- read.delim(file = here(out.path, "BZE3_LT_update_2.csv"), sep = ",", dec = ".")
+BZE3_trees_removed <- read.delim(file = here(out.path, paste0((BZE3_trees$inv)[1], "_LT_removed.csv")), sep = ",", dec = ".")
 
 
 # ----- 0.6 harmonising column names & structure  -----------------------------------------------------------------
@@ -51,8 +51,9 @@ BZE3_trees[,c("plot_A_ha", "area_m2", "X_tree",  "Y_tree",
 
 
 # 1. joining in external info  -------------------------------------------------
-trees_total <- rbind(HBI_trees, BZE3_trees %>% 
-            select(c(colnames(HBI_trees)))) %>%
+trees_total <- HBI_trees %>% 
+   # rbind(HBI_trees, BZE3_trees %>% 
+   #          select(c(colnames(HBI_trees)))) %>%
 # calcualte diameter and change units -----------------------------------
   mutate(H_m = H_dm/10, 
          DBH_h_m = DBH_h_cm/100) %>%                               # change unit of DBH measuring height from cm into m by dividing by 100  
@@ -193,7 +194,7 @@ HBI_trees_update_3 <-     # this should actually be the BZE3 Datset
   trees_total %>% 
   filter(inv=="HBI")%>% 
 ## joining coefficients and Hg-Dg-data in
-  unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE) %>%            # create column matching vectorised coefficients of coeff_SP_P (1.3. functions, h_nls_SP_P, dplyr::pull)
+tidyr::unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE) %>%            # create column matching vectorised coefficients of coeff_SP_P (1.3. functions, h_nls_SP_P, dplyr::pull)
   left_join(.,coeff_H_SP_P %>%                                              # joining R2 from coeff_SP_P -> R2.x
               select(plot_ID, SP_code, R2) %>% 
               unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE),   # create column matching vectorised coefficients of coeff_SP_P (1.3. functions, h_nls_SP_P, dplyr::pull)
@@ -292,19 +293,19 @@ BZE3_trees_update_3 <-  trees_total %>%
 
 # ---- 1.1.2.6. exporting dataset --------------------------
  # height nls coefficients
-write.csv(coeff_H_comb, paste0(out.path.BZE3, paste("coef_H", unique(HBI_trees_update_3$inv)[1], unique(BZE3_trees_update_3$inv)[1], sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(coeff_H_comb, paste0(out.path, paste("coef_H", unique(HBI_trees_update_3$inv)[1], unique(BZE3_trees_update_3$inv)[1], sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
                                
 # HBI dataset including estimated heights
-write.csv(HBI_trees_update_3, paste0(out.path.BZE3, paste(unique(HBI_trees_update_3$inv)[1], "LT_update_3", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
-write.csv(HBI_trees_removed, paste0(out.path.BZE3, paste(unique(HBI_trees_update_3$inv)[1], "LT_removed", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(HBI_trees_update_3, paste0(out.path, paste(unique(HBI_trees_update_3$inv)[1], "LT_update_3", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(HBI_trees_removed, paste0(out.path, paste(unique(HBI_trees_update_3$inv)[1], "LT_removed", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 # BZE3 dataset including estimated heights
-write.csv(BZE3_trees_update_3, paste0(out.path.BZE3, paste(unique(BZE3_trees_update_3$inv)[1], "LT_update_3", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
-write.csv(BZE3_trees_removed, paste0(out.path.BZE3, paste(unique(BZE3_trees_update_3$inv)[1], "LT_removed", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(BZE3_trees_update_3, paste0(out.path, paste(unique(BZE3_trees_update_3$inv)[1], "LT_update_3", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(BZE3_trees_removed, paste0(out.path, paste(unique(BZE3_trees_update_3$inv)[1], "LT_removed", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 
 
-#write.csv(HBI_trees_removed_3,  paste0(out.path.BZE3, paste(unique(BZE3_trees_update_3$inv)[1], "weird_sloboda_heights", sep = "_"), ".csv"))
+#write.csv(HBI_trees_removed_3,  paste0(out.path, paste(unique(BZE3_trees_update_3$inv)[1], "weird_sloboda_heights", sep = "_"), ".csv"))
 
 
 
