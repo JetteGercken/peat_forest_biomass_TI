@@ -19,10 +19,13 @@
 source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 
 
+<<<<<<< HEAD
 # 0.2. outpath ------------------------------------------------------------
 # from getwd() or here() onwards, this path leads to the folder where all data ist stored
 out.path <- here("output/out_data//") 
 
+=======
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 # 0.3. import data --------------------------------------------------------
 # soil types database
 soil_types_bze2_db <-  read.delim(file = here("data/input/vm_allgemeintab_2.csv"), sep = ",", dec = ".") 
@@ -38,11 +41,14 @@ org_soils_paetzel <- read.delim(file = here("data/input/org_plots_BZE2_BZE1_Paet
 element_bze2_db <- read.delim(file = here("data/input/vm_minboden_element_gehalte_2.csv"), sep = ",", dec = ".") 
 
 
+<<<<<<< HEAD
 # 0.4. data prep & clearing -----------------------------------------------
 # remove "empty" columns
 soil_profiles_bze2_db <- soil_profiles_bze2_db[soil_profiles_bze2_db$horizont != -9 & soil_profiles_bze2_db$inventur == 2, ]
 
 
+=======
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 
 
 # 1. identify organic sites ---------------------------------------------------------

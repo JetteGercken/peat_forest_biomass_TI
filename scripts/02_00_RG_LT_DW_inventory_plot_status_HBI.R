@@ -111,8 +111,12 @@ momok_plot_ids <-  na.omit(plyr::rbind.fill(read.delim(file = here("data/input/L
 ## BZE 2
 # this dataset contains the BZE file tit_1 which displays info about the BZE inventory in general
 # so info that´s base of all sub inventories like trees, deadwood, regeneration
+<<<<<<< HEAD
 inv_info <- plyr::rbind.fill(read.delim(file = here("data/input/tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(-c("re_form", "re_lage", "neigung", "exposition", "anmerkung")), 
                              read.delim(file = here("data/input/momok_tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(-c("re_form", "re_lage", "neigung", "exposition", "anmerkung")))
+=======
+inv_info <- read.delim(file = here("data/input/tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(-c("re_form", "re_lage", "neigung", "exposition", "anmerkung"))
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 colnames(inv_info) <- c("plot_ID", "team", "date", "plot_inv_status")
 # create column that just contains year of inventory: https://www.geeksforgeeks.org/how-to-extract-year-from-date-in-r/
 inv_info$date <- as.Date(inv_info$date)
@@ -123,8 +127,12 @@ inv_info <- inv_info %>% mutate(inv = ifelse(plot_ID %in% momok_plot_ids$bund_nr
 
 ## LIVING TREES
 # this dataset contains information about the inventory of the respective individual sampling circuits as well as stand realted info like stand type & - structure
+<<<<<<< HEAD
 tree_inv_info <-  plyr::rbind.fill(read.delim(file = here("data/input/be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
                                    read.delim(file = here("data/input/momok_be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE))%>% # be
+=======
+tree_inv_info <-  read.delim(file = here("data/input/be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% # be
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
   select(bund_nr, team,  datum,  beart, besttyp, struktur,  pk1_aufnahme,   pk2_aufnahme, pk3_aufnahme, hbi_status)
 colnames(tree_inv_info) <- c("plot_ID", "team", "date", "stand_spec", "stand_type", "structure", 
                              "CCS_5_inv_status",  "CCS_12_inv_status",  "CCS_17_inv_status" , "hbi_status")
@@ -142,8 +150,12 @@ tree_inv_info <- tree_inv_info %>% mutate(inv = ifelse(plot_ID %in% momok_plot_i
 
 
 # HBI BE dataset: this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
+<<<<<<< HEAD
 trees_data <- plyr::rbind.fill(read.delim(file = here("data/input/beab.csv"), sep = ",", dec = "."), 
                                read.delim(file = here("data/input/momok_beab.csv"), sep = ",", dec = "."))
+=======
+trees_data <- read.delim(file = here("data/input/beab.csv"), sep = ",", dec = ".")
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 # HBI trees
 colnames(trees_data) <- c("plot_ID", "tree_ID", "tree_inventory_status", "multi_stem",  "SP_code", "age", 
                           "age_meth", "D_mm", "DBH_h_cm", "H_dm", "C_h_dm", "azi_gon", "dist_cm", "Kraft",  "C_layer")
@@ -157,14 +169,22 @@ colnames(forest_edges) <- c("plot_ID", "e_ID", "e_type", "e_form", "A_dist", "A_
 
 ## REGENERATION                                                                                                  
 # this dataset contains the inventory status, position and extend of the sampling circle satelites of the regeneration inventory of the HBI (BZE2) 
+<<<<<<< HEAD
 RG_loc_info <- plyr::rbind.fill(read.delim(file = here("data/input/bej.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
                                 read.delim(file = here("data/input/momok_bej.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE))%>% 
+=======
+RG_loc_info <- read.delim(file = here("data/input/bej.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% 
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
   select(bund_nr, pk_nr, pk_richtung, pk_dist, pk_aufnahme ,pk_maxdist)
 # assign column names    # bund_nr     pk_nr      pk_richtung     pk_dist     pk_aufnahme      pk_maxdist
 colnames(RG_loc_info) <- c("plot_ID", "CCS_nr", "CCS_position",  "CCS_dist", "CCS_RG_inv_status", "CCS_max_dist_cm")
 # this dataset contains the plant specific inventory data of the regenertaion inventory of the HBI (BZE2), including stand and area info
+<<<<<<< HEAD
 RG_data <- plyr::rbind.fill(read.delim(file = here("data/input/bejb.csv"), sep = ",", dec = ","), 
                             read.delim(file = here("data/input/momok_bejb.csv"), sep = ",", dec = ","))
+=======
+RG_data <- read.delim(file = here("data/input/bejb.csv"), sep = ",", dec = ",")
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 #  "bund_nr"  "pk_nr"  "lfd_nr"   "bart"  "hoehe"    "grklasse"
 colnames(RG_data) <- c("plot_ID", "CCS_nr", "tree_ID", "SP_code", "H_cm", "D_class_cm")
 
@@ -172,12 +192,19 @@ colnames(RG_data) <- c("plot_ID", "CCS_nr", "tree_ID", "SP_code", "H_cm", "D_cla
 
 ##DEADWOOD
 # deadwood inventory info 
+<<<<<<< HEAD
 DW_inv_info <- plyr::rbind.fill(read.delim(file = here("data/input/be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
                                 read.delim(file = here("data/input/momok_be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE))
 colnames(DW_inv_info) <- c("plot_ID", "CCS_DW_inv_status",  "dist_cm", "azi")
 # deadwood single item data
 DW_data <- plyr::rbind.fill(read.delim(file = here("data/input/be_totholz_liste.csv"), sep = ",", dec = "."), 
                             read.delim(file = here("data/input/momok_be_totholz_liste.csv"), sep = ",", dec = ".") )%>% 
+=======
+DW_inv_info <- read.delim(file = here("data/input/be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) 
+colnames(DW_inv_info) <- c("plot_ID", "CCS_DW_inv_status",  "dist_cm", "azi")
+# deadwood single item data
+DW_data <- read.delim(file = here("data/input/be_totholz_liste.csv"), sep = ",", dec = ".") %>% 
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
   select( bund_nr, lfd_nr, typ, baumgruppe, anzahl,  durchmesser, laenge, zersetzung)
 #  bund_nr lfd_nr typ      baumgruppe anzahl  durchmesser laenge zersetzung
 colnames(DW_data) <- c("plot_ID", "tree_ID", "dw_type", "dw_sp", "count", "d_cm", "l_dm", "decay")

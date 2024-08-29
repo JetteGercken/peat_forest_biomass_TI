@@ -572,6 +572,7 @@
 50146,"Milbert/Busch",2006-09-18,11,2006,"BZE2"
 60001,"Drolshagen",2006-06-12,0,2006,"BZE2"
 60002,"Drolshagen",2006-06-12,0,2006,"BZE2"
+<<<<<<< HEAD
 60003,"Fahrig",2008-04-04,0,2008,"BZE2"
 60004,"Rosenberger",2006-10-12,0,2006,"BZE2"
 60005,"Drolshagen",2006-04-20,0,2006,"BZE2"
@@ -581,24 +582,48 @@
 60009,"Fahrig",2008-04-22,0,2008,"BZE2"
 60010,"DrolshagenRosenberger",2006-05-22,0,2006,"BZE2"
 60011,"Fahrig",2008-08-11,0,2008,"BZE2"
+=======
+60003,"Fahrig",2008-04-04,0,2008,"BZE5"
+60004,"Rosenberger",2006-10-12,0,2006,"BZE2"
+60005,"Drolshagen",2006-04-20,0,2006,"BZE2"
+60006,"Rosenberger",2006-09-21,0,2006,"BZE2"
+60007,"Fahrig",2008-05-20,0,2008,"BZE5"
+60008,"Fahrig",2008-05-21,0,2008,"BZE5"
+60009,"Fahrig",2008-04-22,0,2008,"BZE5"
+60010,"DrolshagenRosenberger",2006-05-22,0,2006,"BZE2"
+60011,"Fahrig",2008-08-11,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 60013,"Rosenberger",2006-05-31,0,2006,"BZE2"
 60014,"Fahrig",2007-10-17,0,2007,"BZE2"
 60015,"FahrigKasel",2007-10-15,0,2007,"BZE2"
 60016,"Rosenberger",2006-04-19,0,2006,"BZE2"
 60017,"Rosenberger",2006-09-05,0,2006,"BZE2"
+<<<<<<< HEAD
 60018,"Rosenberger",2008-04-01,0,2008,"BZE2"
 60019,"Fahrig",2008-05-15,0,2008,"BZE2"
 60020,"Fahrig",2007-10-24,0,2007,"BZE2"
 60021,"Rosenberger",2006-09-06,0,2006,"BZE2"
 60022,"FahrigRosenberger",2007-04-25,0,2007,"BZE2"
 60023,"FahrigRosenberger",2008-10-01,0,2008,"BZE2"
+=======
+60018,"Rosenberger",2008-04-01,0,2008,"BZE5"
+60019,"Fahrig",2008-05-15,0,2008,"BZE5"
+60020,"Fahrig",2007-10-24,0,2007,"BZE2"
+60021,"Rosenberger",2006-09-06,0,2006,"BZE2"
+60022,"FahrigRosenberger",2007-04-25,0,2007,"BZE2"
+60023,"FahrigRosenberger",2008-10-01,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 60024,"FahrigRosenberger",2007-06-28,0,2007,"BZE2"
 60025,"FahrigRosenberger",2007-07-03,0,2007,"BZE2"
 60026,"Fahrig",2007-06-04,0,2007,"BZE2"
 60027,"Fahrig",2007-10-11,0,2007,"BZE2"
 60028,"FahrigHornung",2007-11-29,0,2007,"BZE2"
 60029,"DrolshagenRosenberger",2006-10-10,0,2006,"BZE2"
+<<<<<<< HEAD
 60030,"Fahrig",2008-04-24,0,2008,"BZE2"
+=======
+60030,"Fahrig",2008-04-24,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 60031,"Fahrig",2007-07-04,0,2007,"BZE2"
 60032,"Fahrig",2007-07-05,0,2007,"BZE2"
 60033,"Fahrig",2007-07-31,0,2007,"BZE2"
@@ -607,26 +632,44 @@
 60036,"Rosenberger",2006-06-07,0,2006,"BZE2"
 60037,"DrolshagenRosenberger",2006-07-04,0,2006,"BZE2"
 60038,"Rosenberger",2006-08-01,0,2006,"BZE2"
+<<<<<<< HEAD
 60039,"Fahrig",2008-10-14,0,2008,"BZE2"
+=======
+60039,"Fahrig",2008-10-14,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 60040,"Drolshagen",2006-06-13,0,2006,"BZE2"
 60041,"FahrigKasel",2007-06-20,0,2007,"BZE2"
 60042,"Fahrig",2007-06-20,0,2007,"BZE2"
 60043,"Fahrig",2007-05-31,0,2007,"BZE2"
+<<<<<<< HEAD
 60044,"Fahrig",2008-08-21,0,2008,"BZE2"
+=======
+60044,"Fahrig",2008-08-21,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 60045,"Rosenberger",2006-10-17,0,2006,"BZE2"
 60046,"EmmerichFahrig",2007-05-30,0,2007,"BZE2"
 60047,"FahrigRosenberger",2007-06-13,0,2007,"BZE2"
 60048,"FahrigKasel",2007-06-19,0,2007,"BZE2"
 60049,"Fahrig",2007-06-18,0,2007,"BZE2"
+<<<<<<< HEAD
 60050,"Rosenberger",2008-06-16,0,2008,"BZE2"
 60051,"Fahrig",2008-04-21,0,2008,"BZE2"
+=======
+60050,"Rosenberger",2008-06-16,0,2008,"BZE5"
+60051,"Fahrig",2008-04-21,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 60052,"Fahrig",2007-07-11,0,2007,"BZE2"
 60053,"Fahrig",2007-03-01,0,2007,"BZE2"
 60054,"Fahrig",2007-07-12,0,2007,"BZE2"
 60055,"Fahrig",2007-07-10,0,2007,"BZE2"
 60056,"Fahrig",2007-04-26,0,2007,"BZE2"
+<<<<<<< HEAD
 60057,"HornungGuillet",2008-07-24,0,2008,"BZE2"
 60058,"Fahrig",2008-08-20,0,2008,"BZE2"
+=======
+60057,"HornungGuillet",2008-07-24,0,2008,"BZE5"
+60058,"Fahrig",2008-08-20,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 60059,"Fahrig",2007-10-31,0,2007,"BZE2"
 60060,"Fahrig",2007-08-23,0,2007,"BZE2"
 60061,"Fahrig",2007-08-22,0,2007,"BZE2"
@@ -640,7 +683,11 @@
 60069,"Fahrig",2007-07-25,0,2007,"BZE2"
 60070,"Fahrig",2007-07-25,0,2007,"BZE2"
 60071,"Fahrig",2007-09-10,0,2007,"BZE2"
+<<<<<<< HEAD
 60072,"Fahrig",2008-05-02,0,2008,"BZE2"
+=======
+60072,"Fahrig",2008-05-02,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 60073,"Fahrig",2007-07-24,0,2007,"BZE2"
 90098,"-2",1970-01-01,25,1970,"warning"
 60074,"Fahrig",2007-07-26,0,2007,"BZE2"
@@ -653,7 +700,11 @@
 60081,"Fahrig",2007-09-04,0,2007,"BZE2"
 60082,"Rosenberger",2006-10-26,0,2006,"BZE2"
 60083,"Rosenberger",2007-03-15,0,2007,"BZE2"
+<<<<<<< HEAD
 60084,"Fahrig",2008-05-26,0,2008,"BZE2"
+=======
+60084,"Fahrig",2008-05-26,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 60085,"Rosenberger",2006-09-14,0,2006,"BZE2"
 60086,"Fahrig",2007-09-18,0,2007,"BZE2"
 60087,"DrolshagenRosenberger",2006-10-31,0,2006,"BZE2"
@@ -670,6 +721,7 @@
 60098,"Fahrig",2007-08-28,0,2007,"BZE2"
 60099,"Fahrig",2007-09-12,0,2007,"BZE2"
 60100,"Rosenberger",2007-05-07,0,2007,"BZE2"
+<<<<<<< HEAD
 60101,"Fahrig",2008-05-27,0,2008,"BZE2"
 60102,"Fahrig",2008-05-28,0,2008,"BZE2"
 60103,"Rosenberger",2006-09-12,0,2006,"BZE2"
@@ -680,6 +732,18 @@
 60108,"Rosenberger",2008-10-02,0,2008,"BZE2"
 60109,"Drolshagen",2006-10-09,0,2006,"BZE2"
 60110,"Fahrig",2008-04-17,0,2008,"BZE2"
+=======
+60101,"Fahrig",2008-05-27,0,2008,"BZE5"
+60102,"Fahrig",2008-05-28,0,2008,"BZE5"
+60103,"Rosenberger",2006-09-12,0,2006,"BZE2"
+60104,"Fahrig",2007-06-05,0,2007,"BZE2"
+60105,"Fahrig",2007-10-25,0,2007,"BZE2"
+60106,"Fahrig",2008-04-10,0,2008,"BZE5"
+60107,"Rosenberger",2008-09-29,0,2008,"BZE5"
+60108,"Rosenberger",2008-10-02,0,2008,"BZE5"
+60109,"Drolshagen",2006-10-09,0,2006,"BZE2"
+60110,"Fahrig",2008-04-17,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 60111,"Fahrig",2006-05-04,0,2006,"BZE2"
 60112,"Emmerich",2006-05-02,0,2006,"BZE2"
 60113,"Fahrig",2007-10-22,0,2007,"BZE2"
@@ -692,7 +756,11 @@
 60120,"Rosenberger",2006-10-25,0,2006,"BZE2"
 60121,"KaselRosenberger",2006-03-23,0,2006,"BZE2"
 60122,"Fahrig",2007-08-02,0,2007,"BZE2"
+<<<<<<< HEAD
 60123,"Hornung",2008-09-10,0,2008,"BZE2"
+=======
+60123,"Hornung",2008-09-10,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 60124,"Rosenberger",2006-05-11,0,2006,"BZE2"
 60125,"Rosenberger",2006-05-10,0,2006,"BZE2"
 60126,"Rosenberger",2006-07-11,0,2006,"BZE2"
@@ -707,8 +775,13 @@
 60135,"Fahrig",2007-09-03,0,2007,"BZE2"
 60136,"Rosenberger",2006-07-13,0,2006,"BZE2"
 90099,"-2",1970-01-01,25,1970,"warning"
+<<<<<<< HEAD
 60137,"FahrigGuillet",2008-07-28,0,2008,"BZE2"
 60138,"FahrigRosenberger",2008-10-15,0,2008,"BZE2"
+=======
+60137,"FahrigGuillet",2008-07-28,0,2008,"BZE5"
+60138,"FahrigRosenberger",2008-10-15,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 60139,"Rosenberger",2006-07-12,0,2006,"BZE2"
 70001,"Blessinger",2006-05-09,0,2006,"BZE2"
 70002,"Rieger",2006-05-29,0,2006,"BZE2"
@@ -902,7 +975,11 @@
 80025,"Buberl, H./Marks, U. /Niederberger, R.",2006-06-01,0,2006,"BZE2"
 80026,"Buberl, H./Marks, U. /Niederberger, R.",2007-10-01,0,2007,"BZE2"
 80027,"Buberl, H./Marks, U. /Niederberger, R.",2007-05-02,0,2007,"BZE2"
+<<<<<<< HEAD
 80028,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-30,0,2008,"BZE2"
+=======
+80028,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-30,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80029,"Buberl, H./Marks, U. /Niederberger, R.",2006-12-04,0,2006,"BZE2"
 80030,"Buberl, H./Marks, U. /Niederberger, R.",2006-06-29,0,2006,"BZE2"
 80031,"Buberl, H./Marks, U. /Niederberger, R.",2006-06-08,0,2006,"BZE2"
@@ -912,8 +989,13 @@
 80035,"Buberl, H./Marks, U. /Niederberger, R.",2006-05-17,0,2006,"BZE2"
 80036,"Buberl, H./Marks, U. /Niederberger, R.",2006-06-06,0,2006,"BZE2"
 80037,"Buberl, H./Marks, U. /Niederberger, R.",2006-08-03,0,2006,"BZE2"
+<<<<<<< HEAD
 80038,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-10,0,2008,"BZE2"
 80039,"Buberl, H./Marks, U. /Niederberger, R.",2008-05-08,0,2008,"BZE2"
+=======
+80038,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-10,0,2008,"BZE5"
+80039,"Buberl, H./Marks, U. /Niederberger, R.",2008-05-08,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80040,"Buberl, H./Marks, U. /Niederberger, R.",2006-11-07,0,2006,"BZE2"
 80041,"Buberl, H./Marks, U. /Niederberger, R.",2006-07-12,0,2006,"BZE2"
 80042,"Buberl, H./Marks, U. /Niederberger, R.",2006-05-12,0,2006,"BZE2"
@@ -921,10 +1003,17 @@
 80044,"Buberl, H./Marks, U. /Niederberger, R.",2006-05-08,0,2006,"BZE2"
 80045,"Buberl, H./Marks, U. /Niederberger, R.",2006-05-10,0,2006,"BZE2"
 80046,"Buberl, H./Marks, U. /Niederberger, R.",2006-08-01,0,2006,"BZE2"
+<<<<<<< HEAD
 80047,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-09,0,2008,"BZE2"
 80048,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-08,0,2008,"BZE2"
 80049,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-02,0,2008,"BZE2"
 80050,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-30,0,2008,"BZE2"
+=======
+80047,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-09,0,2008,"BZE5"
+80048,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-08,0,2008,"BZE5"
+80049,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-02,0,2008,"BZE5"
+80050,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-30,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80051,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-23,0,2007,"BZE2"
 80052,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-22,0,2007,"BZE2"
 80053,"Buberl, H./Marks, U. /Niederberger, R.",2007-09-04,0,2007,"BZE2"
@@ -933,17 +1022,29 @@
 80056,"Buberl, H./Marks, U. /Niederberger, R.",2007-04-24,0,2007,"BZE2"
 80057,"Buberl, H./Marks, U. /Niederberger, R.",2007-04-23,0,2007,"BZE2"
 80058,"Buberl, H./Marks, U. /Niederberger, R.",2006-07-31,0,2006,"BZE2"
+<<<<<<< HEAD
 80059,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-14,0,2008,"BZE2"
 80060,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-01,0,2008,"BZE2"
 80061,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-01,0,2008,"BZE2"
+=======
+80059,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-14,0,2008,"BZE5"
+80060,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-01,0,2008,"BZE5"
+80061,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-01,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80062,"Buberl, H./Marks, U. /Niederberger, R.",2007-10-18,0,2007,"BZE2"
 80063,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-23,0,2007,"BZE2"
 80064,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-22,0,2007,"BZE2"
 80065,"Buberl, H./Marks, U. /Niederberger, R.",2007-09-04,0,2007,"BZE2"
 80066,"Buberl, H./Marks, U. /Niederberger, R.",2007-09-05,0,2007,"BZE2"
+<<<<<<< HEAD
 80067,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-15,0,2008,"BZE2"
 80068,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-16,0,2008,"BZE2"
 80069,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-15,0,2008,"BZE2"
+=======
+80067,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-15,0,2008,"BZE5"
+80068,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-16,0,2008,"BZE5"
+80069,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-15,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80070,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-30,0,2007,"BZE2"
 80071,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-28,0,2007,"BZE2"
 80072,"Buberl, H./Marks, U. /Niederberger, R.",2007-09-06,0,2007,"BZE2"
@@ -952,7 +1053,11 @@
 80075,"Buberl, H./Marks, U. /Niederberger, R.",2007-10-10,0,2007,"BZE2"
 80076,"Buberl, H./Marks, U. /Niederberger, R.",2007-10-11,0,2007,"BZE2"
 80077,"Buberl, H./Marks, U. /Niederberger, R.",2006-11-09,0,2006,"BZE2"
+<<<<<<< HEAD
 80078,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-16,0,2008,"BZE2"
+=======
+80078,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-16,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80079,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-30,0,2007,"BZE2"
 80080,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-28,0,2007,"BZE2"
 80081,"Buberl, H./Marks, U. /Niederberger, R.",2007-09-11,0,2007,"BZE2"
@@ -975,6 +1080,7 @@
 80097,"Buberl, H./Marks, U. /Niederberger, R.",2006-06-20,0,2006,"BZE2"
 80098,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-07,0,2007,"BZE2"
 80099,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-08,0,2007,"BZE2"
+<<<<<<< HEAD
 80100,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-31,0,2008,"BZE2"
 80101,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-28,0,2008,"BZE2"
 80102,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-17,0,2008,"BZE2"
@@ -1019,11 +1125,61 @@
 80141,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-24,0,2008,"BZE2"
 80142,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-16,0,2008,"BZE2"
 80143,"Buberl, H./Marks, U. /Niederberger, R.",2008-08-07,0,2008,"BZE2"
+=======
+80100,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-31,0,2008,"BZE5"
+80101,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-28,0,2008,"BZE5"
+80102,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-17,0,2008,"BZE5"
+80103,"Buberl, H./Marks, U. /Niederberger, R.",2007-10-17,0,2007,"BZE2"
+80104,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-16,0,2008,"BZE5"
+80105,"Buberl, H./Marks, U. /Niederberger, R.",2006-10-18,0,2006,"BZE2"
+80106,"Buberl, H./Marks, U. /Niederberger, R.",2006-07-04,0,2006,"BZE2"
+80107,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-30,0,2008,"BZE5"
+80108,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-18,0,2008,"BZE5"
+80109,"-2",1970-01-01,27,1970,"warning"
+80110,"Buberl, H./Marks, U. /Niederberger, R.",2006-07-06,0,2006,"BZE2"
+80111,"Buberl, H./Marks, U. /Niederberger, R.",2006-07-04,0,2006,"BZE2"
+80112,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-24,0,2008,"BZE5"
+80113,"Buberl, H./Marks, U. /Niederberger, R.",2009-09-03,0,2009,"BZE5"
+80114,"Buberl, H./Marks, U. /Niederberger, R.",2007-06-18,0,2007,"BZE2"
+80115,"Buberl, H./Marks, U. /Niederberger, R.",2008-08-05,0,2008,"BZE5"
+80116,"Buberl, H./Marks, U. /Niederberger, R.",2006-07-05,0,2006,"BZE2"
+80117,"Buberl, H./Marks, U. /Niederberger, R.",2008-05-05,0,2008,"BZE5"
+80118,"Buberl, H./Marks, U. /Niederberger, R.",2008-09-02,0,2008,"BZE5"
+80119,"Buberl, H./Marks, U. /Niederberger, R.",2008-08-21,0,2008,"BZE5"
+80120,"Buberl, H./Marks, U. /Niederberger, R.",2007-06-19,0,2007,"BZE2"
+80121,"Buberl, H./Marks, U. /Niederberger, R.",2008-08-20,0,2008,"BZE5"
+80122,"Buberl, H./Marks, U. /Niederberger, R.",2007-06-19,0,2007,"BZE2"
+80123,"Buberl, H./Marks, U. /Niederberger, R.",2008-08-05,0,2008,"BZE5"
+80124,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-25,0,2008,"BZE5"
+80125,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-23,0,2008,"BZE5"
+80126,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-04,0,2008,"BZE5"
+80127,"Buberl, H./Marks, U. /Niederberger, R.",2007-05-22,0,2007,"BZE2"
+80128,"Buberl, H./Marks, U. /Niederberger, R.",2008-05-07,0,2008,"BZE5"
+80129,"Buberl, H./Marks, U. /Niederberger, R.",2008-08-19,0,2008,"BZE5"
+80130,"Buberl, H./Marks, U. /Niederberger, R.",2008-08-19,0,2008,"BZE5"
+80131,"Buberl, H./Marks, U. /Niederberger, R.",2007-06-20,0,2007,"BZE2"
+80132,"Buberl, H./Marks, U. /Niederberger, R.",2008-08-06,0,2008,"BZE5"
+80133,"Buberl, H./Marks, U. /Niederberger, R.",2007-12-04,0,2007,"BZE2"
+80134,"Buberl, H./Marks, U. /Niederberger, R.",2007-12-05,0,2007,"BZE2"
+80135,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-03,0,2008,"BZE5"
+80136,"Buberl, H./Marks, U. /Niederberger, R.",2007-06-12,0,2007,"BZE2"
+80137,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-23,0,2008,"BZE5"
+80138,"Buberl, H./Marks, U. /Niederberger, R.",2008-05-06,0,2008,"BZE5"
+80139,"Buberl, H./Marks, U. /Niederberger, R.",2008-08-18,0,2008,"BZE5"
+80140,"Buberl, H./Marks, U. /Niederberger, R.",2007-12-04,0,2007,"BZE2"
+80141,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-24,0,2008,"BZE5"
+80142,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-16,0,2008,"BZE5"
+80143,"Buberl, H./Marks, U. /Niederberger, R.",2008-08-07,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80144,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-03,0,2007,"BZE2"
 80145,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-02,0,2007,"BZE2"
 80146,"Buberl, H./Marks, U. /Niederberger, R.",2007-06-14,0,2007,"BZE2"
 80147,"Buberl, H./Marks, U. /Niederberger, R.",2007-05-10,0,2007,"BZE2"
+<<<<<<< HEAD
 80148,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-22,0,2008,"BZE2"
+=======
+80148,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-22,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80149,"Buberl, H./Marks, U. /Niederberger, R.",2007-11-08,0,2007,"BZE2"
 80150,"Buberl, H./Marks, U. /Niederberger, R.",2007-11-06,0,2007,"BZE2"
 80151,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-14,0,2007,"BZE2"
@@ -1038,8 +1194,13 @@
 80160,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-15,0,2007,"BZE2"
 80161,"Buberl, H./Marks, U. /Niederberger, R.",2007-07-25,0,2007,"BZE2"
 80162,"Buberl, H./Marks, U. /Niederberger, R.",2007-07-16,0,2007,"BZE2"
+<<<<<<< HEAD
 80163,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-15,0,2008,"BZE2"
 80164,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-14,0,2008,"BZE2"
+=======
+80163,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-15,0,2008,"BZE5"
+80164,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-14,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80165,"Buberl, H./Marks, U. /Niederberger, R.",2007-11-07,0,2007,"BZE2"
 80166,"Buberl, H./Marks, U. /Niederberger, R.",2007-11-05,0,2007,"BZE2"
 80167,"Buberl, H./Marks, U. /Niederberger, R.",2007-10-23,0,2007,"BZE2"
@@ -1050,8 +1211,13 @@
 80174,"Buberl, H./Marks, U. /Niederberger, R.",2007-07-24,0,2007,"BZE2"
 80175,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-16,0,2007,"BZE2"
 80176,"Buberl, H./Marks, U. /Niederberger, R.",2007-07-26,0,2007,"BZE2"
+<<<<<<< HEAD
 80177,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-24,0,2008,"BZE2"
 80178,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-18,0,2008,"BZE2"
+=======
+80177,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-24,0,2008,"BZE5"
+80178,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-18,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80179,"Buberl, H./Marks, U. /Niederberger, R.",2007-12-03,0,2007,"BZE2"
 80180,"Buberl, H./Marks, U. /Niederberger, R.",2007-08-17,0,2007,"BZE2"
 80181,"Buberl, H./Marks, U. /Niederberger, R.",1970-01-01,27,1970,"warning"
@@ -1065,6 +1231,7 @@
 80189,"Buberl, H./Marks, U. /Niederberger, R.",2007-05-23,0,2007,"BZE2"
 80190,"Buberl, H./Marks, U. /Niederberger, R.",1970-01-01,27,1970,"warning"
 80191,"Buberl, H./Marks, U. /Niederberger, R.",2007-07-18,0,2007,"BZE2"
+<<<<<<< HEAD
 80192,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-04,0,2008,"BZE2"
 80193,"Buberl, H./Marks, U. /Niederberger, R.",2007-07-18,0,2007,"BZE2"
 80194,"Buberl, H./Marks, U. /Niederberger, R.",2007-07-19,0,2007,"BZE2"
@@ -1083,12 +1250,37 @@
 80207,"Buberl, H./Marks, U. /Niederberger, R.",2008-08-06,0,2008,"BZE2"
 80208,"Buberl, H./Marks, U. /Niederberger, R.",2008-09-11,0,2008,"BZE2"
 80209,"Buberl, H./Marks, U. /Niederberger, R.",2008-09-16,0,2008,"BZE2"
+=======
+80192,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-04,0,2008,"BZE5"
+80193,"Buberl, H./Marks, U. /Niederberger, R.",2007-07-18,0,2007,"BZE2"
+80194,"Buberl, H./Marks, U. /Niederberger, R.",2007-07-19,0,2007,"BZE2"
+80195,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-05,0,2008,"BZE5"
+90520,"-1",2006-01-01,20,2006,"BZE2"
+80198,"Buberl, H./Marks, U. /Niederberger, R.",2007-06-14,0,2007,"BZE2"
+80197,"Buberl, H./Marks, U. /Niederberger, R.",2009-01-01,27,2009,"BZE5"
+80199,"Buberl, H./Marks, U. /Niederberger, R.",2007-06-12,0,2007,"BZE2"
+80200,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-17,0,2008,"BZE5"
+80201,"Buberl, H./Marks, U. /Niederberger, R.",2007-01-18,0,2007,"BZE2"
+80202,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-03,0,2008,"BZE5"
+80203,"Buberl, H./Marks, U. /Niederberger, R.",2008-09-10,0,2008,"BZE5"
+80204,"Buberl, H./Marks, U. /Niederberger, R.",2008-04-21,0,2008,"BZE5"
+80205,"Buberl, H./Marks, U. /Niederberger, R.",2007-10-24,0,2007,"BZE2"
+80206,"Buberl, H./Marks, U. /Niederberger, R.",2006-11-21,0,2006,"BZE2"
+80207,"Buberl, H./Marks, U. /Niederberger, R.",2008-08-06,0,2008,"BZE5"
+80208,"Buberl, H./Marks, U. /Niederberger, R.",2008-09-11,0,2008,"BZE5"
+80209,"Buberl, H./Marks, U. /Niederberger, R.",2008-09-16,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80210,"Buberl, H./Marks, U. /Niederberger, R.",2007-05-07,0,2007,"BZE2"
 80211,"Buberl, H./Marks, U. /Niederberger, R.",2007-05-08,0,2007,"BZE2"
 80212,"Buberl, H./Marks, U. /Niederberger, R.",2007-05-07,0,2007,"BZE2"
 80213,"Buberl, H./Marks, U. /Niederberger, R.",2006-06-19,0,2006,"BZE2"
+<<<<<<< HEAD
 80214,"Buberl, H./Marks, U. /Niederberger, R.",2008-09-11,0,2008,"BZE2"
 80215,"Buberl, H./Marks, U. /Niederberger, R.",2008-09-12,0,2008,"BZE2"
+=======
+80214,"Buberl, H./Marks, U. /Niederberger, R.",2008-09-11,0,2008,"BZE5"
+80215,"Buberl, H./Marks, U. /Niederberger, R.",2008-09-12,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80216,"Buberl, H./Marks, U. /Niederberger, R.",2007-11-13,0,2007,"BZE2"
 80217,"Buberl, H./Marks, U. /Niederberger, R.",2007-11-13,0,2007,"BZE2"
 80218,"Buberl, H./Marks, U. /Niederberger, R.",2007-11-14,0,2007,"BZE2"
@@ -1129,9 +1321,15 @@
 80253,"Buberl, H./Marks, U. /Niederberger, R.",2007-11-19,0,2007,"BZE2"
 80254,"Buberl, H./Marks, U. /Niederberger, R.",2007-09-18,0,2007,"BZE2"
 80255,"Buberl, H./Marks, U. /Niederberger, R.",2007-09-19,0,2007,"BZE2"
+<<<<<<< HEAD
 80256,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-25,0,2008,"BZE2"
 80257,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-29,0,2008,"BZE2"
 80258,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-29,0,2008,"BZE2"
+=======
+80256,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-25,0,2008,"BZE5"
+80257,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-29,0,2008,"BZE5"
+80258,"Buberl, H./Marks, U. /Niederberger, R.",2008-07-29,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 80259,"Buberl, H./Marks, U. /Niederberger, R.",2006-03-18,0,2006,"BZE2"
 80260,"Buberl, H./Marks, U. /Niederberger, R.",2005-11-30,0,2005,"BZE2"
 80261,"Buberl, H./Marks, U. /Niederberger, R.",2006-09-25,0,2006,"BZE2"
@@ -1182,7 +1380,11 @@
 80306,"Buberl, H./Marks, U. /Niederberger, R.",2006-11-29,0,2006,"BZE2"
 80307,"Buberl, H./Marks, U. /Niederberger, R.",2006-11-30,0,2006,"BZE2"
 80308,"Buberl, H./Marks, U. /Niederberger, R.",2006-09-19,0,2006,"BZE2"
+<<<<<<< HEAD
 80309,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-02,10,2008,"BZE2"
+=======
+80309,"Buberl, H./Marks, U. /Niederberger, R.",2008-06-02,10,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90003,"-2",1970-01-01,25,1970,"warning"
 90004,"-2",1970-01-01,25,1970,"warning"
 90005,"-2",1970-01-01,25,1970,"warning"
@@ -1615,6 +1817,7 @@
 90465,"-2",1970-01-01,27,1970,"warning"
 90466,"-2",1970-01-01,27,1970,"warning"
 90467,"-2",1970-01-01,27,1970,"warning"
+<<<<<<< HEAD
 90500,"Falk",2008-06-11,14,2008,"BZE2"
 90501,"Kraft",2007-10-10,14,2007,"BZE2"
 90502,"Kraft",2007-10-11,14,2007,"BZE2"
@@ -1623,6 +1826,16 @@
 90505,"Falk",2008-06-12,14,2008,"BZE2"
 90506,"Loringhoven",2008-04-24,14,2008,"BZE2"
 90507,"Falk",2008-06-10,14,2008,"BZE2"
+=======
+90500,"Falk",2008-06-11,14,2008,"BZE5"
+90501,"Kraft",2007-10-10,14,2007,"BZE2"
+90502,"Kraft",2007-10-11,14,2007,"BZE2"
+90503,"Loringhoven",2008-04-25,14,2008,"BZE5"
+90504,"Kraft",2007-09-11,14,2007,"BZE2"
+90505,"Falk",2008-06-12,14,2008,"BZE5"
+90506,"Loringhoven",2008-04-24,14,2008,"BZE5"
+90507,"Falk",2008-06-10,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90508,"Kraft",2007-10-09,14,2007,"BZE2"
 90509,"Schubert",2007-10-10,14,2007,"BZE2"
 90510,"Kraft",2007-09-20,14,2007,"BZE2"
@@ -1635,15 +1848,24 @@
 90518,"Kraft",2007-09-26,14,2007,"BZE2"
 90519,"Kraft",2007-09-18,14,2007,"BZE2"
 90521,"Falk",2007-06-19,14,2007,"BZE2"
+<<<<<<< HEAD
 90522,"Falk",2008-04-17,14,2008,"BZE2"
 90523,"Loringhoven",2008-05-14,14,2008,"BZE2"
 90524,"Dietz",2007-06-28,14,2007,"BZE2"
 90525,"Falk",2007-06-20,14,2007,"BZE2"
 90526,"Loringhoven",2008-05-13,14,2008,"BZE2"
+=======
+90522,"Falk",2008-04-17,14,2008,"BZE5"
+90523,"Loringhoven",2008-05-14,14,2008,"BZE5"
+90524,"Dietz",2007-06-28,14,2007,"BZE2"
+90525,"Falk",2007-06-20,14,2007,"BZE2"
+90526,"Loringhoven",2008-05-13,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90527,"Dietz",2007-06-27,14,2007,"BZE2"
 90528,"Dietz",2007-06-26,14,2007,"BZE2"
 90529,"Kraft",2007-10-23,14,2007,"BZE2"
 90530,"Falk",2007-08-14,14,2007,"BZE2"
+<<<<<<< HEAD
 90531,"Falk",2008-04-16,14,2008,"BZE2"
 90532,"Loringhoven",2008-05-15,14,2008,"BZE2"
 90533,"Falk",2007-06-21,14,2007,"BZE2"
@@ -1654,12 +1876,28 @@
 90538,"Dietz",2006-10-10,14,2006,"BZE2"
 90539,"Schubert",2007-07-25,14,2007,"BZE2"
 90541,"Schubert",2008-06-10,14,2008,"BZE2"
+=======
+90531,"Falk",2008-04-16,14,2008,"BZE5"
+90532,"Loringhoven",2008-05-15,14,2008,"BZE5"
+90533,"Falk",2007-06-21,14,2007,"BZE2"
+90534,"Schubert",2008-06-11,14,2008,"BZE5"
+90535,"Falk",2007-10-11,14,2007,"BZE2"
+90536,"Falk",2008-04-15,14,2008,"BZE5"
+90537,"Loringhoven",2007-10-31,14,2007,"BZE2"
+90538,"Dietz",2006-10-10,14,2006,"BZE2"
+90539,"Schubert",2007-07-25,14,2007,"BZE2"
+90541,"Schubert",2008-06-10,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90542,"Kraft",2007-10-24,14,2007,"BZE2"
 90543,"Kraft",2007-10-25,14,2007,"BZE2"
 90544,"Schubert",2006-08-30,14,2006,"BZE2"
 90545,"Schubert",2006-10-17,14,2006,"BZE2"
 90546,"Loringhoven",2007-10-30,14,2007,"BZE2"
+<<<<<<< HEAD
 90547,"Schubert",2008-06-18,14,2008,"BZE2"
+=======
+90547,"Schubert",2008-06-18,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90549,"Falk",2007-10-10,14,2007,"BZE2"
 90550,"Falk",2007-08-15,14,2007,"BZE2"
 90551,"Schubert",2007-07-10,14,2007,"BZE2"
@@ -1667,7 +1905,11 @@
 90553,"Falk",2007-07-10,14,2007,"BZE2"
 90555,"Schubert",2007-07-26,14,2007,"BZE2"
 90556,"Falk",2007-03-09,14,2007,"BZE2"
+<<<<<<< HEAD
 90557,"Loringhoven",2008-05-28,14,2008,"BZE2"
+=======
+90557,"Loringhoven",2008-05-28,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90558,"Falk",2007-10-09,14,2007,"BZE2"
 90559,"Schubert",2006-09-19,14,2006,"BZE2"
 90560,"Kraft",2007-10-29,14,2007,"BZE2"
@@ -1676,16 +1918,27 @@
 90563,"Schubert",2006-09-05,14,2006,"BZE2"
 90564,"Falk",2007-07-09,14,2007,"BZE2"
 90565,"Falk",2007-07-11,14,2007,"BZE2"
+<<<<<<< HEAD
 90566,"Loringhoven",2008-04-28,14,2008,"BZE2"
+=======
+90566,"Loringhoven",2008-04-28,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90567,"Kraft",2007-07-11,14,2007,"BZE2"
 90568,"Falk",2007-03-08,14,2007,"BZE2"
 90569,"Dietz",2006-10-24,14,2006,"BZE2"
 90570,"Loringhoven",2007-10-17,14,2007,"BZE2"
 90571,"Dietz",2007-10-30,14,2007,"BZE2"
+<<<<<<< HEAD
 90572,"Loringhoven",2008-05-29,14,2008,"BZE2"
 90573,"Kraft",2007-10-30,14,2007,"BZE2"
 90574,"Loringhoven",2007-10-16,14,2007,"BZE2"
 90575,"Loringhoven",2008-05-29,14,2008,"BZE2"
+=======
+90572,"Loringhoven",2008-05-29,14,2008,"BZE5"
+90573,"Kraft",2007-10-30,14,2007,"BZE2"
+90574,"Loringhoven",2007-10-16,14,2007,"BZE2"
+90575,"Loringhoven",2008-05-29,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90576,"Falk",2007-08-16,14,2007,"BZE2"
 90577,"Dietz",2006-09-25,14,2006,"BZE2"
 90578,"Falk",2007-07-12,14,2007,"BZE2"
@@ -1698,29 +1951,48 @@
 90585,"Kraft",2007-08-14,14,2007,"BZE2"
 90586,"Kraft",2007-08-16,14,2007,"BZE2"
 90587,"Dietz",2006-09-26,14,2006,"BZE2"
+<<<<<<< HEAD
 90588,"Kraft",2008-06-25,14,2008,"BZE2"
 90589,"Kraft",2008-06-24,14,2008,"BZE2"
+=======
+90588,"Kraft",2008-06-25,14,2008,"BZE5"
+90589,"Kraft",2008-06-24,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90590,"Loringhoven",2007-10-18,14,2007,"BZE2"
 90591,"Loringhoven",2007-10-04,14,2007,"BZE2"
 90592,"Loringhoven",2007-10-05,14,2007,"BZE2"
 90593,"Falk",2007-09-03,14,2007,"BZE2"
+<<<<<<< HEAD
 90594,"Loringhoven",2008-04-30,14,2008,"BZE2"
+=======
+90594,"Loringhoven",2008-04-30,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90595,"Kraft",2007-05-02,14,2007,"BZE2"
 90596,"Kraft",2007-05-03,14,2007,"BZE2"
 90597,"Dietz",2007-10-29,14,2007,"BZE2"
 90598,"Kraft",2007-10-31,14,2007,"BZE2"
 90599,"Kraft",2007-08-15,14,2007,"BZE2"
+<<<<<<< HEAD
 90600,"Kraft",2008-04-22,14,2008,"BZE2"
 90601,"Kraft",2008-05-06,14,2008,"BZE2"
+=======
+90600,"Kraft",2008-04-22,14,2008,"BZE5"
+90601,"Kraft",2008-05-06,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90603,"Schubert",2006-11-15,14,2006,"BZE2"
 90604,"Schubert",2006-10-24,14,2006,"BZE2"
 90605,"Falk",2007-03-23,14,2007,"BZE2"
 90606,"Schubert",2007-04-04,14,2007,"BZE2"
+<<<<<<< HEAD
 90607,"Loringhoven",2008-04-29,14,2008,"BZE2"
+=======
+90607,"Loringhoven",2008-04-29,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90608,"Dietz",2007-08-07,14,2007,"BZE2"
 90609,"Dietz",2007-08-16,14,2007,"BZE2"
 90610,"Dietz",2007-08-17,14,2007,"BZE2"
 90611,"Dietz",2006-09-13,14,2006,"BZE2"
+<<<<<<< HEAD
 90612,"Kraft",2008-04-23,14,2008,"BZE2"
 90613,"Kraft",2008-05-08,14,2008,"BZE2"
 90614,"Kraft",2008-05-07,14,2008,"BZE2"
@@ -1739,6 +2011,26 @@
 90627,"Schubert",2007-10-16,14,2007,"BZE2"
 90628,"Falk",2007-07-25,14,2007,"BZE2"
 90629,"Falk",2008-05-21,14,2008,"BZE2"
+=======
+90612,"Kraft",2008-04-23,14,2008,"BZE5"
+90613,"Kraft",2008-05-08,14,2008,"BZE5"
+90614,"Kraft",2008-05-07,14,2008,"BZE5"
+90615,"Schubert",2008-07-02,14,2008,"BZE5"
+90616,"Schubert",2007-10-17,14,2007,"BZE2"
+90617,"Kraft",2008-06-26,14,2008,"BZE5"
+90618,"Falk",2006-09-07,14,2006,"BZE2"
+90619,"Schubert",2007-04-18,14,2007,"BZE2"
+90620,"Falk",2007-03-22,14,2007,"BZE2"
+90621,"Falk",2008-05-20,14,2008,"BZE5"
+90622,"Dietz",2007-08-08,14,2007,"BZE2"
+90623,"Kraft",2007-09-05,14,2007,"BZE2"
+90624,"Kraft",2008-04-24,14,2008,"BZE5"
+90625,"Loringhoven",2008-05-07,14,2008,"BZE5"
+90626,"Falk",2007-07-26,14,2007,"BZE2"
+90627,"Schubert",2007-10-16,14,2007,"BZE2"
+90628,"Falk",2007-07-25,14,2007,"BZE2"
+90629,"Falk",2008-05-21,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90630,"Falk",2007-10-25,14,2007,"BZE2"
 90631,"Schubert",2007-03-26,14,2007,"BZE2"
 90632,"Schubert",2007-10-25,14,2007,"BZE2"
@@ -1746,13 +2038,21 @@
 90634,"Falk",2007-07-04,14,2007,"BZE2"
 90635,"Falk",2007-07-03,14,2007,"BZE2"
 90636,"Falk",2007-04-17,14,2007,"BZE2"
+<<<<<<< HEAD
 90637,"Falk",2008-05-16,14,2008,"BZE2"
+=======
+90637,"Falk",2008-05-16,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90638,"Kraft",2007-04-11,14,2007,"BZE2"
 90639,"Falk",2007-09-04,14,2007,"BZE2"
 90640,"Dietz",2007-03-27,14,2007,"BZE2"
 90641,"Falk",2007-04-18,14,2007,"BZE2"
 90642,"Kraft",2007-05-15,14,2007,"BZE2"
+<<<<<<< HEAD
 90643,"Loringhoven",2008-05-08,14,2008,"BZE2"
+=======
+90643,"Loringhoven",2008-05-08,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90644,"Falk",2007-07-27,14,2007,"BZE2"
 90645,"Schubert",2007-10-24,14,2007,"BZE2"
 90646,"Falk",2006-10-19,14,2006,"BZE2"
@@ -1767,12 +2067,20 @@
 90655,"Kraft",2007-05-16,14,2007,"BZE2"
 90656,"Dietz",2006-07-18,14,2006,"BZE2"
 90657,"Dietz",2006-08-30,14,2006,"BZE2"
+<<<<<<< HEAD
 90658,"Loringhoven",2008-05-07,14,2008,"BZE2"
+=======
+90658,"Loringhoven",2008-05-07,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90660,"Falk",2006-09-06,14,2006,"BZE2"
 90661,"Falk",2007-10-23,14,2007,"BZE2"
 90662,"Schubert",2007-04-19,14,2007,"BZE2"
 90663,"Falk",2007-07-05,14,2007,"BZE2"
+<<<<<<< HEAD
 90664,"Falk",2008-05-15,14,2008,"BZE2"
+=======
+90664,"Falk",2008-05-15,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90665,"Kraft",2007-08-02,14,2007,"BZE2"
 90666,"Dietz",2007-04-26,14,2007,"BZE2"
 90667,"Falk",2007-09-05,14,2007,"BZE2"
@@ -1782,8 +2090,13 @@
 90671,"Dietz",2006-09-12,14,2006,"BZE2"
 90672,"Dietz",2006-07-12,14,2006,"BZE2"
 90673,"Dietz",2007-09-13,14,2007,"BZE2"
+<<<<<<< HEAD
 90674,"Kraft",2008-06-18,14,2008,"BZE2"
 90675,"Schubert",2008-07-03,14,2008,"BZE2"
+=======
+90674,"Kraft",2008-06-18,14,2008,"BZE5"
+90675,"Schubert",2008-07-03,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90676,"Falk",2006-09-05,14,2006,"BZE2"
 90677,"Falk",2007-10-24,14,2007,"BZE2"
 90678,"Dietz",2006-08-22,14,2006,"BZE2"
@@ -1792,21 +2105,37 @@
 90681,"Dietz",2007-04-04,14,2007,"BZE2"
 90682,"Dietz",2007-05-10,14,2007,"BZE2"
 90683,"Dietz",2006-07-19,14,2006,"BZE2"
+<<<<<<< HEAD
 90684,"Kraft",2008-05-26,14,2008,"BZE2"
 90685,"Kraft",2008-05-27,14,2008,"BZE2"
 90686,"Loringhoven",2007-06-14,14,2007,"BZE2"
 90687,"Loringhoven",2007-06-13,14,2007,"BZE2"
 90688,"Kraft",2008-06-19,14,2008,"BZE2"
+=======
+90684,"Kraft",2008-05-26,14,2008,"BZE5"
+90685,"Kraft",2008-05-27,14,2008,"BZE5"
+90686,"Loringhoven",2007-06-14,14,2007,"BZE2"
+90687,"Loringhoven",2007-06-13,14,2007,"BZE2"
+90688,"Kraft",2008-06-19,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90689,"Falk",2006-09-28,14,2006,"BZE2"
 90690,"Falk",2006-09-22,14,2006,"BZE2"
 90691,"Falk",2006-08-23,14,2006,"BZE2"
 90692,"Schubert",2006-11-29,14,2006,"BZE2"
 90693,"Dietz",2006-07-13,14,2006,"BZE2"
+<<<<<<< HEAD
 90694,"Kraft",2008-05-28,14,2008,"BZE2"
 90695,"Dietz",2007-09-12,14,2007,"BZE2"
 90696,"Loringhoven",2007-08-30,14,2007,"BZE2"
 90697,"Dietz",2007-09-11,14,2007,"BZE2"
 90698,"Falk",2008-08-21,14,2008,"BZE2"
+=======
+90694,"Kraft",2008-05-28,14,2008,"BZE5"
+90695,"Dietz",2007-09-12,14,2007,"BZE2"
+90696,"Loringhoven",2007-08-30,14,2007,"BZE2"
+90697,"Dietz",2007-09-11,14,2007,"BZE2"
+90698,"Falk",2008-08-21,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90699,"Falk",2006-10-18,14,2006,"BZE2"
 90700,"Falk",2006-07-26,14,2006,"BZE2"
 90701,"Falk",2006-08-09,14,2006,"BZE2"
@@ -1835,8 +2164,13 @@
 90725,"Falk",2007-05-08,14,2007,"BZE2"
 90726,"Falk",2007-05-24,14,2007,"BZE2"
 90727,"Kraft",2007-06-12,14,2007,"BZE2"
+<<<<<<< HEAD
 90728,"Schubert",2008-07-10,14,2008,"BZE2"
 90730,"Schubert",2008-07-08,14,2008,"BZE2"
+=======
+90728,"Schubert",2008-07-10,14,2008,"BZE5"
+90730,"Schubert",2008-07-08,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90789,"Falk",2006-10-10,14,2006,"BZE2"
 90731,"Falk",2006-07-27,14,2006,"BZE2"
 90732,"Falk",2006-08-08,14,2006,"BZE2"
@@ -1850,9 +2184,15 @@
 90740,"Dietz",2007-06-19,14,2007,"BZE2"
 90741,"Schubert",2007-05-08,14,2007,"BZE2"
 90742,"Dietz",2007-05-08,14,2007,"BZE2"
+<<<<<<< HEAD
 90743,"Kraft",2008-06-03,14,2008,"BZE2"
 90744,"Kraft",2007-04-17,14,2007,"BZE2"
 90745,"Kraft",2008-06-04,14,2008,"BZE2"
+=======
+90743,"Kraft",2008-06-03,14,2008,"BZE5"
+90744,"Kraft",2007-04-17,14,2007,"BZE2"
+90745,"Kraft",2008-06-04,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90746,"Falk",2006-09-21,14,2006,"BZE2"
 90747,"Dietz",2007-10-18,14,2007,"BZE2"
 90748,"Schubert",2006-07-05,14,2006,"BZE2"
@@ -1872,7 +2212,11 @@
 90762,"Dietz",2007-10-16,14,2007,"BZE2"
 90763,"Schubert",2007-08-09,14,2007,"BZE2"
 90764,"Falk",2006-08-10,14,2006,"BZE2"
+<<<<<<< HEAD
 90765,"Schubert",2008-04-17,14,2008,"BZE2"
+=======
+90765,"Schubert",2008-04-17,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90766,"Loringhoven",2007-04-26,14,2007,"BZE2"
 90769,"Falk",2007-09-25,14,2007,"BZE2"
 90770,"Falk",2007-09-26,14,2007,"BZE2"
@@ -1880,7 +2224,11 @@
 90772,"Schubert",2007-09-26,14,2007,"BZE2"
 90773,"Falk",2007-05-31,14,2007,"BZE2"
 90774,"Falk",2007-05-30,14,2007,"BZE2"
+<<<<<<< HEAD
 90775,"Kraft",2008-06-05,14,2008,"BZE2"
+=======
+90775,"Kraft",2008-06-05,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90776,"Falk",2007-05-23,14,2007,"BZE2"
 90777,"Kraft",2007-04-19,14,2007,"BZE2"
 90778,"Dietz",2007-05-24,14,2007,"BZE2"
@@ -1900,6 +2248,7 @@
 90793,"Falk",2007-05-29,14,2007,"BZE2"
 90794,"Dietz",2006-10-19,14,2006,"BZE2"
 90795,"Loringhoven",2007-08-28,14,2007,"BZE2"
+<<<<<<< HEAD
 90796,"Falk",2008-07-10,14,2008,"BZE2"
 90797,"Dietz",2006-08-23,14,2006,"BZE2"
 90798,"Falk",2007-08-30,14,2007,"BZE2"
@@ -1913,17 +2262,40 @@
 90805,"Falk",2007-07-18,14,2007,"BZE2"
 90806,"Falk",2007-07-19,14,2007,"BZE2"
 90807,"Falk",2008-08-14,14,2008,"BZE2"
+=======
+90796,"Falk",2008-07-10,14,2008,"BZE5"
+90797,"Dietz",2006-08-23,14,2006,"BZE2"
+90798,"Falk",2007-08-30,14,2007,"BZE2"
+90799,"Schubert",2006-05-31,14,2006,"BZE2"
+100003,"Drescher-Larres",2008-09-11,0,2008,"BZE5"
+90800,"Dietz",2006-07-06,14,2006,"BZE2"
+90801,"Loringhoven",2007-04-02,14,2007,"BZE2"
+90802,"Falk",2007-04-12,14,2007,"BZE2"
+90803,"Kraft",2008-05-20,14,2008,"BZE5"
+90804,"Falk",2006-10-12,14,2006,"BZE2"
+90805,"Falk",2007-07-18,14,2007,"BZE2"
+90806,"Falk",2007-07-19,14,2007,"BZE2"
+90807,"Falk",2008-08-14,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90808,"Schubert",2007-06-19,14,2007,"BZE2"
 90809,"Dietz",2006-07-04,14,2006,"BZE2"
 90810,"Falk",2007-08-29,14,2007,"BZE2"
 90811,"Loringhoven",2007-04-03,14,2007,"BZE2"
 90812,"Falk",2007-06-27,14,2007,"BZE2"
+<<<<<<< HEAD
 90813,"Kraft",2008-05-21,14,2008,"BZE2"
+=======
+90813,"Kraft",2008-05-21,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90814,"Falk",2007-07-17,14,2007,"BZE2"
 90815,"Falk",2006-10-11,14,2006,"BZE2"
 90816,"Dietz",2006-10-17,14,2006,"BZE2"
 90817,"Dietz",2006-06-21,14,2006,"BZE2"
+<<<<<<< HEAD
 90818,"Falk",2008-07-11,14,2008,"BZE2"
+=======
+90818,"Falk",2008-07-11,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90819,"Falk",2007-03-15,14,2007,"BZE2"
 90820,"Schubert",2007-06-21,14,2007,"BZE2"
 90821,"Schubert",2007-06-05,14,2007,"BZE2"
@@ -1933,7 +2305,11 @@
 90826,"Dietz",2006-06-22,14,2006,"BZE2"
 90827,"Falk",2007-09-20,14,2007,"BZE2"
 90828,"Falk",2007-09-19,14,2007,"BZE2"
+<<<<<<< HEAD
 90829,"Falk",2008-07-30,14,2008,"BZE2"
+=======
+90829,"Falk",2008-07-30,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90830,"Schubert",2007-06-20,14,2007,"BZE2"
 90831,"Schubert",2007-03-27,14,2007,"BZE2"
 90832,"Schubert",2007-05-23,14,2007,"BZE2"
@@ -1950,15 +2326,26 @@
 90843,"Falk",2007-07-24,14,2007,"BZE2"
 90844,"Schubert",2006-10-11,14,2006,"BZE2"
 90845,"Kraft",2007-07-04,14,2007,"BZE2"
+<<<<<<< HEAD
 90846,"Loringhoven",2008-06-25,14,2008,"BZE2"
 90847,"Kraft",2008-06-12,14,2008,"BZE2"
 90848,"Kraft",2008-06-11,14,2008,"BZE2"
 90849,"Kraft",2008-06-10,14,2008,"BZE2"
+=======
+90846,"Loringhoven",2008-06-25,14,2008,"BZE5"
+90847,"Kraft",2008-06-12,14,2008,"BZE5"
+90848,"Kraft",2008-06-11,14,2008,"BZE5"
+90849,"Kraft",2008-06-10,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90850,"Schubert",2007-05-31,14,2007,"BZE2"
 90851,"Schubert",2007-05-24,14,2007,"BZE2"
 90852,"Kraft",2007-06-04,14,2007,"BZE2"
 90853,"Kraft",2007-06-05,14,2007,"BZE2"
+<<<<<<< HEAD
 90854,"Loringhoven",2008-06-26,14,2008,"BZE2"
+=======
+90854,"Loringhoven",2008-06-26,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90855,"Schubert",2007-04-24,14,2007,"BZE2"
 90856,"Schubert",2006-11-07,14,2006,"BZE2"
 90857,"Schubert",2007-08-28,14,2007,"BZE2"
@@ -1967,7 +2354,11 @@
 90860,"Schubert",2007-06-12,14,2007,"BZE2"
 90861,"Kraft",2007-06-06,14,2007,"BZE2"
 90862,"Falk",2007-05-15,14,2007,"BZE2"
+<<<<<<< HEAD
 90863,"Loringhoven",2008-06-27,14,2008,"BZE2"
+=======
+90863,"Loringhoven",2008-06-27,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90864,"Loringhoven",2007-05-03,14,2007,"BZE2"
 90865,"Schubert",2007-08-02,14,2007,"BZE2"
 90866,"Schubert",2007-07-18,14,2007,"BZE2"
@@ -1975,29 +2366,47 @@
 90868,"Falk",2007-05-14,14,2007,"BZE2"
 90869,"Schubert",2006-11-22,14,2006,"BZE2"
 90870,"Schubert",2007-08-23,14,2007,"BZE2"
+<<<<<<< HEAD
 90871,"Schubert",2008-04-30,14,2008,"BZE2"
 90872,"Schubert",2008-06-03,14,2008,"BZE2"
+=======
+90871,"Schubert",2008-04-30,14,2008,"BZE5"
+90872,"Schubert",2008-06-03,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90873,"Schubert",2007-08-21,14,2007,"BZE2"
 90874,"Schubert",2007-08-22,14,2007,"BZE2"
 90875,"Schubert",2007-09-20,14,2007,"BZE2"
 90876,"Schubert",2007-08-29,14,2007,"BZE2"
 90877,"Schubert",2007-08-07,14,2007,"BZE2"
+<<<<<<< HEAD
 90878,"Schubert",2008-07-22,14,2008,"BZE2"
 90879,"Schubert",2007-09-19,14,2007,"BZE2"
 90880,"Falk",2007-08-23,14,2007,"BZE2"
 90881,"Schubert",2008-06-05,14,2008,"BZE2"
+=======
+90878,"Schubert",2008-07-22,14,2008,"BZE5"
+90879,"Schubert",2007-09-19,14,2007,"BZE2"
+90880,"Falk",2007-08-23,14,2007,"BZE2"
+90881,"Schubert",2008-06-05,14,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90882,"Schubert",2007-09-18,14,2007,"BZE2"
 90884,"Falk",2007-08-22,14,2007,"BZE2"
 90885,"Falk",2007-08-21,14,2007,"BZE2"
 90886,"-2",1970-01-01,20,1970,"warning"
 100001,"-2",1970-01-01,22,1970,"warning"
+<<<<<<< HEAD
 100002,"Drescher-Larres",2008-09-22,0,2008,"BZE2"
 100004,"Drescher-Larres",2008-11-17,0,2008,"BZE2"
+=======
+100002,"Drescher-Larres",2008-09-22,0,2008,"BZE5"
+100004,"Drescher-Larres",2008-11-17,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 100005,"-2",1970-01-01,26,1970,"warning"
 100006,"-2",1970-01-01,26,1970,"warning"
 100007,"-2",1970-01-01,26,1970,"warning"
 100008,"-2",1970-01-01,23,1970,"warning"
 100009,"Drescher-Larres",2006-05-24,0,2006,"BZE2"
+<<<<<<< HEAD
 100010,"Drescher-Larres",2008-08-27,0,2008,"BZE2"
 100011,"Drescher-Larres",2006-06-27,0,2006,"BZE2"
 100012,"-2",1970-01-01,26,1970,"warning"
@@ -2020,12 +2429,37 @@
 100027,"-2",1970-01-01,26,1970,"warning"
 100028,"Drescher-Larres",2008-10-07,0,2008,"BZE2"
 100029,"Drescher-Larres",2008-04-28,0,2008,"BZE2"
+=======
+100010,"Drescher-Larres",2008-08-27,0,2008,"BZE5"
+100011,"Drescher-Larres",2006-06-27,0,2006,"BZE2"
+100012,"-2",1970-01-01,26,1970,"warning"
+100013,"Drescher-Larres",2008-08-28,0,2008,"BZE5"
+100014,"Drescher-Larres",2007-09-24,0,2007,"BZE2"
+130020,"-2",1970-01-01,26,1970,"warning"
+130022,"Heinkele;Martin",2006-03-28,0,2006,"BZE2"
+100015,"Drescher-Larres",2008-05-28,0,2008,"BZE5"
+100016,"Drescher-Larres",2007-04-04,0,2007,"BZE2"
+100017,"-2",1970-01-01,26,1970,"warning"
+100018,"Drescher-Larres",2008-06-25,0,2008,"BZE5"
+100019,"-2",1970-01-01,26,1970,"warning"
+100020,"Drescher-Larres",2006-08-22,0,2006,"BZE2"
+100021,"Drescher-Larres",2008-09-26,0,2008,"BZE5"
+100022,"Drescher-Larres",2006-09-26,0,2006,"BZE2"
+100023,"-2",1970-01-01,26,1970,"warning"
+100024,"-2",1970-01-01,26,1970,"warning"
+100025,"Drescher-Larres",2008-04-02,0,2008,"BZE5"
+100026,"-2",1970-01-01,26,1970,"warning"
+100027,"-2",1970-01-01,26,1970,"warning"
+100028,"Drescher-Larres",2008-10-07,0,2008,"BZE5"
+100029,"Drescher-Larres",2008-04-28,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 100030,"-2",1970-01-01,26,1970,"warning"
 100031,"-2",1970-01-01,26,1970,"warning"
 100032,"-2",1970-01-01,26,1970,"warning"
 100033,"-2",1970-01-01,26,1970,"warning"
 100034,"-2",1970-01-01,23,1970,"warning"
 100036,"-2",1970-01-01,22,1970,"warning"
+<<<<<<< HEAD
 100037,"Drescher-Larres",2009-07-13,0,2009,"BZE2"
 100038,"-2",1970-01-01,26,1970,"warning"
 100039,"Drescher-Larres",2007-02-14,0,2007,"BZE2"
@@ -2037,20 +2471,41 @@
 100045,"Drescher-Larres",2008-06-04,0,2008,"BZE2"
 100046,"-2",1970-01-01,26,1970,"warning"
 100047,"Drescher-Larres",2008-09-17,0,2008,"BZE2"
+=======
+100037,"Drescher-Larres",2009-07-13,0,2009,"BZE5"
+100038,"-2",1970-01-01,26,1970,"warning"
+100039,"Drescher-Larres",2007-02-14,0,2007,"BZE2"
+100040,"Drescher-Larres",2008-06-03,0,2008,"BZE5"
+100041,"-2",1970-01-01,23,1970,"warning"
+100042,"-2",1970-01-01,23,1970,"warning"
+100043,"-2",1970-01-01,26,1970,"warning"
+100044,"Drescher-Larres",2008-10-13,0,2008,"BZE5"
+100045,"Drescher-Larres",2008-06-04,0,2008,"BZE5"
+100046,"-2",1970-01-01,26,1970,"warning"
+100047,"Drescher-Larres",2008-09-17,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 100048,"-2",1970-01-01,22,1970,"warning"
 100049,"-2",1970-01-01,23,1970,"warning"
 100050,"Drescher-Larres",2006-11-17,0,2006,"BZE2"
 100051,"-2",1970-01-01,26,1970,"warning"
+<<<<<<< HEAD
 100052,"Drescher-Larres",2008-02-22,0,2008,"BZE2"
 100053,"-2",1970-01-01,26,1970,"warning"
 100054,"-2",1970-01-01,26,1970,"warning"
 100055,"Drescher-Larres",2008-08-19,0,2008,"BZE2"
+=======
+100052,"Drescher-Larres",2008-02-22,0,2008,"BZE5"
+100053,"-2",1970-01-01,26,1970,"warning"
+100054,"-2",1970-01-01,26,1970,"warning"
+100055,"Drescher-Larres",2008-08-19,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 100056,"Drescher-Larres",2006-06-11,0,2006,"BZE2"
 100057,"Drescher-Larres",2006-06-07,0,2006,"BZE2"
 100058,"Drescher-Larres",2007-04-27,0,2007,"BZE2"
 100059,"-2",1970-01-01,22,1970,"warning"
 100060,"-2",1970-01-01,26,1970,"warning"
 100061,"-2",1970-01-01,26,1970,"warning"
+<<<<<<< HEAD
 100062,"Drescher-Larres",2008-02-12,0,2008,"BZE2"
 100063,"-2",1970-01-01,26,1970,"warning"
 100064,"Drescher-Larres",2007-03-28,0,2007,"BZE2"
@@ -2059,6 +2514,16 @@
 100067,"-2",1970-01-01,23,1970,"warning"
 100068,"Drescher-Larres",2008-04-03,0,2008,"BZE2"
 100070,"Drsecher-Larres",2008-08-19,0,2008,"BZE2"
+=======
+100062,"Drescher-Larres",2008-02-12,0,2008,"BZE5"
+100063,"-2",1970-01-01,26,1970,"warning"
+100064,"Drescher-Larres",2007-03-28,0,2007,"BZE2"
+100065,"Drescher-Larres",2007-03-28,0,2007,"BZE2"
+100066,"Drescher-Larres",2008-06-12,0,2008,"BZE5"
+100067,"-2",1970-01-01,23,1970,"warning"
+100068,"Drescher-Larres",2008-04-03,0,2008,"BZE5"
+100070,"Drsecher-Larres",2008-08-19,0,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 100071,"Drescher-Larres",2006-07-12,0,2006,"BZE2"
 100072,"Drescher-Larres",2006-08-04,0,2006,"BZE2"
 100073,"Drescher-Larres",2007-09-24,0,2007,"BZE2"
@@ -2074,6 +2539,7 @@
 100081,"Drescher-Larres",2006-08-02,10,2006,"BZE2"
 100082,"Drescher-Larres",2006-06-29,16,2006,"BZE2"
 100083,"Drescher-Larres",2007-10-17,16,2007,"BZE2"
+<<<<<<< HEAD
 100084,"Drescher-Larres",2008-07-02,19,2008,"BZE2"
 100085,"Drescher-Larres",2008-07-14,19,2008,"BZE2"
 100086,"Drescher-Larres",2009-06-05,19,2009,"BZE2"
@@ -2081,6 +2547,15 @@
 100088,"Drescher-Larres",2008-06-17,16,2008,"BZE2"
 100089,"Drescher-Larres",2008-10-14,16,2008,"BZE2"
 100090,"Drescher-Larres",2008-10-24,16,2008,"BZE2"
+=======
+100084,"Drescher-Larres",2008-07-02,19,2008,"BZE5"
+100085,"Drescher-Larres",2008-07-14,19,2008,"BZE5"
+100086,"Drescher-Larres",2009-06-05,19,2009,"BZE5"
+100087,"Drescher-Larres",2008-10-23,19,2008,"BZE5"
+100088,"Drescher-Larres",2008-06-17,16,2008,"BZE5"
+100089,"Drescher-Larres",2008-10-14,16,2008,"BZE5"
+100090,"Drescher-Larres",2008-10-24,16,2008,"BZE5"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 120001,"Hoelzer;Hoevelmann;Bielefeldt",2006-11-08,19,2006,"BZE2"
 120002,"Hoelzer;Hoevelmann;Bielefeldt",2006-11-08,19,2006,"BZE2"
 120003,"Hoelzer;Hoevelmann;Bielefeldt",2006-10-31,19,2006,"BZE2"
@@ -2613,6 +3088,7 @@
 90883,"-1",2006-01-01,20,2006,"BZE2"
 120091,"Hoelzer;Hoevelmann;Bielefeldt",2006-07-03,0,2006,"BZE2"
 80196,"Buberl, H./Marks, U. /Niederberger, R.",1970-01-01,0,1970,"warning"
+<<<<<<< HEAD
 32020,"-9",2022-02-09,-9,2022,"momok"
 34010,"-9",2021-10-12,-9,2021,"momok"
 32050,"-9",2022-05-05,-9,2022,"momok"
@@ -2653,3 +3129,5 @@
 28120,"-9",2024-05-30,-9,2024,"momok"
 23070,"-9",2024-06-18,-9,2024,"momok"
 36030,"-9",2024-08-19,-9,2024,"momok"
+=======
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c

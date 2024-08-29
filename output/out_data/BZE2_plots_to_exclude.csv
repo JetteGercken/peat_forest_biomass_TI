@@ -111,7 +111,11 @@
 80181,"Buberl, H./Marks, U. /Niederberger, R.",1970-01-01,27,1970,"warning","whole plot excluded during inventory status sorting"
 80187,"Buberl, H./Marks, U. /Niederberger, R.",1970-01-01,27,1970,"warning","whole plot excluded during inventory status sorting"
 80190,"Buberl, H./Marks, U. /Niederberger, R.",1970-01-01,27,1970,"warning","whole plot excluded during inventory status sorting"
+<<<<<<< HEAD
 80197,"Buberl, H./Marks, U. /Niederberger, R.",2009-01-01,27,2009,"BZE2","whole plot excluded during inventory status sorting"
+=======
+80197,"Buberl, H./Marks, U. /Niederberger, R.",2009-01-01,27,2009,"BZE5","whole plot excluded during inventory status sorting"
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 90003,"-2",1970-01-01,25,1970,"warning","whole plot excluded during inventory status sorting"
 90004,"-2",1970-01-01,25,1970,"warning","whole plot excluded during inventory status sorting"
 90005,"-2",1970-01-01,25,1970,"warning","whole plot excluded during inventory status sorting"

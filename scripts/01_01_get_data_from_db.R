@@ -37,7 +37,11 @@ con <- sqlconnection(db_name, db_server,db_port, db_user, my_db_password)
 # names of the tables we want to import to our raw data folder: 
 soil_data_table_names <- c("vm_allgemeintab_2", "vm_minboden_profil_2", "vm_minboden_element_gehalte_2", "vm_lokation_hbi")
 for (i in 1:length(soil_data_table_names)) {
+<<<<<<< HEAD
   # i = 4
+=======
+  # i = 1
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
   # get table name
   my.table.name <- soil_data_table_names[i]
   # set schema name
@@ -55,9 +59,15 @@ for (i in 1:length(soil_data_table_names)) {
 
 # 0.2.3.2. forest data ------------------------------------------------------
 # names of the tables we want to import to our raw data folder: 
+<<<<<<< HEAD
 forest_data_table_names <- c("tit", "be", "beab", "be_waldraender", "bej", "bejb", "be_totholz_punkt", "be_totholz_liste")#, "punkt")
 for (i in 1:length(forest_data_table_names)) {
   # i = 8
+=======
+forest_data_table_names <- c("tit", "be", "beab", "be_waldraender", "bej", "bejb", "be_totholz_punkt", "be_totholz_liste", "punkt")
+for (i in 1:length(forest_data_table_names)) {
+  # i = 1
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
   # get table name
   my.table.name <- forest_data_table_names[i]
   # set schema name
@@ -93,6 +103,7 @@ for (i in 1:length(code_table_names)) {
 }
 
 ## copy soil data files from raw data general to input general fo
+<<<<<<< HEAD
 # 1. create raw data path: 
 raw.path <- paste0(here("data/raw"), "/")
 # 2. get names of all files in the raw outout folder: https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/list.files
@@ -102,10 +113,23 @@ input.path <- paste0(here("data/input"), "/")
 # copy the files from one raw filder to the input other: https://statisticsglobe.com/move-files-between-folders-r
 file.copy(from = paste0(raw.path, input.files),
           to = paste0(input.path, input.files),
+=======
+# copy everything imported from database from raw folder to input folder
+# 1. create raw data path: 
+raw.path.code <- paste0(here("data/raw"), "/")
+# 2. get names of all files in the raw outout folder: https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/list.files
+code.in.files <- list.files(raw.path.code) 
+# 3. create input path
+input.path.code <- paste0(here("data/input"), "/")
+# copy the files from one raw filder to the input other: https://statisticsglobe.com/move-files-between-folders-r
+file.copy(from = paste0(raw.path.code, code.in.files),
+          to = paste0(input.path.code, code.in.files),
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
           overwrite = TRUE)
 
 
 
+<<<<<<< HEAD
 # 0.3.1. MOMOK data ----------------------------------------------------------------
 # 0.3.1.1. import MOMOK data ----------------------------------------------------------------
 # get momok data
@@ -339,4 +363,6 @@ write.csv(be_totholz_liste_momok, paste0(input.path, "momok_be_totholz_liste.csv
 
 
 
+=======
+>>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 
