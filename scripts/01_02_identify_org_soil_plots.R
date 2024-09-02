@@ -19,13 +19,10 @@
 source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 
 
-<<<<<<< HEAD
 # 0.2. outpath ------------------------------------------------------------
 # from getwd() or here() onwards, this path leads to the folder where all data ist stored
 out.path <- here("output/out_data//") 
 
-=======
->>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 # 0.3. import data --------------------------------------------------------
 # soil types database
 soil_types_bze2_db <-  read.delim(file = here("data/input/vm_allgemeintab_2.csv"), sep = ",", dec = ".") 
@@ -41,14 +38,11 @@ org_soils_paetzel <- read.delim(file = here("data/input/org_plots_BZE2_BZE1_Paet
 element_bze2_db <- read.delim(file = here("data/input/vm_minboden_element_gehalte_2.csv"), sep = ",", dec = ".") 
 
 
-<<<<<<< HEAD
+
 # 0.4. data prep & clearing -----------------------------------------------
 # remove "empty" columns
 soil_profiles_bze2_db <- soil_profiles_bze2_db[soil_profiles_bze2_db$horizont != -9 & soil_profiles_bze2_db$inventur == 2, ]
 
-
-=======
->>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
 
 
 # 1. identify organic sites ---------------------------------------------------------
@@ -70,11 +64,9 @@ org_soils_types_db <- soil_types_bze2_db %>%
 
 # 1.2. plots with characteristics defining them organic -------------------
 
-# 1.2.1. organic layer ---------------------------------------------------
+# 1.2.1. organic layer thickness ---------------------------------------------------
 # if organic layer is Aa the horizont has to be at least 10cm thick
 # if organic layer contains H the horizont has to be at least 30cm thick? --> not true look at niedermoorgley :/ 
-
-
 org_horizonts_db <- 
   soil_profiles_bze2_db %>% 
 semi_join(., 
@@ -97,9 +89,10 @@ soil_profiles_bze2_db %>% filter(
   filter(depth >= 10),
 by = c("bfhnr", "inventur"))
 
-
-# try to turn horizints into depth steps for every horizont no matter if its 
-# organic or not
+# 1.2.2. organic layer carbon content ---------------------------------------------------
+# SOC should be between 8.6 and 12% C per mass unit
+# as the carbon content is determined in depth steps while the horizonts are depterined in horizont steps 
+# therefore we have turn horizont boarders into depth steps for every horizont no matter if its  organic or not
 # depth steps
     # 0-5
     # 5-10
@@ -109,6 +102,7 @@ by = c("bfhnr", "inventur"))
 
 # 
 depth_class_hori_list <- vector("list", length = nrow(unique(soil_profiles_bze2_db[, c("bfhnr", "horinr", "inventur")])))
+depth_class_hori_boarders_list <- vector("list", length = nrow(unique(soil_profiles_bze2_db[, c("bfhnr", "horinr", "inventur")])))
 for (i in 1:nrow(unique(soil_profiles_bze2_db[, c("bfhnr", "horinr", "inventur")]))) {
   # i = 3261
   my.plot.id <- unique(soil_profiles_bze2_db[, c("bfhnr", "horinr", "inventur")])[ i ,"bfhnr"]      # plot id
@@ -152,26 +146,58 @@ for (i in 1:nrow(unique(soil_profiles_bze2_db[, c("bfhnr", "horinr", "inventur")
     , "hori_depth_class" = depth.classes.hori.list
   ))
   
+  # df with upper and lowe boarders and respective depth step in one column for wighting of carbon content
+  depth_class_hori_boarders_list[[i]] <- as.data.frame(cbind(
+    "bfhnr" = c(my.plot.id)
+    , "horinr" = c(my.horinr)
+    , "inventur" = c(my.inv)
+    , "horizont" = c(my.horiname)
+    , "hori_boarder_name" = c("ot", "ut")
+    ,  "hori_boarder" = c(my.ot, my.ut)
+    , "hori_depth_class" = c(ot.depth.class, ut.depth.class)
+  ))
+  
+  
   print(paste0(my.plot.id, my.horiname, i))
   
 }
 depth_class_hori <- as.data.frame(rbindlist(depth_class_hori_list))
+depth_class_hori_boarders <- as.data.frame(rbindlist(depth_class_hori_boarders_list))
+
+
+# check for horizont boarders that only partly cross a depth step: 
+depth_class_hori_boarders %>% 
+  mutate(across(c("bfhnr", "horinr", "inventur", "hori_depth_class"), as.numeric)) %>% 
+  left_join(element_bze2_db %>% 
+              mutate(hori_depth_class = depth_class(ut)) %>% 
+              pivot_longer(., ot:ut, names_to = "TF_boarder_name", values_to = "TF_boarder") %>% 
+              select(bfhnr, inventur, hori_depth_class,  TF_boarder_name,  TF_boarder), 
+            by = c(c("bfhnr", "inventur", "hori_depth_class", "hori_boarder_name" = "TF_boarder_name"))) %>% 
+  mutate(diff_hori_TF_boarder = abs(hori_boarder-TF_boarder))
 
 
 
-# find horizonts with depth class with > 15% carbon mass-%
+
+ # find horizonts with depth class with > 15% carbon mass-%
 soil_profiles_bze2_db %>% 
   left_join(., depth_class_hori %>% 
               mutate(across(c("bfhnr", "horinr", "inventur", "hori_depth_class"), as.numeric)), 
             by = c("bfhnr", "horinr", "inventur", "horizont")) %>% 
   left_join(., 
-            element_bze2_db %>% mutate(hori_depth_class = depth_class(ot), 
+            element_bze2_db %>% mutate(hori_depth_class = depth_class(ut),
                                        corg_percent = (m_ea_corg2/1000)*100) %>% 
-              select(bfhnr, inventur, hori_depth_class, corg_percent, m_ea_corg2) %>% 
-              mutate(across(c("bfhnr", "inventur", "hori_depth_class", "corg_percent", "m_ea_corg2"), as.numeric)), 
+              select(bfhnr, inventur, hori_depth_class,  ot, ut ,corg_percent, m_ea_corg2) %>% 
+              mutate(across(c("bfhnr", "inventur", "hori_depth_class", "corg_percent", "m_ea_corg2"), as.numeric), 
+                     depth_TF = ut- ot) %>% 
+              rename("ut_TF" = "ut") %>%  
+              rename("ot_TF" = "ot"), 
             by = c("bfhnr", "inventur", "hori_depth_class"), 
-            relationship = "many-to-many") %>% 
-  filter(corg_percent > 15)
+            relationship = "many-to-many")  %>% 
+  select( bfhnr, inventur, erhebjahr, horinr, horizont, ot, ut, hori_depth_class,  ot_TF,   ut_TF,  depth_TF) %>% 
+  distinct()
+  mutate(diff_ut_hori_TF = ut - ut_TF, 
+         diff_ut_hori_TF = ut - ut_TF)
+  
 
 
 
