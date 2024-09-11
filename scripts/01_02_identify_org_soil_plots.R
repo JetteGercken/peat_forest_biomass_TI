@@ -60,7 +60,8 @@ org_soils_types_db <- soil_types_bze2_db %>%
   rename(., plot_bodtyp = bodentyp_2) %>% 
   distinct()
 
-
+org_profiles_according_to_soiltype <- soil_profiles_bze2_db %>% 
+  semi_join(., org_plots_according_to_hori, by = c("bfhnr" = "bfhnr_2"))
 
 # 1.2. plots with characteristics defining them organic -------------------
 
@@ -88,6 +89,11 @@ soil_profiles_bze2_db %>% filter(
   # due to the grouping by plot and organic horizint type (Aa or H) the filter will only select plots, that have at least one, or both organic horizonts with a depth of 10cm
   filter(depth >= 10),
 by = c("bfhnr", "inventur"))
+
+org_plots_according_to_hori <- soil_types_bze2_db %>% 
+  semi_join(., org_horizonts_db %>% select(bfhnr) %>% distinct(), by = c("bfhnr_2" = "bfhnr"))
+
+nrow(org_plots_according_to_hori)
 
 # 1.2.2. organic layer carbon content ---------------------------------------------------
 # SOC should be between 8.6 and 12% C per mass unit
@@ -229,11 +235,9 @@ soil_profiles_bze2_db %>%
             by = c("bfhnr", "horinr", "inventur", "horizont")) 
   
 
-mean_SOC_horizont %>% filter(weighed_mean_SOC_hori >= 0.15 | unweighed_mean_SOC_hori >= 0.15) 
 
 
-org_plots_according_to_hori <- soil_types_bze2_db %>% 
- semi_join(., org_horizonts_db %>% select(bfhnr) %>% distinct(), by = c("bfhnr_2" = "bfhnr"))
+
 
 
 
