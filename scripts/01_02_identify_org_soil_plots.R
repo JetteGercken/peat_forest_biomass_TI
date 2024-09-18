@@ -2,7 +2,7 @@
 # Analysis of the forest inventory accompanying the  national soil inventory
 # comparing org soil types in bze2 database and those occuring in bze2 analysis 
 
-# goal of this script is to compare if the plots with org soil types in bze2 
+# goal of this script is to compare if the plots with org soil types in bze 
 # database and those occuring in bze2 analysis are identical
 
 
@@ -42,7 +42,7 @@ element_bze2_db <- read.delim(file = here("data/input/vm_minboden_element_gehalt
 # 0.4. data prep & clearing -----------------------------------------------
 # remove "empty" columns
 soil_profiles_bze2_db <- soil_profiles_bze2_db[soil_profiles_bze2_db$horizont != -9 & soil_profiles_bze2_db$inventur == 2, ]
-
+org_soils_analysis <- org_soils_analysis %>% filter(plot_inventur == 2 & !is.na(plot_bodtyp))
 
 
 # 1. identify organic sites ---------------------------------------------------------
@@ -60,8 +60,7 @@ org_soils_types_db <- soil_types_bze2_db %>%
   rename(., plot_bodtyp = bodentyp_2) %>% 
   distinct()
 
-org_profiles_according_to_soiltype <- soil_profiles_bze2_db %>% 
-  semi_join(., org_plots_according_to_hori, by = c("bfhnr" = "bfhnr_2"))
+org_plots_according_to_soiltype <- org_soils_types_db
 
 # 1.2. plots with characteristics defining them organic -------------------
 
@@ -173,35 +172,38 @@ depth_class_hori_boarders <- as.data.frame(rbindlist(depth_class_hori_boarders_l
 
 
 hori_with_partial_depth_classes <- 
-# check for horizont boarders that only partly cross a depth step: 
+# check for horizont boarders that extend beyong one depth step: 
 depth_class_hori_boarders %>%
-  # filter for plots where ot and ut do not belon gto the same deoth class 
+  # filter for plots where ot and ut do not belong to the same depth class --> where there are more then 1 depth class per horizont 
  semi_join(depth_class_hori %>% 
                   group_by(  bfhnr, horinr, inventur, horizont ) %>% 
                   summarise(n_depth_class_per_hori = n()) %>% 
                   filter(n_depth_class_per_hori > 1), 
            by = c("bfhnr", "horinr", "inventur", "horizont") ) %>% 
   mutate(across(c("bfhnr", "horinr", "inventur", "hori_depth_class", "hori_boarder"), as.numeric)) %>% 
+  # join in horizont depth
+  left_join(., soil_profiles_bze2_db %>%  mutate(depth_hori = ut - ot) %>% 
+              select(bfhnr, inventur, horinr, horizont, depth_hori), 
+            by = c("bfhnr", "horinr", "inventur", "horizont") ) %>% 
+  # join in depth step info (upper lower boarder of depth class etc.)
   left_join(element_bze2_db %>% 
-              mutate(hori_depth_class = depth_class(ut), # assign depth class factor/ name per depth class
+              mutate(TF_depth_class = depth_class(ut), # assign depth class factor/ name per depth class 
                      depth_TF = ut- ot) %>% # calculate depth of depth class
-              # adjust names of deoth class boarder for 
+              # adjust names of deoth class boarder for join 
               rename("ut_TF" = "ut") %>%  
               rename("ot_TF" = "ot") %>% 
-             # pivot_longer(., ot:ut, names_to = "TF_boarder_name", values_to = "TF_boarder") %>% 
-              # use only the upper depth class boarder to find out how "far" into the depth class the horizont reaches
-             # filter(TF_boarder_name == "ot") %>% 
-              select(bfhnr, inventur, hori_depth_class, depth_TF,depth_TF,  ot_TF, ut_TF), 
-            by = c("bfhnr", "inventur", "hori_depth_class")) %>% 
+              select(bfhnr, inventur, TF_depth_class, depth_TF,  ot_TF, ut_TF), 
+            by = c("bfhnr", "inventur", "hori_depth_class" = "TF_depth_class")) %>% 
   # calcualte how much of the depth class is occubied by the horizont 
   # if it´s a upper horizont boarder we calcualte the difference between the lower boarder of the depth step and the hori depth, 
   # because we want to know how much "above" the "lower" boarder of the depth step the horizont is located
   # while for lower horizont boarders we calcualte the difference between the 
   # hori depth and the upper boarder of the depth step, because we want to know how much "further" then the upper boarter the orizont reaches 
-  mutate(diff_hori_TF_boarder = ifelse(hori_boarder_name == "ot", abs(hori_boarder-ut_TF), abs(hori_boarder -ot_TF)),
+  mutate(diff_hori_TF_boarder_cm = ifelse(hori_boarder_name == "ot", abs(hori_boarder-ut_TF), abs(hori_boarder -ot_TF)),
          # calcualte the relative depth that is ooccuried by the horizonts part that "reaches"
          # into the depth class, compared to the total depth ot the horizont class
-         relative_depth_hori_TF = diff_hori_TF_boarder/depth_TF)
+         relative_depth_hori_TF = diff_hori_TF_boarder_cm/depth_TF, 
+         relative_depth_hori_hori = diff_hori_TF_boarder_cm/ depth_hori) # proportion of the horizonts total depth that is located in the "other " depth class
 
 
 
@@ -209,6 +211,139 @@ depth_class_hori_boarders %>%
  # find horizonts with depth class with > 15% carbon mass-%
 mean_SOC_horizont <- 
 soil_profiles_bze2_db %>% 
+  left_join(., depth_class_hori %>% 
+              mutate(across(c("bfhnr", "horinr", "inventur", "hori_depth_class"), as.numeric)), 
+            by = c("bfhnr", "horinr", "inventur", "horizont")) %>% 
+  left_join(., hori_with_partial_depth_classes %>% 
+              select(bfhnr, horinr, inventur, horizont, hori_depth_class, diff_hori_TF_boarder_cm, relative_depth_hori_TF, relative_depth_hori_hori), 
+            by = c("bfhnr", "horinr", "inventur", "horizont", "hori_depth_class")) %>% 
+  left_join(., element_bze2_db %>% 
+              mutate(SOC =( m_ea_corg2/1000), # change unit of SOC content from g/kg to percent by divinding by 1000
+                     hori_depth_class = depth_class(ut)) %>%  
+              select(bfhnr, inventur, hori_depth_class, SOC),
+            by = c("bfhnr", "inventur", "hori_depth_class")) %>% 
+  # all NAs for the column with the proportion of the depth step occupied by the
+  # respective horizont (occupied_depth_hori_TF) have to be repleaced by 1 as the repsetvie horizont doen´t cross a depth class boarder 
+  # the difference between the hori boarder and tf is set to 0 for all those horizints that don cross the boarder of a depth class
+  mutate(diff_hori_TF_boarder_cm = ifelse(is.na(diff_hori_TF_boarder_cm), as.numeric(0), diff_hori_TF_boarder_cm), 
+         relative_depth_hori_hori = ifelse(is.na(relative_depth_hori_hori), as.numeric(1), relative_depth_hori_hori),
+         relative_depth_hori_TF = ifelse(is.na(relative_depth_hori_TF), as.numeric(1), relative_depth_hori_TF)) %>% 
+  group_by(bfhnr, horinr, inventur, horizont) %>% 
+  # now we prepare to calcualte the mean, weighed by the proportion of each depth step that is occupied by a horizont
+  summarise(n_depth_classes_weighed = sum(relative_depth_hori_TF), # sum of depth classes (1 = whole depth class occupied, <1 = parts of the depth class are occupied)
+            n_depth_classes_unweighed = n(), # number of depth classes a horizont touches
+            sum_SOC_hori = sum(SOC)) %>% 
+  # calculate mean SOC content by horizont 
+  mutate(weighed_mean_SOC_hori = sum_SOC_hori/ n_depth_classes_weighed, 
+         unweighed_mean_SOC_hori = sum_SOC_hori/ n_depth_classes_unweighed) %>% 
+  left_join(., soil_profiles_bze2_db %>% select(bfhnr, horinr, inventur, horizont, ot, ut), 
+            by = c("bfhnr", "horinr", "inventur", "horizont")) 
+
+
+
+mean_SOC_horizont_2 <- 
+  soil_profiles_bze2_db %>% 
+  left_join(., depth_class_hori %>% 
+              mutate(across(c("bfhnr", "horinr", "inventur", "hori_depth_class"), as.numeric)), 
+            by = c("bfhnr", "horinr", "inventur", "horizont")) %>% 
+  left_join(., hori_with_partial_depth_classes %>% 
+              select(bfhnr, horinr, inventur, horizont, hori_depth_class, diff_hori_TF_boarder_cm, relative_depth_hori_TF, relative_depth_hori_hori), 
+            by = c("bfhnr", "horinr", "inventur", "horizont", "hori_depth_class")) %>% 
+  left_join(., element_bze2_db %>% 
+              mutate(SOC_TF =( m_ea_corg2/1000), # change unit of SOC content from g/kg to percent by divinding by 1000
+                     hori_depth_class = depth_class(ut)) %>%  
+              # adjust names of deoth class boarder for join 
+              rename("ut_TF" = "ut") %>%  
+              rename("ot_TF" = "ot") %>% 
+              select(bfhnr, inventur, hori_depth_class, SOC_TF, ot_TF, ut_TF),
+            by = c("bfhnr", "inventur", "hori_depth_class")) %>% 
+  # all NAs for the column with the proportion of the depth step occupied by the
+  # respective horizont (occupied_depth_hori_TF) have to be repleaced by 1 as the repsetvie horizont doen´t cross a depth class boarder 
+  # the difference between the hori boarder and tf is set to 0 for all those horizints that don cross the boarder of a depth class
+  mutate(diff_hori_TF_boarder_cm = ifelse(is.na(diff_hori_TF_boarder_cm), as.numeric(0), diff_hori_TF_boarder_cm), 
+         relative_depth_hori_hori = ifelse(is.na(relative_depth_hori_hori), as.numeric(1), relative_depth_hori_hori),
+         relative_depth_hori_TF = ifelse(is.na(relative_depth_hori_TF), as.numeric(1), relative_depth_hori_TF), 
+         # weigh SOC content of the TF by the proportion of the horizontas dfeoth that "reaches" into the depth class
+         weighted_SOC = relative_depth_hori_hori*SOC_TF) %>% 
+  select(bfhnr, inventur, erhebjahr, horinr,  ot , ut, horizont, hori_depth_class, ot_TF, ut_TF,diff_hori_TF_boarder_cm ,relative_depth_hori_TF, relative_depth_hori_hori , SOC_TF, weighted_SOC) %>% 
+  group_by(bfhnr, inventur ,erhebjahr, horinr , horizont) %>% 
+  # now we prepare to calcualte the mean, weighed by the proportion of each depth step that is occupied by a horizont
+  summarise(SOC_hori = sum(weighted_SOC)) %>% 
+  left_join(., soil_profiles_bze2_db %>% select(bfhnr, horinr, inventur, horizont, ot, ut), 
+            by = c("bfhnr", "horinr", "inventur", "horizont")) 
+
+
+
+
+
+soil_profiles_bze2_db %>% 
+  left_join(., depth_class_hori %>% 
+              mutate(across(c("bfhnr", "horinr", "inventur", "hori_depth_class"), as.numeric)), 
+            by = c("bfhnr", "horinr", "inventur", "horizont")) %>% 
+  left_join(., hori_with_partial_depth_classes %>% 
+              select(bfhnr, horinr, inventur, horizont, hori_depth_class, diff_hori_TF_boarder_cm, relative_depth_hori_TF, relative_depth_hori_hori), 
+            by = c("bfhnr", "horinr", "inventur", "horizont", "hori_depth_class")) %>% 
+  left_join(., element_bze2_db %>% 
+              mutate(SOC_TF =( m_ea_corg2/1000), # change unit of SOC content from g/kg to percent by divinding by 1000
+                     hori_depth_class = depth_class(ut)) %>%  
+              # adjust names of deoth class boarder for join 
+              rename("ut_TF" = "ut") %>%  
+              rename("ot_TF" = "ot") %>% 
+              select(bfhnr, inventur, hori_depth_class, SOC_TF, m_trd_fbv2, ot_TF, ut_TF),
+            by = c("bfhnr", "inventur", "hori_depth_class")) %>% 
+  # all NAs for the column with the proportion of the depth step occupied by the
+  # respective horizont (occupied_depth_hori_TF) have to be repleaced by 1 as the repsetvie horizont doen´t cross a depth class boarder 
+  # the difference between the hori boarder and tf is set to 0 for all those horizints that don cross the boarder of a depth class
+  mutate(diff_hori_TF_boarder_cm = ifelse(is.na(diff_hori_TF_boarder_cm), as.numeric(0), diff_hori_TF_boarder_cm), 
+         relative_depth_hori_hori = ifelse(is.na(relative_depth_hori_hori), as.numeric(1), relative_depth_hori_hori), # proportion of the horizonts deoth thats in the TF partial_hori/ total_depth_hori
+         relative_depth_hori_TF = ifelse(is.na(relative_depth_hori_TF), as.numeric(1), relative_depth_hori_TF),   # propotion of the TF thats occupied by the hori partial_hori/total_depth_TF
+         # weigh SOC content of the TF by the proportion of the horizontas dfeoth that "reaches" into the depth class
+         weighted_SOC_JB = relative_depth_hori_hori*SOC_TF, 
+         depth_TF = ut_TF - ot_TF,
+         depth_hori_occupies_in_TF = ifelse(diff_hori_TF_boarder_cm == 0, depth_TF , diff_hori_TF_boarder_cm),
+         # calcualte the fine soil stock occupied by the horizont in the depth class: 
+         # trd*depht of depth_class = total stock TF -->  total stock Tf/depth TF = stock/cm TF --> stock per cm TF * depth Hori occupies in TF = stock hori occupies in TF
+         FB_t_ha_hori_in_TF_MM = m_trd_fbv2*depth_hori_occupies_in_TF*100, #((m_trd_fbv2*depth_TF)/depth_TF)*depth_hori_occupies_in_TF,
+         SOC_t_ha_hori_in_TF_MM = FB_t_ha_hori_in_TF_MM*SOC_TF, 
+         FB_t_ha_hori_in_TF_EG = (m_trd_fbv2*depth_TF)*relative_depth_hori_hori*100,
+         SOC_t_ha_hori_in_TF_EG = FB_t_ha_hori_in_TF_EG*SOC_TF
+         )%>% 
+   select(bfhnr, inventur, erhebjahr, horinr,  ot , ut, horizont, hori_depth_class, ot_TF, ut_TF,diff_hori_TF_boarder_cm ,relative_depth_hori_TF, relative_depth_hori_hori , SOC_TF, weighted_SOC_JB, 
+          depth_TF, depth_hori_occupies_in_TF, FB_t_ha_hori_in_TF_MM, SOC_t_ha_hori_in_TF_MM, FB_t_ha_hori_in_TF_EG, SOC_t_ha_hori_in_TF_EG) %>% 
+   group_by(bfhnr, inventur ,erhebjahr, horinr , horizont) %>% 
+  # # now we prepare to calcualte the mean, weighed by the proportion of each depth step that is occupied by a horizont
+   summarise(n_TF_per_hori = n(),
+             SOC_t_ha_hori_MM = sum(SOC_t_ha_hori_in_TF_MM), # MM = Marius Möller Method
+             FB_t_ha_hori_MM = sum(FB_t_ha_hori_in_TF_MM), 
+             SOC_t_ha_hori_EG = sum(SOC_t_ha_hori_in_TF_EG),  # EG = Erik Grüneberg Method
+             FB_t_ha_hori_EG = sum(FB_t_ha_hori_in_TF_EG),
+             SOC_weighed_JB = sum(weighted_SOC_JB)) %>%       # JB = Judith Bilefeldt Method
+  mutate(SOC_weighed_MM = SOC_t_ha_hori_MM/FB_t_ha_hori_MM, 
+         SOC_weighed_EG = SOC_t_ha_hori_EG/FB_t_ha_hori_EG) %>% 
+   left_join(., mean_SOC_horizont_2 %>% select(bfhnr, horinr, inventur, horizont, ot, ut), 
+             by = c("bfhnr", "horinr", "inventur", "horizont", "erhebjahr"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mean_SOC_org_horizont <- 
+soil_profiles_bze2_db %>%
+  # select only plots that are organic by their horizont next
+  semi_join(., org_plots_according_to_hori, by = c("bfhnr" = "bfhnr_2")) %>% 
+  # assign org horizont groups: every hori containing an H gets the group H and every hori containing Aa becomes group Aa 
+  mutate(org_hori_type = case_when(grepl("H", horizont, text, ignore.case = F) == T ~ "H",
+                                   grepl("Aa", horizont, text, ignore.case = F) == T ~"Aa", 
+                                   TRUE ~ horizont)) %>% 
   left_join(., depth_class_hori %>% 
               mutate(across(c("bfhnr", "horinr", "inventur", "hori_depth_class"), as.numeric)), 
             by = c("bfhnr", "horinr", "inventur", "horizont")) %>% 
@@ -223,20 +358,34 @@ soil_profiles_bze2_db %>%
   # all NAs for the column with the proportion of the depth step occupied by the
   # respective horizont (occupied_depth_hori_TF) have to be repleaced by 1 as the repsetvie horizont doen´t cross a depth class boarder 
   mutate(relative_depth_hori_TF = ifelse(is.na(relative_depth_hori_TF), as.numeric(1), relative_depth_hori_TF)) %>% 
-  group_by(bfhnr, horinr, inventur, horizont) %>% 
+  group_by(bfhnr, inventur, org_hori_type) %>% 
   # now we prepare to calcualte the mean, weighed by the proportion of each depth step that is occupied by a horizont
   summarise(n_depth_classes_weighed = sum(relative_depth_hori_TF), # sum of depth classes (1 = whole depth class occupied, <1 = parts of the depth class are occupied)
             n_depth_classes_unweighed = n(), # number of depth classes a horizont touches
             sum_SOC_hori = sum(SOC)) %>% 
   # calculate mean SOC content by horizont 
   mutate(weighed_mean_SOC_hori = sum_SOC_hori/ n_depth_classes_weighed, 
-         unweighed_mean_SOC_hori = sum_SOC_hori/ n_depth_classes_unweighed) %>% 
-  left_join(., soil_profiles_bze2_db %>% select(bfhnr, horinr, inventur, horizont, ot, ut), 
-            by = c("bfhnr", "horinr", "inventur", "horizont")) 
-  
+         unweighed_mean_SOC_hori = sum_SOC_hori/ n_depth_classes_unweighed) 
 
 
 
+# 1.2.3. horizont depth and carbon content --------------------------------
+org_plots_according_to_hori_SOC <- 
+  soil_types_bze2_db %>% 
+  semi_join(., 
+            soil_profiles_bze2_db %>%
+  # select only plots that are organic by their horizont next
+  semi_join(., org_plots_according_to_hori, by = c("bfhnr" = "bfhnr_2")) %>% 
+  # assign org horizont groups: every hori containing an H gets the group H and every hori containing Aa becomes group Aa 
+  mutate(org_hori_type = case_when(grepl("H", horizont, text, ignore.case = F) == T ~ "H",
+                                   grepl("Aa", horizont, text, ignore.case = F) == T ~"Aa", 
+                                   TRUE ~ horizont)) %>% 
+  left_join(., mean_SOC_org_horizont %>% 
+              select( bfhnr, inventur, org_hori_type, unweighed_mean_SOC_hori), 
+            by = c("bfhnr", "inventur", "org_hori_type")) %>% 
+  filter(org_hori_type == "H" & unweighed_mean_SOC_hori > 0.15 |
+           org_hori_type == "Aa" & unweighed_mean_SOC_hori > 0.087),
+  by = c("bfhnr_2" = "bfhnr")) %>% distinct()
 
 
 
@@ -267,42 +416,95 @@ org_soils_analysis <- org_soils_analysis %>%
 # 4.2. comparisson org soil types bd and analysis --------------------------------------------------------
 
 # 4.2.1. bze2 database to erics data --------------------------------------
-anti_join(org_soils_types_db, org_soils_analysis, by = c("bfhnr")) #,  "plot_bodtyp"))
+anti_join(org_plots_according_to_soiltype, org_soils_analysis, by = c("bfhnr")) #,  "plot_bodtyp"))
 # plot present in org_soils_types_db but not in soil_types_analysis (EG) 
 #   bfhnr    bodentyp_2
 # 1 70109         HN
 # 2 80058      HN-SG
 # 3 80206         KV
 
-nrow(org_soils_types_db)
+nrow(org_plots_according_to_soiltype)
 # numrber of rows: 38
 
-anti_join(org_soils_analysis, org_soils_types_db,  by = c("bfhnr")) #,  "plot_bodtyp"))
+anti_join(org_soils_analysis %>% select(bfhnr, plot_bodtyp) %>% distinct(), org_plots_according_to_soiltype,  by = c("bfhnr")) #,  "plot_bodtyp"))
 # plot present in org_soils_analysis but not in org_soils_db 
 # bfhnr      plot_bodtyp
-# 1 30519         KVu
+# 1  30186         SSm
+# 2  30519         KVu
+# 3  30602         SSm
+# 4  30634       GG-YU
+# 5  80214          RR
+# 6  80264         SGn
+# 7  90875       BB-RN
+# 8 120159          GG
+# 9 140010       PP-GG
 
-nrow(org_soils_analysis)
-# numrber of rows: 36
+nrow(org_soils_analysis %>% select("bfhnr") %>% distinct())
+# numrber of rows: 44
 
 # these plots differ from 
 org_soil_types_comp_db_EG <- 
-  full_join(org_soils_analysis, org_soils_types_db,  by = c("bfhnr")) %>% 
+  full_join(org_soils_analysis, org_plots_according_to_soiltype,  by = c("bfhnr")) %>% 
   mutate(same_same_but_different = ifelse(plot_bodtyp.x != plot_bodtyp.y | 
                                             is.na(plot_bodtyp.x) & !is.na(plot_bodtyp.y)| 
                                             !is.na(plot_bodtyp.x) & is.na(plot_bodtyp.y), "different", "same")) 
 
 
 
-# 4.2.2. bze databse by soil types vs. bze2 org plots due to horizont chracteristics  -------------
+# 4.2.3. bze databse by soil types vs. bze2 org plots due to horizont & SOC chracteristics  -------------
 # compare bze2 org soil types to org soil plots idientified by horziont characteristics
-anti_join(org_soils_types_db, org_plots_according_to_hori,  by = c("bfhnr" = "bfhnr_2") ) #,  "plot_bodtyp"))
-# plot present in org_soils_types_db but not in org_soils_db 
+anti_join(org_plots_according_to_soiltype, org_plots_according_to_hori_SOC,  by = c("bfhnr" = "bfhnr_2") ) #,  "plot_bodtyp"))
+# plot present in org_plots_according_to_soiltype but not in org_soils_db 
+#    bfhnr    plot_bodtyp
+# 1   30123       YE-HN
+# 2   30148          GM
+# 3   30625       KV-KM
+# 4   30646          GH
+# 5   70109          HN
+# 6   80058       HN-SG
+# 7   80112          KV
+# 8   80206          KV
+# 9   90594          GM
+# 10  90865          GM
+# 11  90877          GM
+# 12 120080          GH
+# 13 120098          GH
+# 14 120119          GM
+
+anti_join(org_plots_according_to_hori_SOC, org_plots_according_to_soiltype,  by = c("bfhnr_2" = "bfhnr") ) %>% select(bfhnr_2 , bodentyp_2 )
+# plot present in org_plots_according_to_hori but not in org_plots_according_to_soiltype 
+#      bfhnr_2    bodentyp_2
+# 1   30186         SS
+# 2   30519         LF
+# 3   30602         SS
+# 4   90875      BB-RN
+# 5  120159         GG
+
+
+nrow(org_plots_according_to_hori)
+# numrber of rows: 51
+
+# the following plots do not qualy as organic due to their organic horizont thickness 
+# tho their soil type indicates they are organic
+soil_profiles_bze2_db %>% 
+  semi_join(., anti_join(org_plots_according_to_soiltype, org_plots_according_to_hori,  by = c("bfhnr" = "bfhnr_2") ), by =  "bfhnr" )
+
+
+org_soil_types_comp_db_hori <- 
+  full_join(org_plots_according_to_soiltype, org_plots_according_to_hori %>% select(bfhnr_2, bodentyp_2), by = c("bfhnr" = "bfhnr_2")) %>% 
+  mutate(same_same_but_different = ifelse(plot_bodtyp != bodentyp_2 | 
+                                            is.na(plot_bodtyp) & !is.na(bodentyp_2)| 
+                                            !is.na(plot_bodtyp) & is.na(bodentyp_2), "different", "same"))
+
+# 4.2.2. bze databse by soil types vs. bze2 org plots due to horizont & SOC chracteristics  -------------
+# compare bze2 org soil types to org soil plots idientified by horziont characteristics
+anti_join(org_plots_according_to_soiltype, org_plots_according_to_hori_SOC,  by = c("bfhnr" = "bfhnr_2") ) #,  "plot_bodtyp"))
+# plot present in org_plots_according_to_soiltype but not in org_soils_db 
 #    bfhnr    plot_bodtyp
 # 1  90877          GM
 # 2 120080          GH
 
-anti_join(org_plots_according_to_hori, org_soils_types_db,  by = c("bfhnr_2" = "bfhnr") ) %>% select(bfhnr_2 , bodentyp_2 )
+anti_join(org_plots_according_to_hori_SOC, org_plots_according_to_soiltype,  by = c("bfhnr_2" = "bfhnr") ) %>% select(bfhnr_2 , bodentyp_2 )
 # plot present in org_plots_according_to_hori but not in org_soils_types_db 
 #      bfhnr_2    bodentyp_2
 # 1    30186         SS
@@ -322,31 +524,18 @@ anti_join(org_plots_according_to_hori, org_soils_types_db,  by = c("bfhnr_2" = "
 # 15  120170         BB
 
 
-nrow(org_plots_according_to_hori)
-# numrber of rows: 51
-
-# the following plots do not qualy as organic due to their organic horizont thickness 
-# tho their soil type indicates they are organic
-soil_profiles_bze2_db %>% 
-  semi_join(., anti_join(org_soils_types_db, org_plots_according_to_hori,  by = c("bfhnr" = "bfhnr_2") ), by =  "bfhnr" )
 
 
-org_soil_types_comp_db_hori <- 
-  full_join(org_soils_types_db, org_plots_according_to_hori %>% select(bfhnr_2, bodentyp_2), by = c("bfhnr" = "bfhnr_2")) %>% 
-  mutate(same_same_but_different = ifelse(plot_bodtyp != bodentyp_2 | 
-                                            is.na(plot_bodtyp) & !is.na(bodentyp_2)| 
-                                            !is.na(plot_bodtyp) & is.na(bodentyp_2), "different", "same"))
+# 4.2.3. compare only hori filter vs. hori & SOC filter ------------------------------
+anti_join(org_plots_according_to_hori, org_plots_according_to_hori_SOC, by = "bfhnr_2")
+# 22 plots are excluded when instead of hori depth we also filter for SOC content  
+
+nrow(org_plots_according_to_hori) # 51
+nrow(org_plots_according_to_hori_SOC) # 29
 
 
 
 
-
-# 5. filter by carbon content in depth steps ------------------------------
-element_bze2_db %>% mutate(corg_percent = (m_ea_corg2/1000)*100, 
-                           thicknes = ut-ot) %>% filter(corg_percent >= 15 & thicknes >= 10) 
-  
-
-  
 
 # 6. data export ----------------------------------------------------------
 write.csv(soil_types_bze2_db, here(out.path, "soils_types_profil_db.csv"), row.names = FALSE)
