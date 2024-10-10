@@ -86,10 +86,10 @@
 ## plot stati to exclude: 3  --> find trees that match the CCS and remove them 
 ## create "DW_CCS_to_exclude" dataset
 
-# Thuenen Institute - Bodenschutz und Waldzustand
-# Analysis of the forest inventory accompanying the peat land soil inventory
-# Functions & require
 
+
+# as we have to adjust the script from BZE2 BZE3 analysis to BZE2 & MOMOK, i introduce the hastag ##momok whenever i 
+# carry out a MOMOK specific change 
 
 # ----- 0.1. packages and functions --------------------------------------------
 source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
@@ -100,7 +100,7 @@ here::here()
 out.path <- here("output/out_data//") 
 
 # ----- 0.4 importing data -----------------------------------------------------
-# create complete list of momok plots to be able to separate them from bze 
+# create complete list of momok plots to be able to separate them from bze ##momok
 momok_plot_ids <-  na.omit(plyr::rbind.fill(read.delim(file = here("data/input/LT_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(MoMoK_Nr), 
                                     read.delim(file = here("data/input/DW_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(MoMoK_Nr),
                                     read.delim(file = here("data/input/RG_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(MoMoK_Nr), 
@@ -111,28 +111,22 @@ momok_plot_ids <-  na.omit(plyr::rbind.fill(read.delim(file = here("data/input/L
 ## BZE 2
 # this dataset contains the BZE file tit_1 which displays info about the BZE inventory in general
 # so info that´s base of all sub inventories like trees, deadwood, regeneration
-<<<<<<< HEAD
+
 inv_info <- plyr::rbind.fill(read.delim(file = here("data/input/tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(-c("re_form", "re_lage", "neigung", "exposition", "anmerkung")), 
-                             read.delim(file = here("data/input/momok_tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(-c("re_form", "re_lage", "neigung", "exposition", "anmerkung")))
-=======
-inv_info <- read.delim(file = here("data/input/tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(-c("re_form", "re_lage", "neigung", "exposition", "anmerkung"))
->>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
+                             read.delim(file = here("data/input/momok_tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(-c("re_form", "re_lage", "neigung", "exposition", "anmerkung"))) ##momok
+
 colnames(inv_info) <- c("plot_ID", "team", "date", "plot_inv_status")
 # create column that just contains year of inventory: https://www.geeksforgeeks.org/how-to-extract-year-from-date-in-r/
 inv_info$date <- as.Date(inv_info$date)
 inv_info$inv_year <- as.numeric(format(inv_info$date, "%Y"))
-#assing inv name
-inv_info <- inv_info %>% mutate(inv = ifelse(plot_ID %in% momok_plot_ids$bund_nr, "momok", inv_name(inv_year)))
+#assing inv name: if its am momok plot, we can´t do it via the inv year, we have to do it by the plot ids listed in momok_plot_ids df 
+inv_info <- inv_info %>% mutate(inv = ifelse(plot_ID %in% momok_plot_ids$bund_nr, "momok", inv_name(inv_year)))   ##momok
 
 
 ## LIVING TREES
 # this dataset contains information about the inventory of the respective individual sampling circuits as well as stand realted info like stand type & - structure
-<<<<<<< HEAD
-tree_inv_info <-  plyr::rbind.fill(read.delim(file = here("data/input/be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
-                                   read.delim(file = here("data/input/momok_be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE))%>% # be
-=======
-tree_inv_info <-  read.delim(file = here("data/input/be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% # be
->>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
+tree_inv_info <-  plyr::rbind.fill(read.delim(file = here("data/input/be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), # be
+                                   read.delim(file = here("data/input/momok_be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE))%>%    ##momok
   select(bund_nr, team,  datum,  beart, besttyp, struktur,  pk1_aufnahme,   pk2_aufnahme, pk3_aufnahme, hbi_status)
 colnames(tree_inv_info) <- c("plot_ID", "team", "date", "stand_spec", "stand_type", "structure", 
                              "CCS_5_inv_status",  "CCS_12_inv_status",  "CCS_17_inv_status" , "hbi_status")
@@ -145,46 +139,36 @@ tree_inv_info <- tree_inv_info %>% mutate(hbi_status = case_when(stringr::str_de
 tree_inv_info$date <- as.Date(tree_inv_info$date)
 tree_inv_info$inv_year <- as.numeric(format(tree_inv_info$date, "%Y"))
 # this line can be removed later
-tree_inv_info <- tree_inv_info %>% mutate(inv = ifelse(plot_ID %in% momok_plot_ids$bund_nr, "momok", inv_name(inv_year)))
+tree_inv_info <- tree_inv_info %>% mutate(inv = ifelse(plot_ID %in% momok_plot_ids$bund_nr, "momok", inv_name(inv_year)))  ##momok
 
 
 
 # HBI BE dataset: this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
-<<<<<<< HEAD
-trees_data <- plyr::rbind.fill(read.delim(file = here("data/input/beab.csv"), sep = ",", dec = "."), 
-                               read.delim(file = here("data/input/momok_beab.csv"), sep = ",", dec = "."))
-=======
-trees_data <- read.delim(file = here("data/input/beab.csv"), sep = ",", dec = ".")
->>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
+trees_data <- plyr::rbind.fill(read.delim(file = here("data/input/beab.csv"), sep = ",", dec = "."),       # beab
+                               read.delim(file = here("data/input/momok_beab.csv"), sep = ",", dec = "."))  ##momok
 # HBI trees
 colnames(trees_data) <- c("plot_ID", "tree_ID", "tree_inventory_status", "multi_stem",  "SP_code", "age", 
                           "age_meth", "D_mm", "DBH_h_cm", "H_dm", "C_h_dm", "azi_gon", "dist_cm", "Kraft",  "C_layer")
 trees_data <- trees_data %>% dplyr::select(plot_ID,  tree_ID ,  tree_inventory_status ,  multi_stem , dist_cm ,  azi_gon ,
                                            age ,  age_meth ,  SP_code ,  Kraft , C_layer , H_dm ,  C_h_dm , D_mm ,   DBH_h_cm )
+
 # HBI forest edges
 forest_edges <- read.delim(file = here("data/input/be_waldraender.csv"), sep = ",", dec = ".")
 colnames(forest_edges) <- c("plot_ID", "e_ID", "e_type", "e_form", "A_dist", "A_azi",  "B_dist", "B_azi", "T_dist", "T_azi") # t = turning point
+forest_edges$plot_ID <- as.character(forest_edges$plot_ID)
 
 
 
 ## REGENERATION                                                                                                  
 # this dataset contains the inventory status, position and extend of the sampling circle satelites of the regeneration inventory of the HBI (BZE2) 
-<<<<<<< HEAD
 RG_loc_info <- plyr::rbind.fill(read.delim(file = here("data/input/bej.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
-                                read.delim(file = here("data/input/momok_bej.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE))%>% 
-=======
-RG_loc_info <- read.delim(file = here("data/input/bej.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% 
->>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
+                                read.delim(file = here("data/input/momok_bej.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE))%>%  ##momok
   select(bund_nr, pk_nr, pk_richtung, pk_dist, pk_aufnahme ,pk_maxdist)
 # assign column names    # bund_nr     pk_nr      pk_richtung     pk_dist     pk_aufnahme      pk_maxdist
 colnames(RG_loc_info) <- c("plot_ID", "CCS_nr", "CCS_position",  "CCS_dist", "CCS_RG_inv_status", "CCS_max_dist_cm")
 # this dataset contains the plant specific inventory data of the regenertaion inventory of the HBI (BZE2), including stand and area info
-<<<<<<< HEAD
 RG_data <- plyr::rbind.fill(read.delim(file = here("data/input/bejb.csv"), sep = ",", dec = ","), 
-                            read.delim(file = here("data/input/momok_bejb.csv"), sep = ",", dec = ","))
-=======
-RG_data <- read.delim(file = here("data/input/bejb.csv"), sep = ",", dec = ",")
->>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
+                            read.delim(file = here("data/input/momok_bejb.csv"), sep = ",", dec = ","))  ##momok
 #  "bund_nr"  "pk_nr"  "lfd_nr"   "bart"  "hoehe"    "grklasse"
 colnames(RG_data) <- c("plot_ID", "CCS_nr", "tree_ID", "SP_code", "H_cm", "D_class_cm")
 
@@ -192,22 +176,19 @@ colnames(RG_data) <- c("plot_ID", "CCS_nr", "tree_ID", "SP_code", "H_cm", "D_cla
 
 ##DEADWOOD
 # deadwood inventory info 
-<<<<<<< HEAD
 DW_inv_info <- plyr::rbind.fill(read.delim(file = here("data/input/be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
-                                read.delim(file = here("data/input/momok_be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE))
+                                read.delim(file = here("data/input/momok_be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)) ##momok
 colnames(DW_inv_info) <- c("plot_ID", "CCS_DW_inv_status",  "dist_cm", "azi")
 # deadwood single item data
 DW_data <- plyr::rbind.fill(read.delim(file = here("data/input/be_totholz_liste.csv"), sep = ",", dec = "."), 
-                            read.delim(file = here("data/input/momok_be_totholz_liste.csv"), sep = ",", dec = ".") )%>% 
-=======
-DW_inv_info <- read.delim(file = here("data/input/be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) 
-colnames(DW_inv_info) <- c("plot_ID", "CCS_DW_inv_status",  "dist_cm", "azi")
-# deadwood single item data
-DW_data <- read.delim(file = here("data/input/be_totholz_liste.csv"), sep = ",", dec = ".") %>% 
->>>>>>> 2ea91827344d4acbbf0f9d76a6be04155bf3221c
+                            read.delim(file = here("data/input/momok_be_totholz_liste.csv"), sep = ",", dec = ".") )%>%  ##momok
   select( bund_nr, lfd_nr, typ, baumgruppe, anzahl,  durchmesser, laenge, zersetzung)
 #  bund_nr lfd_nr typ      baumgruppe anzahl  durchmesser laenge zersetzung
 colnames(DW_data) <- c("plot_ID", "tree_ID", "dw_type", "dw_sp", "count", "d_cm", "l_dm", "decay")
+
+
+
+
 
 
 # 1. data prep  --------------------------------------
@@ -216,7 +197,7 @@ colnames(DW_data) <- c("plot_ID", "tree_ID", "dw_type", "dw_sp", "count", "d_cm"
 # select plots that have a "Punktstatus (x_plotstatus_bze)" 
 plots_to_exclude <- inv_info %>% 
   # exclude momok from this filter as we actually don´t have the meta info about momok plots
-  filter(inv != "momok" & plot_inv_status >= 21 | inv != "momok" &  plot_inv_status <0) %>% 
+  filter(inv != "momok" & plot_inv_status >= 21 | inv != "momok" &  plot_inv_status <0) %>%  ##momok
   # select(plot_ID) %>% 
   mutate(rem_reason = "whole plot excluded during inventory status sorting")
 
@@ -259,10 +240,7 @@ if(exists('trees_HBI')== TRUE){
 
 # 1.2.2. prepare tree data:species & inventory names -------------------------------------------------------------------------------------------------------------------------------------
 trees_data <- trees_data %>% 
-  # sort data classes
-  mutate(across(c("plot_ID", "tree_ID", "tree_inventory_status", "Kraft", "C_layer"), as.integer)) %>% 
-  mutate(across(c("multi_stem",  "age", "D_mm", "DBH_h_cm", "H_dm", "C_h_dm", "azi_gon", "dist_cm"), as.numeric)) %>% 
-  mutate(SP_code =  tolower(SP_code)) %>% 
+  mutate(SP_code = tolower(SP_code)) %>%  ##momok : apperently the species names in momom are not in lower case but caps which is why we have to harmonise this first 
   # join in inventory info 
   left_join(., tree_inv_info %>% dplyr::select("plot_ID", "inv_year", "inv"), by = "plot_ID")  %>% 
   # join in the species names from x_bart to ensure the Dahm DBH correction function
@@ -273,9 +251,10 @@ trees_data <- trees_data %>%
          # calculate corrected BDH if measuringheight != 1.3m
          DBH_cm = ifelse(DBH_h_cm == 130, as.numeric(D_mm)/10, DBH_Dahm(plot_ID, D_mm, DBH_h_cm, BWI))) %>% 
   # asssing corect samling circle diameter according to DBH of the tree to be able to join in the right plot area
-  mutate(CCS_r_m = case_when(DBH_cm >= 7  & DBH_cm < 10 ~ 5.64, 
-                             DBH_cm >= 10 & DBH_cm < 30 ~ 12.62, 
-                             DBH_cm >= 30 ~ 17.84, 
+  mutate(CCS_r_m = case_when(DBH_cm >= 7  & DBH_cm < 10 & inv != "momok" ~ 5.64, 
+                             DBH_cm >= 10 & DBH_cm < 30 & inv != "momok" ~ 12.62, 
+                             DBH_cm >= 30 & inv != "momok" ~ 17.84, 
+                             inv == "momok" ~ 12.62,
                              TRUE ~ NA)) %>% 
   arrange(plot_ID, tree_ID)
 
@@ -283,6 +262,7 @@ trees_data <- trees_data %>%
 
 # check if there are no trees left that don´t have a SP_code in xBart/ SP_names_com_ID_tapeS
 SP_NAs <- trees_data %>% 
+  mutate(SP_code = tolower(SP_code)) %>%  ##momok : apperently the species names in momom are not in lower case but caps which is why we have to harmonise this first 
   anti_join(SP_names_com_ID_tapeS %>% 
               mutate(char_code_ger_lowcase = tolower(Chr_code_ger)), 
             by = c("SP_code" = "char_code_ger_lowcase"))
@@ -290,32 +270,27 @@ SP_NAs <- trees_data %>%
 if(nrow(SP_NAs) != 0){print("There are species names or codes in the trees dataset that do not match
                                 the species names and codes listed in x_bart")}else{"all fine"}
 
-
 # 1.2.3. filter trees in processable and removed  -----------------------------------------------------------
 
 # save trees to be removed in other dataset
-trees_removed <- plyr::rbind.fill(trees_data %>% 
-  # trees that don´t have a species code or are outside the widest CCS or whos dbh, or other im portant variables are na 
-  # https://stackoverflow.com/questions/33520854/filtering-data-frame-based-on-na-on-multiple-columns
-  filter_at(vars(SP_code, plot_ID, dist_cm, azi_gon, D_mm ,tree_ID),any_vars(is.na(.)) ), 
-  trees_data %>% filter(dist_cm > 1784)) %>% distinct() %>% 
+trees_removed <- trees_data %>% 
+  # trees that don´t have a species code or are outside the widest CCS
+  filter(if_any(c("SP_code", "plot_ID", "tree_ID", "dist_cm", "azi_gon", "DBH_cm"), ~is.na(.x)) | dist_cm > 1784) %>% 
   mutate(rem_reason = "single LT excluded during inventory status sorting")
 
 
 # remove trees without species code or plot ID from the dataset
 trees_data <- trees_data %>% 
-  # we cannot do this via antijoining "trees removed" as the species and the plot id 
+  # we cannot do this via anti joining "trees removed" as the species and the plot id 
   # that we also use to join the data will be NA for removed trees 
   # exclude those trees that don´t have a species code 
-  filter_at(vars(SP_code, plot_ID, dist_cm, azi_gon, D_mm ,tree_ID),any_vars(!is.na(.)) ) %>% 
   # exclude trees outside the widest CCS
+  # https://stackoverflow.com/questions/33520854/filtering-data-frame-based-on-na-on-multiple-columns
+  filter_at(vars(c("SP_code", "plot_ID", "tree_ID", "dist_cm", "azi_gon", "DBH_cm")),all_vars(!is.na(.))) %>% 
   filter(dist_cm <= 1784) 
+  
 
-trees_data %>% semi_join(., 
-              trees_data %>% filter(is.na(azi_gon)), 
-              by = c("plot_ID", "tree_ID"))
-
-# 1.2.3. forest edges dataset ---------------------------------------------
+# 1.2.4. forest edges dataset ---------------------------------------------
 forest_edges <- forest_edges %>% 
   # join in inventory info 
   left_join(., tree_inv_info %>% dplyr::select("plot_ID", "inv_year", "inv"), by = "plot_ID") 
@@ -327,8 +302,9 @@ forest_edges <- forest_edges %>%
 RG_data <- RG_data %>%
   # join  in inventory info
   left_join(., tree_inv_info %>% select(plot_ID, inv_year, inv) %>% distinct(), by = "plot_ID") %>% 
-  arrange(plot_ID, CCS_nr, tree_ID)
+  arrange(plot_ID, CCS_nr, tree_ID) %>% 
 # if the CCR no is not a an integer but a character, we have to change that 
+  mutate(across(c("CCS_nr", "tree_ID"), as.integer))
 
 
 RG_loc_info <- RG_loc_info %>% 
@@ -353,8 +329,8 @@ DW_data <- DW_data %>%
 
 
 # 2. data processing ------------------------------------------------------------------------------------------------------------------------------------------------------
-# 2.2. LIVING TREES -------------------------------------------------------------------------------------------------------------------------------------------------------
-# 2.2.1. remove not preocessable plots and sampling circuits form tree_inventory_info dataset ------------------------------------------------------------
+# 2.1. LIVING TREES -------------------------------------------------------------------------------------------------------------------------------------------------------
+# 2.1.1. remove not preocessable plots and sampling circuits form tree_inventory_info dataset ------------------------------------------------------------
 tree_inv_info <- tree_inv_info %>% 
   # pivoting B, C: https://stackoverflow.com/questions/70700654/pivot-longer-with-names-pattern-and-pairs-of-columns
   pivot_longer(., "CCS_5_inv_status":"CCS_17_inv_status", names_to = "CCS_r_m", values_to = "CCS_LT_inv_status") %>% 
@@ -365,7 +341,7 @@ tree_inv_info <- tree_inv_info %>%
   distinct() %>% 
   arrange(plot_ID)
 
-# 2.2.2. create dataset with LT CCS to remove from trees data df ------------------------------------------------------------------------------------------------------------------------------------------------------------
+# 2.1.2. create dataset with LT CCS to remove from trees data df ------------------------------------------------------------------------------------------------------------------------------------------------------------
 # remove CCS that were not inventorable from the trees df and filter NFI (BWI) plots as well
 LT_CCS_to_exclude <- plyr::rbind.fill(
   tree_inv_info %>% 
@@ -386,7 +362,7 @@ LT_CCS_to_exclude <- plyr::rbind.fill(
       TRUE ~ NA)))
 
 
-#  2.2.3. correct CCS_inv_status == 2 if necesarry -------------------------------------------------------------------------------------------------------------------------
+#  2.1.3. correct CCS_inv_status == 2 if necesarry -------------------------------------------------------------------------------------------------------------------------
 # check if CCS_LT_inv_status is actually accurate: 
 # this means if there is a CCS with status 2 there shouldn´t be any tree in that circuit
 tree_inv_info <- tree_inv_info %>% 
@@ -397,7 +373,7 @@ tree_inv_info <- tree_inv_info %>%
 
 
 
-#  2.2.4. creating "empty" LT CCS for status 2 circuits -------------------------------------------------------------------------------------------------------------
+#  2.1.4. creating "empty" LT CCS for status 2 circuits -------------------------------------------------------------------------------------------------------------
 #  plot_ID inv_year compartiment  B_t_ha C_t_ha  N_t_ha
 # here i create a dataset with DW plots that have status 2 
 # which only contains info we can catually give so the plot area , the plot ID and the stocks which are set to 0
@@ -434,12 +410,13 @@ for (i in 1:nrow(trees_stat_2)) {
           BA_CCS_m2_ha = NA, 
           n_trees_CCS_ha = NA))
       }
-  LT.data.stat.2.list[[i]] <- LT.staus.2.df
+  try(LT.data.stat.2.list[[i]] <- LT.staus.2.df, silent = T)
+  
 }
 LT_data_stat_2 <- as.data.frame(rbindlist(LT.data.stat.2.list))
 
 
-#  2.2.5. clearing tree data and prepare for export (beab) ---------------------------------------------------------------------------------------
+#  2.1.5. clearing tree data and prepare for export (beab) ---------------------------------------------------------------------------------------
 # by this step we create a dataset that is going to only contain inventorable/ procesabble trees from CCS and plots that are inventorable
 trees_update_0 <- trees_data %>% 
   # select only trees in CCSs that are assigned status 1 
@@ -447,6 +424,7 @@ trees_update_0 <- trees_data %>%
   semi_join(., tree_inv_info %>% filter(CCS_LT_inv_status == 1),
             by = c("plot_ID", "CCS_r_m", "inv_year", "inv"))
 
+#  2.1.6. collect removed trees in one df ---------------------------------------------------------------------------------------
 # update trees removed dataset by those trees lost after sorting out CCS status != 1  
 trees_removed <- 
   plyr::rbind.fill(
@@ -457,9 +435,16 @@ trees_removed <-
       mutate(rem_reason = "LT cirlce excluded during inventory status sorting")
   )
 
+# 2.1.7. create dataset with NFI plots/ BWI plots -------------------------
+trees_BWI <- trees_data %>% 
+  semi_join(LT_CCS_to_exclude %>% filter(hbi_status == 3),
+            by = c("plot_ID", "CCS_r_m", "inv_year", "inv"))
 
 
-#  2.2.6. clearing forest edges dataset and prepare for export (waldraender.csv) ---------------------------------------------------------------------------------------
+
+
+#  2.2. FOREST EDGES ---------------------------------------------------------------------------------------
+#  2.2.1. clearing forest edges dataset and prepare for export (waldraender.csv) ---------------------------------------------------------------------------------------
 forest_edges_update_1 <- forest_edges %>% 
   # here we remove those plots from the edges dataset that are not analysed for the HBI/ BZE3
   # we cannot sort for LT_CCS_inv_status in trees_inv_info because there may be plots that have RG (which can be alllocated to stands) but no LT yet
@@ -467,8 +452,7 @@ forest_edges_update_1 <- forest_edges %>%
   # remove those forest edges with a problematic inventory: 
   filter(inv != "warning")
 
-
-
+#  2.2.2. collect removed forest endges in one df ---------------------------------------------------------------------------------------
 forest_edges_removed <-  
   plyr::rbind.fill(
     forest_edges %>% 
@@ -485,14 +469,9 @@ forest_edges_removed <-
   distinct()
 
 
-# 2.2.7. create dataset with NFI plots/ BWI plots -------------------------
-trees_BWI <- trees_data %>% 
-  semi_join(LT_CCS_to_exclude %>% filter(hbi_status == 3),
-            by = c("plot_ID", "CCS_r_m", "inv_year", "inv"))
 
 
-# 2.3. RG dataset ---------------------------------------------------------------------------------------------------------------------------------------------------
-
+# 2.3. REGENERATION ---------------------------------------------------------------------------------------------------------------------------------------------------
 # 2.3.1. create dataset with RG CCS that are not processable  ------------------------------------------------------------
 RG_CCS_to_exclude <- 
   plyr::rbind.fill(
@@ -522,7 +501,6 @@ RG_loc_info <- RG_loc_info %>%
   mutate(CCS_max_dist_cm = ifelse(is.na(CCS_max_dist_cm) | 
                                     CCS_max_dist_cm == -9 |
                                     CCS_RG_inv_status == 2, 500, CCS_max_dist_cm))
-
 
 
 #  2.3.4. creating "empty" RG CCS for status 2 circuits ----------------------
@@ -558,8 +536,8 @@ for (i in 1:nrow(RG_stat_2)) {
       C_t_ha = NA, 
       N_t_ha = NA))
   }
+  try(RG.data.stat.2.list[[i]] <- RG.status.2.df, silent = T)
   
-  RG.data.stat.2.list[[i]] <- RG.status.2.df
 }
 RG_data_stat_2 <- as.data.frame(rbindlist(RG.data.stat.2.list))
 # there will appear the error "Fehler in RG.data.stat.2.list[[i]] <- as.data.frame(cbind(plot_ID = c(my.plot.id),  
@@ -567,8 +545,7 @@ RG_data_stat_2 <- as.data.frame(rbindlist(RG.data.stat.2.list))
 # status 2 
 
 
-
-#  2.3.5. clearing tree data and prepare for export (beab) ---------------------------------------------------------------------------------------
+#  2.3.5. clearing RG data and prepare for export (bejb) ---------------------------------------------------------------------------------------
 # after this step there are only RG plants remaining which are locate in inventorable and processable CCS
 # generally there are two reasons why an RG tree could be excluded from the processing. 
 # 1. the RG is located in a plot that was removed
@@ -596,9 +573,7 @@ RG_update_1 <- RG_data %>%
 
 
 
-
-
-# 2.4. DW dataset --------------------------------------------------------------------------------------------------------------------------------
+# 2.4. DEADWOOD --------------------------------------------------------------------------------------------------------------------------------
 # 2.4.1. remove not process able plots and sampling circuits form DW_inv_info data set ------------------------------------------------------------
 DW_CCS_to_exclude <- plyr::rbind.fill(
   DW_inv_info %>% # remove plots from dataset where non of the inventories was carried out at the NSI (BZE) inventory ("Ausfall") 
@@ -614,18 +589,13 @@ DW_CCS_to_exclude <- plyr::rbind.fill(
   distinct()
 
 
-
-
-# 2.4.2. create dataset with CCS that are not inventorable ------------------------------------------------------------
+# 2.4.2. clear DW CCS info from inventorable plots and CCS ------------------------------------------------------------
 DW_inv_info <- DW_inv_info %>% 
   # remove plots from dataset where non of the inventories was carried out at the NSI (BZE) inventory ("Ausfall") 
   anti_join(., DW_CCS_to_exclude, by = c("plot_ID", "inv_year", "inv")) %>% 
   mutate(plot_A_ha = case_when(CCS_DW_inv_status == 4 ~ (c_A(data_circle$r0[2])/10000)*0.5, 
                                CCS_DW_inv_status == 5 ~ (c_A(data_circle$r0[2])/10000)*0.25,
                                TRUE ~  (c_A(data_circle$r0[2])/10000)))
-
-
-
 
 
 # 2.4.4. creating empty plots for circuits labelled empty ------------------------------------------------------------------
@@ -660,14 +630,16 @@ for (i in 1:nrow(DW_stat_2)) {
       N_t_ha = NA))
   }
   
-  DW.data.stat.2.list[[i]] <- DW.status.2.df
+  try(DW.data.stat.2.list[[i]] <- DW.status.2.df, silent = T)
 }
 DW_data_stat_2 <- as.data.frame(rbindlist(DW.data.stat.2.list))
 
 
 # 2.4.5. prepare DW_data for export ---------------------------------------
+# 2.4.5.1. DW removed : prepare DW_data for export ---------------------------------------
 DW_removed <-  
   plyr::rbind.fill(
+    ## DW trees from removed plots or removed CCS 
     # use DW_CCS_to remove, to "pull out" the trees from DW data that should be removed
     # while keeping the reason for the removal at the same time
     DW_data %>% 
@@ -679,6 +651,7 @@ DW_removed <-
       left_join(DW_CCS_to_exclude %>% 
                   select(plot_ID, inv, inv_year, rem_reason), 
                 by = c("plot_ID", "inv", "inv_year")) ,
+    ## DW trees with CCS status 3, -9, -1, 2 
     DW_data %>% 
       # make sure that trees pulled in by the removed DW circles are nt selected double 
       anti_join(DW_CCS_to_exclude,  by = c("plot_ID", "inv", "inv_year")) %>% 
@@ -687,26 +660,50 @@ DW_removed <-
       semi_join(., DW_inv_info %>% 
                   filter(!(CCS_DW_inv_status %in% c(1, 4, 5))),
                 by = c("plot_ID", "inv", "inv_year")) %>% 
-      mutate(rem_reason = "DW circle excluded during inventory status sorting")
-  )
+      mutate(rem_reason = "DW circle excluded during inventory status sorting"),
+    ## trees with na , -9 or -2 in one of their variables that are relevant for processing 
+    DW_data %>% 
+      # make sure that trees pulled in by the wrong length are not selected double cause they were allready removed in the steps before 
+      anti_join(., DW_data %>% 
+                  semi_join( 
+                    DW_CCS_to_exclude %>% 
+                      select(plot_ID, inv, inv_year), 
+                    by = c("plot_ID", "inv", "inv_year")) %>% 
+                  # join in reason for removal
+                  left_join(DW_CCS_to_exclude %>% 
+                              select(plot_ID, inv, inv_year, rem_reason), 
+                            by = c("plot_ID", "inv", "inv_year")) ,
+                DW_data %>% 
+                  # make sure that trees pulled in by the removed DW circles are nt selected double 
+                  anti_join(DW_CCS_to_exclude,  by = c("plot_ID", "inv", "inv_year")) %>% 
+                  # select trees in CCS with status 3,  -9, -1 , 2, 
+                  # even though status 2 doesn´t count as being removed, we list it here, since status 2 CCS are not supposed to have DW items anyways 
+                  semi_join(., DW_inv_info %>% 
+                              filter(!(CCS_DW_inv_status %in% c(1, 4, 5))),
+                            by = c("plot_ID", "inv", "inv_year")),
+                by = (c("plot_ID", "inv", "inv_year"))) %>% 
+      #remove trees that have a processing relevant variable as NA or below 0 
+      filter(if_any(c( "tree_ID", "dw_type", "dw_sp", "d_cm", "l_dm", "decay"), ~ is.na(.x) | .x <0 ) |
+               # remove DW trees that are standing or lying whole trees but don´t have a lenght above DBH measuring height
+               dw_type %in% c(2, 5, 3) & decay %in% c(1, 2) & l_dm <= 13) %>% 
+      mutate(rem_reason = "single DW removed")
+  ) # close rbindfill
 
+
+# 2.4.5.1. DW update : prepare DW_data for export ---------------------------------------
 # select only DW items in CCS with status 1, 4, 5 because status 2 CCSs we have in a separate dataset 
 DW_update_1 <- DW_data %>% 
-  # remove trees in CCS with status 3 
-  semi_join(., DW_inv_info %>% filter(CCS_DW_inv_status %in% c(1, 4, 5)),
-            by = c("plot_ID", "inv", "inv_year")) %>% 
+  # remove DW trees from removed plots, removed CCS, or sinlge removed trees because of flaws in their processing-relevant variables
+  anti_join(.,DW_removed, by = c("plot_ID", "inv", "inv_year", "tree_ID")) %>% 
   # join in the plot area for the deadwood 
   left_join(., DW_inv_info %>% select(plot_ID, inv, inv_year, plot_A_ha),
             by = c("plot_ID", "inv", "inv_year"))
 
 
 
-
-
-
 # 3. export dataset --------------------------------------------------------------------------------------------------------------
 # deadwood
-write.csv(DW_inv_info, paste0(out.path, paste(unique(DW_inv_info$inv)[1], "DW_inv_update_1", sep = "_"), ".csv"), row.names = FALSE)
+write.csv(DW_inv_info, paste0(out.path, paste(unique(DW_inv_info$inv)[1], "DW_inv_update_1", sep = "_"), ".csv"), row.names = FALSE) ##momok : outpath was changed
 write.csv(DW_update_1, paste0(out.path, paste(unique(DW_update_1$inv)[1], "DW_update_1", sep = "_"), ".csv"), row.names = FALSE)
 write.csv(DW_data_stat_2, paste0(out.path, paste(unique(DW_inv_info$inv)[1], "DW_stat_2", sep = "_"), ".csv"), row.names = FALSE)
 write.csv(DW_CCS_to_exclude, paste0(out.path, paste(unique(DW_inv_info$inv)[1], "DW_circles_removed", sep = "_"), ".csv"), row.names = FALSE)
@@ -741,7 +738,6 @@ write.csv(forest_edges_removed, paste0(out.path, paste(unique(tree_inv_info$inv)
 
 # NFI trees/ BWI trees
 write.csv(trees_BWI, paste0(out.path, paste(unique(tree_inv_info$inv)[1], "trees_BWI", sep = "_"), ".csv"), row.names = FALSE)
-
 
 
 

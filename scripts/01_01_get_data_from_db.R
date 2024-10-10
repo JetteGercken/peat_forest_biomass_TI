@@ -23,11 +23,11 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 # db_password <-  'Ao1ieDahthaheoPh' # 'Jette$Thuenen_2024'
 
 # 0.2.1. coencction details --------------------------------------------------
-db_name <- "bze2"
-db_server <- "134.110.100.88"
-db_port <- "5432"
-db_user <-  rstudioapi::askForPassword(prompt = "Please enter your username")
-my_db_password <- rstudioapi::askForPassword(prompt = "Please enter your password")
+# db_name <- "bze2"
+# db_server <- "134.110.100.88"
+# db_port <- "5432"
+# db_user <-  rstudioapi::askForPassword(prompt = "Please enter your username")
+# my_db_password <- rstudioapi::askForPassword(prompt = "Please enter your password")
 
 # 0.2.2. enable connection ----------------------------------------------------------
 con <- sqlconnection(db_name, db_server,db_port, db_user, my_db_password)
@@ -111,15 +111,15 @@ file.copy(from = paste0(raw.path, input.files),
 # get momok data
 # the path to the dataset on the netword folder is the following: \\wo-sfs-001v-ew\INSTITUT\a7forum\LEVEL I\BZE\Moormonitoring\Standorte\Lagemessungen... etc. 
 # we have to extract the individual sheepts from the excel workshet and then turn them into csvs
-
+raw.path.momok <- here::here("data/raw/")
 # https://stackoverflow.com/questions/50238645/r-split-excel-workbook-into-csv-files
 # get names of the sheets in the excel working sheet in the raw folder
-sheets <- readxl::excel_sheets(paste0(raw.path.code, "Lagemessungen_Bestandeserfassung_MoMoK_ges_2.xlsx"))
+sheets <- readxl::excel_sheets(paste0(raw.path.momok, "Lagemessungen_Bestandeserfassung_MoMoK_ges_2.xlsx"))
 # get data from respective ecxel working sheet
-dats <- lapply(sheets, readxl::read_excel, path = here("data/raw/Lagemessungen_Bestandeserfassung_MoMoK_ges_2.xlsx"))
+dats <- lapply(sheets, readxl::read_excel, path =paste0(raw.path.momok, "Lagemessungen_Bestandeserfassung_MoMoK_ges_2.xlsx") )
 # create filenames and path for the excel sheets to go to
 sheet_names <- c("info_momok", "lokation_momok", "LT_momok", "RG_momok", "DW_momok")
-filenames <- paste0(input.path.code, paste0(sheet_names, ".csv"))
+filenames <- paste0(input.path, paste0(sheet_names, ".csv"))
 # export tibbles separately
 purrr::walk2(
   dats,            # List of tibbles
@@ -132,6 +132,44 @@ purrr::walk2(
 # 0.3.1.2. data wrangling momok ----------------------------------------------------
 # tables we need to construct: 
 # "tit", "be", "beab", "be_waldraender", "bej", "bejb", "be_totholz_punkt", "be_totholz_liste", vm_lokation_hbi
+
+
+# 0.3.1.2.2. deal with double plots ----------------------------------------------------     
+# tit includes followong columns:
+# "bund_nr"    "team"       "datum"      "status"     "re_form"    "re_lage"    "neigung"    "exposition" "anmerkung"
+lokation_momok <- read.delim(file = here(paste0(input.path, "lokation_momok.csv")), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
+colnames(lokation_momok)
+# [1] "MoMoK_Nr"              "Name"                  "Skizzenpunkt"          "Messausgangspunkt"     "Azimut..gon."          "Azimut...."            "Distanz..cm."          "Distanz..m."          
+# [9] "Ursprung"              "Erläuterung"           "Dezimalgrad.N..WGS84." "Dezimalgrad.E..WGS84."
+
+# there are plots that had 2 invenotries with two different plot centres for the same region
+# these plots are goin to be treated as two separate plots by changing their pot id slightly
+# we have to identify these plots (should have 2 sampling centres in momok_lokation)
+# add the number of the sampling centre to the plot ID: xxx_1 and xxx_2
+
+# 1. identify plots with more then one center 
+double_plots_momok <- lokation_momok %>%
+  # filter only plot centres
+  filter(stringr::str_detect(Skizzenpunkt, "MB")) %>% 
+  # select only plot ID and name of the refference point 
+  select(MoMoK_Nr, Skizzenpunkt) %>% distinct() %>%
+  # count number of center points registered for that plot
+  group_by(MoMoK_Nr)%>% 
+  summarise(n_centres = n()) %>% 
+  filter(n_centres > 1)
+
+lokation_momok <- lokation_momok %>% 
+  # filter only plot centres
+  # filter(stringr::str_detect(Skizzenpunkt, "MB")) %>% 
+  mutate(  MoMoK_Nr = ifelse(
+    # idenfity plots with more then one center that have a more then 2 characters long Skizzenpunkt name, 
+    MoMoK_Nr %in% double_plots_momok & nchar(Skizzenpunkt) > 2, 
+    # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
+    paste0(MoMoK_Nr, "_", str_sub(Skizzenpunkt, start= -1)),
+    # otherwise leave old plot number
+    MoMoK_Nr))
+
+
 
 # 0.3.1.2.1. be momok ----------------------------------------------------
 # create "proper" bze2 data from momok datasets
@@ -151,11 +189,11 @@ be_momok <- be_momok %>%
          "Kronen.SG1..Hauptbestand.", # "schlussgrad_schi1"
          "Kronen.SG2..Unterstand.",    #"schlussgrad_schi2"
          "Mischungsform"              #"mischung" 
-         ) %>%  # close select
+  ) %>%  # close select
   # add columns that are in be but not in momok_be
   mutate(team = -9, 
          hbi_status = -9, # i set this to -9 so it fits the structure of bze (nsi) 
-         pk1_aufnahme = 1, # for pk1 and pk2 (concentric cirlce sampling cirlce 1 and 2 ) we put stus 1 as the circle for momok was 12m ans all trees were assessed within these 12m 
+         pk1_aufnahme = 3, # for pk1 and pk2 (concentric cirlce sampling cirlce 1 and 2 ) we put stus 1 as the circle for momok was 12m ans all trees were assessed within these 12m 
          pk2_aufnahme = 1, # 1 Aufnahme wurde erfolgreich durchgeführt
          pk3_aufnahme = 3, 
          geraet = -9,
@@ -165,22 +203,42 @@ be_momok <- be_momok %>%
 colnames(be_momok) <- c("bund_nr","datum" ,"beart" ,"besttyp","struktur" ,"schlussgrad_schi1","schlussgrad_schi2","mischung",
                         # not in momok be yet
                         "team", "hbi_status", "pk1_aufnahme","pk2_aufnahme","pk3_aufnahme", "geraet", "beschreibungbestockung", "anmerkung")
+
+if(isTRUE(nrow(double_plots_momok) != 0) == T){
+  be_momok_double_plots_list <- vector("list", length = nrow(double_plots_momok))
+  for (i in 1:nrow(double_plots_momok)) {
+    # i = 1
+    my.plot.id = as.numeric(double_plots_momok[i, "MoMoK_Nr"])
+    # select number of centres of the double plot
+    n.rep <- as.numeric(double_plots_momok[i, "n_centres"])-1   # - 1 because one is already in the original dataset
+    # select the rows form be_momok that have to be doublicated
+    my.be.row.to.rep <- be_momok[be_momok$bund_nr == my.plot.id, ]
+    # repeat the row as often as the plot has centres: https://stackoverflow.com/questions/11121385/repeat-rows-of-a-data-frame
+    my.be.row.to.rep <- my.be.row.to.rep[rep(seq_len(nrow(my.be.row.to.rep)), each = n.rep), ] %>% 
+      mutate(bund_nr = paste0(bund_nr, "_", row_number()))
+    
+    # save to export 
+    be_momok_double_plots_list[[i]] <- my.be.row.to.rep
+  }
+  be_momok_double_plots <- as.data.frame(rbindlist(be_momok_double_plots_list))
+  
+  # bind doublicated rows into be_momok if they excist 
+  be_momok <- rbind(be_momok, be_momok_double_plots) %>% arrange(bund_nr)
+}
 write.csv(be_momok, paste0(input.path, "momok_be.csv"), row.names = FALSE)
 
        
-# 0.3.1.2.2. tit momok ----------------------------------------------------     
+
+
+# 0.3.1.2.3. momok tit csv ----------------------------------------------------     
 # tit includes followong columns:
 # "bund_nr"    "team"       "datum"      "status"     "re_form"    "re_lage"    "neigung"    "exposition" "anmerkung"
-lokation_momok <- read.delim(file = here(paste0(input.path, "lokation_momok.csv")), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
-colnames(lokation_momok)
-# [1] "MoMoK_Nr"              "Name"                  "Skizzenpunkt"          "Messausgangspunkt"     "Azimut..gon."          "Azimut...."            "Distanz..cm."          "Distanz..m."          
-# [9] "Ursprung"              "Erläuterung"           "Dezimalgrad.N..WGS84." "Dezimalgrad.E..WGS84."
 tit_momok <- lokation_momok %>%
-  filter(Skizzenpunkt == "MB") %>%  # only select the points that mark the center of the forest inventory
+  filter(stringr::str_detect(Skizzenpunkt, "MB")) %>%  # only select the points that mark the center of the forest inventory
   select("MoMoK_Nr",                  # "bund_nr"    
          "Erläuterung"  ) %>%  # anmerkung
   # add columns that are in be but not in momok_be
-  left_join(., be_momok %>% select(bund_nr, datum), by = c("MoMoK_Nr" = "bund_nr")) %>% 
+  left_join(., be_momok %>% select(bund_nr, datum) %>% mutate(bund_nr = as.character(bund_nr)), by = c("MoMoK_Nr" = "bund_nr")) %>% 
   mutate(team = -9,       # "team"
          status = -9, # i set this to -9 so it fits the structure of bze (nsi) 
          re_form = -9,
@@ -199,12 +257,12 @@ write.csv(tit_momok, paste0(input.path, "momok_tit.csv"), row.names = FALSE)
 # bund_nr ld ld_bze ld_wze bwi_tnr bwi_eck eu_wze srid_ist   istre   istho raster_8x8 raster_16x16 raster hoehenn
 # lokation Hbi contains: bfhnr  rw_med  hw_med
 vm_lokation_momok <- lokation_momok %>%
-  # select the respective reference point for the center of the forest inventory
+  # join in the the respective reference point coordinates  for the center of the forest inventory by "ursprung"
   left_join(., lokation_momok %>% select( "MoMoK_Nr",  "Skizzenpunkt",  "Dezimalgrad.N..WGS84.", "Dezimalgrad.E..WGS84.") %>% 
               rename("ref_northing" = "Dezimalgrad.N..WGS84.") %>% 
               rename("ref_easting" = "Dezimalgrad.E..WGS84."), 
             by = c("MoMoK_Nr", "Ursprung" = "Skizzenpunkt")) %>% 
-  filter(Skizzenpunkt == "MB") %>% 
+  filter(stringr::str_detect(Skizzenpunkt, "MB")) %>% 
   mutate(across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing", "ref_easting", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
   # calcualte coordiantes of mb based on utm coordinates of RP (referenzpoint) 
   # as the center of the forest inventory is not the center of the forest inventory
@@ -217,6 +275,8 @@ vm_lokation_momok <- lokation_momok %>%
 
 write.csv(vm_lokation_momok, paste0(input.path, "momok_vm_lokation", ".csv"), row.names = FALSE)
 
+
+
 # 0.3.1.2.4. beab momok ----------------------------------------------------     
 # beab hbi includes followong columns:
 # [1] "bund_nr"       "lfd_nr"        "baumkennzahl"  "zwiesel"       "bart"          "alter"         "alter_methode" "d_mess"        "bhd_hoehe"     "hoehe"         "kransatz"      "azi"          
@@ -227,6 +287,15 @@ colnames(beab_momok)
 # [10] "Baumart"           "Schi"              "Kraft"             "Alt"               "Alt.Meth"          "BHD..mm."          "BHD.Hoehe..cm."    "Permanent.Maßband" "Punktdendrometer" 
 # [19] "BHD.Stufen"        "Hoehe..dm."        "Kronenansatz..dm." "Distanz..cm."      "Azimut..Gon."      "Azimut...."        "Bemerkung"   
 beab_momok <- beab_momok %>%
+  mutate(MoMoK_Nr = ifelse(
+    # idenfity plots with more then one center that have a number in their sampling circuit number, 
+    MoMoK_Nr %in% double_plots_momok & !is.na(as.numeric(Nr_PK)), 
+    # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
+    paste0(MoMoK_Nr, "_", Nr_PK),
+    # otherwise leave old plot number
+    MoMoK_Nr)) %>% 
+   mutate(across(c("BHD..mm.", "Distanz..cm.",      "Azimut..Gon.",      "Azimut...."), as.numeric)) %>% 
+  mutate(Azimut..Gon. = ifelse(is.na(Azimut..Gon.), (Azimut..../360)*400 , Azimut..Gon.)) %>% 
   select("MoMoK_Nr"                # "bund_nr"    
          ,"BNr"                     #lfd_nr
          ,  "ZW"                   # "zwiesel"
@@ -241,18 +310,44 @@ beab_momok <- beab_momok %>%
          , "Distanz..cm."          # hori
          , "Kraft"                # kraft
          , "Schi"                 # schi
-         )  
+         )  %>% distinct() %>% 
+  # there were different trees with the same tree id so we have to reassing the three IDs this cannot happen in BZE data since we have a plausi check for them
+  group_by(MoMoK_Nr) %>% mutate(BNr = row_number() )
+# assign new colnames corresponding with bze
 colnames(beab_momok) <- c("bund_nr", "lfd_nr", "zwiesel","bart", "alter", "alter_methode", "d_mess",  "bhd_hoehe" , "hoehe", "kransatz",  "azi", "hori", "kraft", "schi")
-# export 
+  # export 
 write.csv(beab_momok, paste0(input.path, "momok_beab.csv"), row.names = FALSE)                         
+
+# 0.3.1.2.5. regeneration momok ----------------------------------------------------     
+RG_momok <- read.delim(file = here(paste0(input.path, "bej_momok.csv")), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
+
+# alter plot_ID of double inventories plots
+RG_momok <- RG_momok %>% 
+  # join in dataset that contains info about the centre the RG circuit was taken from 
+  left_join(., RG_momok%>% 
+  select("MoMoK_Nr", "Lage", "pk_maxdist..cm.") %>% 
+  distinct() %>% 
+  group_by(MoMoK_Nr, Lage) %>% mutate(pk_nr_double_plots = ifelse(MoMoK_Nr %in% c(double_plots_momok$MoMoK_Nr), row_number(), NA)), 
+  by = c("MoMoK_Nr", "Lage", "pk_maxdist..cm.")) %>%
+  # adjust plot_ID for double plots:
+  mutate(MoMoK_Nr = ifelse(
+    # idenfity plots with more then one center that have a number in their sampling circuit number, 
+    (MoMoK_Nr) %in% c(double_plots_momok$MoMoK_Nr) & !is.na(as.numeric(pk_nr_double_plots)), 
+    # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
+    paste0(MoMoK_Nr, "_", pk_nr_double_plots),
+    # otherwise leave old plot number
+    as.character(MoMoK_Nr))) %>% 
+  select(-c(pk_nr_double_plots))
+
+
 
 # 0.3.1.2.5. bej momok ----------------------------------------------------     
 # bej hbi includes followong columns:
 # "bund_nr"      "pk_nr"        "pk_aufnahme"  "pk_richtung"  "pk_dist"      "pk_maxdist"   "pk_anmerkung"
-RG_momok <- read.delim(file = here(paste0(input.path, "bej_momok.csv")), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
 colnames(RG_momok)
 # [1] "MoMoK_Nr"        "Spalte1"         "Bundeland"       "Datum"           "Nr_VJ_PK"        "Lage"            "Distanz.MB..cm." "pk_maxdist..cm." "LfdNr"           "Baumart..Code." 
 # [11] "Baumart"         "Hoehe..cm."      "grklasse" 
+
 
 bej_momok <- RG_momok %>%
   select("MoMoK_Nr"                # "bund_nr"    
@@ -264,9 +359,14 @@ bej_momok <- RG_momok %>%
   )  %>% 
   mutate(pk_aufnahme = 1, # regenation assesment was successfully completed (as we dont have any other info)
          pk_anmerkung = NA) %>% 
-  distinct()
+  distinct() %>% 
+  # assign consequitve number to sampling circuits
+  group_by(MoMoK_Nr) %>% arrange(MoMoK_Nr , Lage  , pk_maxdist..cm.) %>% mutate(Nr_VJ_PK = row_number() ) 
+# assign new colnames
 colnames(bej_momok) <- c("bund_nr",  "pk_nr",  "pk_richtung",  "pk_dist", "pk_maxdist" ,    "pk_aufnahme",  "pk_anmerkung")
 write.csv(bej_momok, paste0(input.path, "momok_bej.csv"), row.names = FALSE)
+
+
 
 # 0.3.1.2.6. bejb momok ----------------------------------------------------     
 # bej hbi includes followong columns:
@@ -276,15 +376,28 @@ colnames(RG_momok)
 # [11] "Baumart"         "Hoehe..cm."      "grklasse" 
 
 bejb_momok <- RG_momok %>%
-  select("MoMoK_Nr"                # "bund_nr"    
+  select("MoMoK_Nr"                # "bund_nr"
+         , "Lage"
          ,"Nr_VJ_PK"               #pk_nr
+         , "pk_maxdist..cm."       # we need this to join in the correct pk number 
          , "LfdNr"                 # "lfd_nr" 
-         ,"Baumart..Code."         # "bart"
+         ,"Baumart"         # "bart"
          ,"Hoehe..cm."             # "hoehe"
          ,"grklasse"               # "grklasse"
-         ) %>% distinct()
+         ) %>% distinct() %>%
+  group_by(MoMoK_Nr, Lage, pk_maxdist..cm.) %>% mutate(LfdNr = row_number() ) %>% 
+  # join in correct RG sampling circuit number from bej
+  left_join(., bej_momok %>% select(bund_nr, pk_nr, pk_richtung, pk_maxdist), by = c(c("MoMoK_Nr" = "bund_nr"), c("Lage" = "pk_richtung"), c("pk_maxdist..cm."  = "pk_maxdist" ))) %>% 
+  # change Nr_VJ_PK to numbers from pk_nr column from bej_momok: 
+  mutate(Nr_VJ_PK = ifelse(is.na(as.numeric(Nr_VJ_PK)), pk_nr, Nr_VJ_PK)) %>% 
+  ungroup() %>% 
+  select(-c("pk_maxdist..cm.", "pk_nr", "Lage"))
+
+# assign new colnames
 colnames(bejb_momok) <- c("bund_nr",  "pk_nr",    "lfd_nr" ,  "bart",     "hoehe",    "grklasse")
+# export
 write.csv(bejb_momok, paste0(input.path, "momok_bejb.csv"), row.names = FALSE)
+
 
 
 # 0.3.1.2.6. be_totholz_punkt momok ----------------------------------------------------     
@@ -296,6 +409,14 @@ colnames(DW_momok)
 # [10] "Durchmesser..cm."  "Zersetzungsgrad"
 
 be_totholz_punkt_momok <- DW_momok %>%
+  # adjust Momok nr. if the plot is doublicated
+  mutate(MoMoK_Nr = ifelse(
+    # idenfity plots with more then one center that have a number in their sampling circuit number, 
+    MoMoK_Nr %in% double_plots_momok & !is.na(as.numeric(Nr_PK)), 
+    # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
+    paste0(MoMoK_Nr, "_", Nr_PK),
+    # otherwise leave old plot number
+    MoMoK_Nr)) %>% 
   select("MoMoK_Nr"                # "bund_nr"    
          ) %>% 
   mutate(status = 1, 
@@ -310,6 +431,14 @@ write.csv(be_totholz_punkt_momok, paste0(input.path, "momok_be_totholz_punkt.csv
 # be_totholz_liste hbi includes followong columns:
  # "bund_nr"     "lfd_nr"      "typ"         "baumgruppe"  "anzahl"      "durchmesser" "laenge"      "zersetzung"
 be_totholz_liste_momok <- DW_momok %>%
+  # adjust Momok nr. if the plot is doublicated
+  mutate(MoMoK_Nr = ifelse(
+    # idenfity plots with more then one center that have a number in their sampling circuit number, 
+    MoMoK_Nr %in% double_plots_momok & !is.na(as.numeric(Nr_PK)), 
+    # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
+    paste0(MoMoK_Nr, "_", Nr_PK),
+    # otherwise leave old plot number
+    MoMoK_Nr)) %>% 
   select("MoMoK_Nr"                # "bund_nr"    
          ,"Nr"                     # "lfd_nr"      
          , "TYP"                   #"typ"     
@@ -319,7 +448,9 @@ be_totholz_liste_momok <- DW_momok %>%
          , "Zersetzungsgrad"       #"zersetzung"
   ) %>% 
   mutate(anzahl = -9) %>%  
-  distinct()
+  distinct() %>% 
+  group_by(MoMoK_Nr) %>% 
+  mutate(Nr = row_number())
 
 colnames(be_totholz_liste_momok) <- c("bund_nr","lfd_nr","typ" ,"baumgruppe" ,"durchmesser" ,"laenge" ,"zersetzung",  "anzahl")
 write.csv(be_totholz_liste_momok, paste0(input.path, "momok_be_totholz_liste.csv"), row.names = FALSE)

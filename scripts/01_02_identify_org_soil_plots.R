@@ -170,7 +170,7 @@ depth_class_hori <- as.data.frame(rbindlist(depth_class_hori_list))
 depth_class_hori_boarders <- as.data.frame(rbindlist(depth_class_hori_boarders_list))
 
 
-
+# calculate how many cm the horizont reaches into the depth class
 hori_with_partial_depth_classes <- 
 # check for horizont boarders that extend beyong one depth step: 
 depth_class_hori_boarders %>%
@@ -208,7 +208,7 @@ depth_class_hori_boarders %>%
 
 
 
- # find horizonts with depth class with > 15% carbon mass-%
+ 
 mean_SOC_horizont <- 
 soil_profiles_bze2_db %>% 
   left_join(., depth_class_hori %>% 
@@ -242,40 +242,6 @@ soil_profiles_bze2_db %>%
 
 
 mean_SOC_horizont_2 <- 
-  soil_profiles_bze2_db %>% 
-  left_join(., depth_class_hori %>% 
-              mutate(across(c("bfhnr", "horinr", "inventur", "hori_depth_class"), as.numeric)), 
-            by = c("bfhnr", "horinr", "inventur", "horizont")) %>% 
-  left_join(., hori_with_partial_depth_classes %>% 
-              select(bfhnr, horinr, inventur, horizont, hori_depth_class, diff_hori_TF_boarder_cm, relative_depth_hori_TF, relative_depth_hori_hori), 
-            by = c("bfhnr", "horinr", "inventur", "horizont", "hori_depth_class")) %>% 
-  left_join(., element_bze2_db %>% 
-              mutate(SOC_TF =( m_ea_corg2/1000), # change unit of SOC content from g/kg to percent by divinding by 1000
-                     hori_depth_class = depth_class(ut)) %>%  
-              # adjust names of deoth class boarder for join 
-              rename("ut_TF" = "ut") %>%  
-              rename("ot_TF" = "ot") %>% 
-              select(bfhnr, inventur, hori_depth_class, SOC_TF, ot_TF, ut_TF),
-            by = c("bfhnr", "inventur", "hori_depth_class")) %>% 
-  # all NAs for the column with the proportion of the depth step occupied by the
-  # respective horizont (occupied_depth_hori_TF) have to be repleaced by 1 as the repsetvie horizont doen´t cross a depth class boarder 
-  # the difference between the hori boarder and tf is set to 0 for all those horizints that don cross the boarder of a depth class
-  mutate(diff_hori_TF_boarder_cm = ifelse(is.na(diff_hori_TF_boarder_cm), as.numeric(0), diff_hori_TF_boarder_cm), 
-         relative_depth_hori_hori = ifelse(is.na(relative_depth_hori_hori), as.numeric(1), relative_depth_hori_hori),
-         relative_depth_hori_TF = ifelse(is.na(relative_depth_hori_TF), as.numeric(1), relative_depth_hori_TF), 
-         # weigh SOC content of the TF by the proportion of the horizontas dfeoth that "reaches" into the depth class
-         weighted_SOC = relative_depth_hori_hori*SOC_TF) %>% 
-  select(bfhnr, inventur, erhebjahr, horinr,  ot , ut, horizont, hori_depth_class, ot_TF, ut_TF,diff_hori_TF_boarder_cm ,relative_depth_hori_TF, relative_depth_hori_hori , SOC_TF, weighted_SOC) %>% 
-  group_by(bfhnr, inventur ,erhebjahr, horinr , horizont) %>% 
-  # now we prepare to calcualte the mean, weighed by the proportion of each depth step that is occupied by a horizont
-  summarise(SOC_hori = sum(weighted_SOC)) %>% 
-  left_join(., soil_profiles_bze2_db %>% select(bfhnr, horinr, inventur, horizont, ot, ut), 
-            by = c("bfhnr", "horinr", "inventur", "horizont")) 
-
-
-
-
-
 soil_profiles_bze2_db %>% 
   left_join(., depth_class_hori %>% 
               mutate(across(c("bfhnr", "horinr", "inventur", "hori_depth_class"), as.numeric)), 
@@ -320,22 +286,13 @@ soil_profiles_bze2_db %>%
              SOC_weighed_JB = sum(weighted_SOC_JB)) %>%       # JB = Judith Bilefeldt Method
   mutate(SOC_weighed_MM = SOC_t_ha_hori_MM/FB_t_ha_hori_MM, 
          SOC_weighed_EG = SOC_t_ha_hori_EG/FB_t_ha_hori_EG) %>% 
-   left_join(., mean_SOC_horizont_2 %>% select(bfhnr, horinr, inventur, horizont, ot, ut), 
-             by = c("bfhnr", "horinr", "inventur", "horizont", "erhebjahr"))
+   left_join(., soil_profiles_bze2_db %>% select(bfhnr, horinr, inventur, horizont, ot, ut), 
+             by = c("bfhnr", "horinr", "inventur", "horizont"))
 
 
 
 
-
-
-
-
-
-
-
-
-
-
+# find horizonts with depth class with > 15% carbon mass-% in Aa or H 
 mean_SOC_org_horizont <- 
 soil_profiles_bze2_db %>%
   # select only plots that are organic by their horizont next

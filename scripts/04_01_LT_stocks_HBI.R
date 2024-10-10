@@ -10,15 +10,15 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 # ----- 0.2. working directory -------------------------------------------------
 here::here()
 
-out.path.BZE3 <- ("output/out_data/out_data_BZE/") 
+out.path <- ("output/out_data/") 
 
 # ----- 0.3 data import --------------------------------------------------------
 # LIVING TREES
 # hbi BE dataset: this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
 # here we should actually import a dataset called "HBI_trees_update_3.csv" which contains plot area and stand data additionally to 
 # tree data
-trees_data <- read.delim(file = here(paste0(out.path.BZE3, "HBI_LT_update_3.csv")), sep = ",", dec = ".")
-trees_removed <- read.delim(file = here(paste0(out.path.BZE3, trees_data$inv[1], "_LT_removed.csv")), sep = ",", dec = ".")
+trees_data <- read.delim(file = here(paste0(out.path, "HBI_LT_update_3.csv")), sep = ",", dec = ".")
+trees_removed <- read.delim(file = here(paste0(out.path, trees_data$inv[1], "_LT_removed.csv")), sep = ",", dec = ".")
 
 
 
@@ -32,12 +32,14 @@ trees_data <- trees_data %>% mutate(H_m = as.numeric(H_m))  %>% distinct()
 # 1.1.1. biomass aboveground compartiments ---------------------------------------
 bio.ag.kg.list <- vector("list", length = nrow(unique(trees_data[, c("plot_ID", "tree_ID")])))
 for (i in 1:nrow(unique(trees_data[, c("plot_ID", "tree_ID")]))) {
-  # i = 2
+  # i = 8007
   # i = trees_data %>%  select(plot_ID, tree_ID, LH_NH) %>% distinct() %>% mutate(r_no = row_number()) %>% filter(LH_NH == "LB") %>%slice(1)%>% pull(r_no)
+  # i = trees_data %>%  select(plot_ID, tree_ID) %>% distinct() %>% mutate(r_no = row_number()) %>% filter(plot_ID == 30639 & tree_ID == 16) %>% pull(r_no) 
+  #i = 41018
   
   # basic tree info
   # select one tree ID and plot ID for each individual tree per plot through unique(trees_data[, c("plot_ID", "tree_ID")])
-  my.plot.id <- unique(trees_data[, c("plot_ID", "tree_ID")])[,"plot_ID"][i]
+  my.plot.id <-  unique(trees_data[, c("plot_ID", "tree_ID")])[,"plot_ID"][i]
   my.tree.id <- unique(trees_data[, c("plot_ID", "tree_ID")])[,"tree_ID"][i]
   BL.or.CF <- unique(trees_data$LH_NH[trees_data$plot_ID==my.plot.id & trees_data$tree_ID==my.tree.id])
   
@@ -77,6 +79,7 @@ for (i in 1:nrow(unique(trees_data[, c("plot_ID", "tree_ID")]))) {
   
   bio.ag.kg.list[[i]] <- bio.info.df
   
+  print(paste(i, my.plot.id, my.tree.id))
     
 }
 bio_ag_kg_df <- as.data.frame(rbindlist(bio.ag.kg.list))
@@ -85,7 +88,7 @@ bio_ag_kg_df <- as.data.frame(rbindlist(bio.ag.kg.list))
 # 1.1.2. biomass belowground compartiments ----------------------------------
 bio.bg.kg.list <- vector("list", length = nrow(unique(trees_data[, c("plot_ID", "tree_ID")])))
 for (i in 1:nrow(unique(trees_data[, c("plot_ID", "tree_ID")]))) {
-  # i = 60
+  # i = 1
   # i = trees_data %>%  select(plot_ID, tree_ID, LH_NH) %>% distinct() %>% mutate(r_no = row_number()) %>% filter(LH_NH == "LB") %>%slice(1)%>% pull(r_no)
   
   # basic tree info
@@ -111,7 +114,7 @@ for (i in 1:nrow(unique(trees_data[, c("plot_ID", "tree_ID")]))) {
   ) ) 
   
   bio.bg.kg.list[[i]] <- bio.info.df
-  
+  print(paste(i, my.plot.id, my.tree.id))
 }
 bio_bg_kg_df <- as.data.frame(rbindlist(bio.bg.kg.list))
 
@@ -198,8 +201,7 @@ trees_data <- trees_data %>% left_join(.,
 trees_data <- trees_data %>% mutate(C_kg_tree = carbon(B_kg_tree))
 
 
-trees_neg_bio <- trees_data %>% semi_join(., bio_ag_kg_df %>% filter(B_kg_tree <0) %>% select(plot_ID) %>% mutate(plot_ID = as.integer(plot_ID)), by = "plot_ID")
-
+trees_neg_bio <- trees_data %>% semi_join(., bio_ag_kg_df %>% filter(B_kg_tree <0) %>% select(plot_ID, tree_ID) %>% mutate(across(c("plot_ID", "tree_ID"), as.integer)), by =c("plot_ID", "tree_ID"))
 
 # 2.data export ---------------------------------------------------------------------------------------------
 trees_removed <- plyr::rbind.fill(trees_removed, 
@@ -209,21 +211,23 @@ trees_removed <- plyr::rbind.fill(trees_removed,
                                                select(plot_ID, tree_ID, inv) %>% 
                                                distinct(), 
                                              by = c("plot_ID", "tree_ID", "inv")) %>% 
-                                      mutate(rem_reason = "LT excluded during stock calculation"))
+                                      mutate(rem_reason = "single LT excluded during stock calculation"))
 
-trees_update_4 <- trees_data %>% anti_join(., trees_data %>% 
-                                             filter(B_kg_tree <0 ) %>% 
-                                             select(plot_ID, tree_ID, inv) %>% 
-                                             distinct(), 
-                                           by = c("plot_ID", "tree_ID", "inv"))
+trees_update_4 <- trees_data %>% 
+  # remove all compartiments of a tree with negative biomass in any compartiment
+  anti_join(., trees_data %>% 
+              filter(B_kg_tree <0 ) %>% 
+               select(plot_ID, tree_ID, inv) %>% 
+               distinct(), 
+             by = c("plot_ID", "tree_ID", "inv"))
 
 
 # HBI dataset including estimated heights (use write.csv2 to make ";" as separator between columns)
-write.csv(trees_update_4, paste0(out.path.BZE3, paste(unique(trees_update_4$inv)[1], "LT_update_4", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(trees_update_4, paste0(out.path, paste(unique(trees_update_4$inv)[1], "LT_update_4", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 # HBI dataset with excluded trees including estimated heights 
-write.csv(trees_removed, paste0(out.path.BZE3, paste(unique(trees_update_4$inv)[1], "LT_removed", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(trees_removed, paste0(out.path, paste(unique(trees_update_4$inv)[1], "LT_removed", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
-#write.csv(trees_neg_bio, paste0(out.path.BZE3, paste(unique(trees_update_4$inv)[1], "LT_negative_bio", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+#write.csv(trees_neg_bio, paste0(out.path, paste(unique(trees_update_4$inv)[1], "LT_negative_bio", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 
 

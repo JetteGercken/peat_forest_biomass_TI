@@ -32,24 +32,10 @@ geo_loc <- read.delim(file = here(paste0("data/input/vm_lokation_hbi.csv")), sep
 forest_edges <- read.delim(file = here(paste0(out.path, trees_data$inv[1], "_forest_edges_update_1.csv")), sep = ",", dec = ".")
 
 
-
-# for test purposes
-# we need a solution in the interception and in the coords function that returns the accurate koordinates for the following distances and azis
-#if(A_azi == 0 & B_azi == 200)  # the line will go straight to the y achis so the x is 0 coodrinates for A has to be  (0|r.max) x_A = 0, y_A = r.max and B (0|-r.max) x_A = 0, y_A =- r.max and MC will be x_MC = r.max, y_mc = 0
-#if  (A_azi == 200 & B_azi == 0 ) # the line will go straight to the y achis so the x is 0 coodrinates for A has to be  (0|-r.max) x_A = 0, y_A = -r.max and B (0|r.max) x_A = 0, y_A = r.max and MC will be x_MC = r.max, y_mc = 0
-# if A_azi == 100 & B_azi == 300 # the line will go straight to the x achis so the y is 0 coodrinates for A has to be  (r.max|0) x_A = r.max, y_A = 0 and B (-r.max|0) x_A =- r.max , y_A = 0 and MC will be x_MC = 0, y_mc = r.max
-#if  A_azi == 300 & B_azi == 0 #  the line will go straight to the y achis so the y is 0 coodrinates for A has to be  (r.max|0) x_A = r.max, y_A = 0 and B (-r.max|0) x_A =- r.max , y_A = 0 and MC will be x_MC = 0, y_mc = r.max
-
-# test 
-# forest_edges$A_dist <- 1784
-# forest_edges$A_azi <- 0
-# forest_edges$B_dist <- 1784
-# forest_edges$B_azi <- 200
-
 # ----- 0.6 harmonising column names & structure  -------------------------
 # HBI locations
-#geo_loc <- geo_loc[1:12] 
-colnames(geo_loc) <- c("plot_ID",  "RW_MED","HW_MED") 
+geo_loc <- geo_loc[1:3] 
+colnames(geo_loc) <- c("plot_ID",  "RW_MED", "HW_MED") 
 
 
 
@@ -88,7 +74,6 @@ colnames(geo_loc) <- c("plot_ID",  "RW_MED","HW_MED")
 # ----- 1.1.2.1. join in edge info to tree dataset ------------------------
 # ----- 1.1.2.1.1. HBI join in forest edge info per plot -----------------------------------------------
 trees_data <- trees_data %>% 
-  mutate(across(dist_cm:azi_gon, as.numeric)) %>% 
   # calculate the coordinates of every tree
   mutate(dist_m = dist_cm/100, 
          X_tree = coord(data_circle$x0[1], data_circle$y0[1], dist_m, azi_gon, coordinate = "x"), 
@@ -99,6 +84,9 @@ trees_data <- trees_data %>%
             by = "plot_ID", 
             multiple = "all", 
             relationship = "many-to-many") # this is necesarry since there are multiple edges per plot and multiple trees per plot 
+
+
+
 
 # ----- 1.1.2.2. edge  point coordinates,  line parameters, intersections with circles -----------------------------------------------------------
 # set up line from 2 points manually
@@ -314,15 +302,16 @@ for(i in 1:length(forest_edges.man.sub.e1.nogeo$plot_ID) ) {
   c.poly.5 <- sf::st_buffer(c.pt, 5.64)
   c.poly.60 <-  sf::st_buffer(c.pt, 60.0)
   # test 
-  # try( print(ggplot() +
-  #          ggtitle(my.plot.id)+
-  #          geom_sf(data = c.poly.60, aes(alpha = 0))+
-  #          geom_sf(data = c.poly.17, aes(alpha = 0))+
-  #          geom_sf(data = c.poly.12, aes(alpha = 0))+
-  #          geom_sf(data = c.poly.5, aes(alpha = 0))+
-  #          geom_sf(data = triangle.e1.poly, aes(alpha = 0))+
-  #          xlim(-80, 80)+
-  #          ylim(-80, 80)), silent = T)
+  # print(ggplot() +
+  #         ggtitle(my.plot.id)+
+  #         geom_sf(data = c.poly.60, aes(alpha = 0))+
+  #         geom_sf(data = c.poly.17, aes(alpha = 0))+
+  #         geom_sf(data = c.poly.12, aes(alpha = 0))+
+  #         geom_sf(data = c.poly.5, aes(alpha = 0))+
+  #         geom_sf(data = triangle.e1.poly, aes(alpha = 0))+
+  #         xlim(-80, 80)+
+  #         ylim(-80, 80))
+  
   #save polygones in list 
   triangle.e1.list.nogeo[[i]] <- c("plot_ID" = my.plot.id, "inv_year" = my.inv.year, "e_form" = my.e.form, triangle.e1.poly)
   
@@ -706,10 +695,8 @@ outer.remaining.circle.multipoly.list.nogeo <- vector("list", length = length(un
 # loop for intersection of all edge triablge polygoens woth their respective sampling cirlce for plots with one edge only
 for (i in 1:length(unique(forest_edges.man.sub.1.outer.edge.nogeo$plot_ID))){ 
   # i = 38
-  #i = which(grepl(50124, (forest_edges.man.sub.1.outer.edge.nogeo$plot_ID)))
+  #i = which(grepl(60130    , (forest_edges.man.sub.1.outer.edge.nogeo$plot_ID)))
   
-  # break loop if dataset for loop is empty to avoid error messages
-  #if(nrow(forest_edges.man.sub.1.outer.edge.nogeo) == 0) {break}
   
   # select plot ID of the respective circle 
   my.plot.id <- forest_edges.man.sub.1.outer.edge.nogeo[i, "plot_ID"]
@@ -764,11 +751,21 @@ for (i in 1:length(unique(forest_edges.man.sub.1.outer.edge.nogeo$plot_ID))){
     left_join(forest_edges.man %>% select(plot_ID, e_ID, e_type), by = c("plot_ID", "e_ID"))
   
   # print the cirlce and edge polygone
-   # print(
-   #   c(plot(st_geometry(circle.17), main = paste0("plot:", " ", my.plot.id, ",", " ", "e_form:"," ", my.e.form)) ,
-   #       plot(st_geometry(my.poly), col = "green", add = TRUE),
-   #       plot(st_geometry(tree.sf), add = TRUE))
-   # )
+  # print(
+  #   c(plot(st_geometry(circle.17), main = paste0("plot:", " ", my.plot.id, ",", " ", "e_form:"," ", my.e.form)) ,
+  #       plot(st_geometry(my.poly), col = "green", add = TRUE),
+  #       plot(st_geometry(tree.sf), add = TRUE))
+  # )
+  
+  # first we have to figure out which of the both halfs is the circle and which is the edge
+  # this is done by identifying the partial cirlce intersecting with the circles center
+  # if the poly holds the center of the plot we change it´s geometry to 
+  # the respective other half of the circle to make sure that the edge poly is
+  # actually the edge
+  if(isTRUE(nrow(sf::st_intersection(my.poly, circle.pt)) != 0) == T){
+    my.poly$geometry <- sf::st_difference(circle.17, my.poly)$geometry
+  }
+  
   
   
   #### 17m circle
@@ -872,14 +869,19 @@ for (i in 1:length(unique(forest_edges.man.sub.1.outer.edge.nogeo$plot_ID))){
   
   
   # assing stand to the edges depedning on area
-  # to assign the stand we have to filter for the polygone that doesn´t have trees left so we take the edge poly and the rem cirlce of 17 and look for the polygone that doesn´t intersect with trees
-  inter.trees.circle <- sf::st_intersection(remaining.circle.poly.17, tree.sf)
-  inter.trees.edge <- sf::st_intersection(my.poly, tree.sf)
-  # if the edge doesnt have trees 
-  if(isTRUE(nrow(inter.trees.edge) == 0)){
+  # to assign the stand we have to check if the edge polygone (defined earlier
+  # as the part of the poly that doesn´t include the center of the cirlce)
+  # doesn´t contain trees
+  
+  # if the edge poly doesn´t have trees and doesnt have the center its a "no forest" 
+  # and the remaining circle is stand A
+  if(isTRUE(nrow(sf::st_intersection(my.poly, tree.sf)) == 0 & 
+            nrow(sf::st_intersection(my.poly, circle.pt)) == 0) == T){
     remaining.circle.poly.17$stand <- "A"
     my.poly$stand <- "no forest"
-  }else if(isTRUE(nrow(inter.trees.circle) != 0)){
+    # if the edge poly contains trees tho its identified as edge since 
+    # it doesn´t hold the center of the plot we assign the status "warning"
+  }else if(isTRUE(nrow(sf::st_intersection(my.poly, tree.sf)) != 0)==T){
     my.poly$stand <- "warning" 
     remaining.circle.poly.17$stand <- "A"
   }else{
@@ -919,8 +921,8 @@ for (i in 1:length(unique(forest_edges.man.sub.1.outer.edge.nogeo$plot_ID))){
   outer.inter.poly.list.nogeo[[i]] <- if(st_geometry_type(edge.poly)== "POLYGON"){c(edge.poly)}else{}
   # create list wit polygones of the remaining cirlce when it´s a multipoligone
   outer.inter.multipoly.list.nogeo[[i]] <- if(st_geometry_type(edge.poly)== "MULTIPOLYGON"){c(edge.poly)}else{}
- 
-
+  
+  
   # testing if corect inter was saved: 
   #  i.plot <- if(isTRUE(nrow(inter.poly.17)!= 0)){c(inter.poly.17)}else{c(my.poly)}
   # plot(i.plot$geometry)
@@ -1242,14 +1244,14 @@ for (i in 1:length(unique(forest_edges.man.sub.2.edges.nogeo$plot_ID))){
   ## save intersection polygones in list
   # poly.1
   inter.poly.both.types.1 <- if(nrow(inter.poly.17.1)!= 0){inter.poly.17.1}else{my.poly.1}
-   inter.poly.1.list.nogeo[[i]] <- if(isTRUE(st_geometry_type(inter.poly.both.types.1) == "POLYGON") == T){c(inter.poly.both.types.1)}else{}
-   inter.multipoly.1.list.nogeo[[i]] <- if(isTRUE(st_geometry_type(inter.poly.both.types.1) == "MULTIPOLYGON") == T){c(inter.poly.both.types.1)}else{}
+  inter.poly.1.list.nogeo[[i]] <- if(isTRUE(st_geometry_type(inter.poly.both.types.1) == "POLYGON") == T){c(inter.poly.both.types.1)}else{}
+  inter.multipoly.1.list.nogeo[[i]] <- if(isTRUE(st_geometry_type(inter.poly.both.types.1) == "MULTIPOLYGON") == T){c(inter.poly.both.types.1)}else{}
   
-   # poly.2
-   inter.poly.both.types.2 <- if(nrow(inter.poly.17.2)!= 0){inter.poly.17.2}else{my.poly.2}
-   inter.poly.2.list.nogeo[[i]] <- if(isTRUE(st_geometry_type(inter.poly.both.types.2) == "POLYGON") == T){c(inter.poly.both.types.2)}else{}
-   inter.multipoly.2.list.nogeo[[i]] <- if(isTRUE(st_geometry_type(inter.poly.both.types.2) == "MULTIPOLYGON") == T){c(inter.poly.both.types.2)}else{}
-   
+  # poly.2
+  inter.poly.both.types.2 <- if(nrow(inter.poly.17.2)!= 0){inter.poly.17.2}else{my.poly.2}
+  inter.poly.2.list.nogeo[[i]] <- if(isTRUE(st_geometry_type(inter.poly.both.types.2) == "POLYGON") == T){c(inter.poly.both.types.2)}else{}
+  inter.multipoly.2.list.nogeo[[i]] <- if(isTRUE(st_geometry_type(inter.poly.both.types.2) == "MULTIPOLYGON") == T){c(inter.poly.both.types.2)}else{}
+  
   
   ## save the reimaingf circle polygones in a list
   remaining.circle.17.1.and.2.poly$plot_ID <- my.plot.id
@@ -1338,8 +1340,8 @@ outer.rem.circle.multipoly.2.edges.list.nogeo <- vector("list", length = length(
 outer.intersection.warning.edges.list.nogeo <- vector("list", length = length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID)))
 
 for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){ 
-  #i = 18
-  # i = which(grepl(140068, unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID)))
+  #i = 30
+  # i = which(grepl(50009, unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID)))
   
   #if(nrow(forest_edges.man.sub.2.outer.edges.nogeo) == 0){break}
   
@@ -1397,8 +1399,37 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
   #  this part is about whicht polgone to priotiise if there are two overlapping edges: 
   # usually we would select the polygone with edge_ID == 1 to be the priotiised one. now however, we will select the polygone with 
   # no trees to be the prioritized 
+  # plot(my.plot.polys.df$geometry[1])
+  # plot(my.plot.polys.df$geometry[2], add = T, col = "grey")
+  # plot(circle.17, add = T)
+  # plot(circle.pt, add =T, col = "red")
+  
   
   ## create the polygones of the edge geometries
+  
+  ## determine intersection status poly and circle center to identify "outer" side
+  # we have to think about this again. 
+  # actually  we have to sort the edges first by the question "is this poly an edge or not" 
+  # the criteria to decide this by is the intersections with the circle center. 
+  # is the cirlce center in the poly? then the poly becomes the rem. cirlce and the rem. cirlce becomes one of the edges. 
+  # so actually i first have to intersect the edges with the circle and define the "side" they are on. then i start the intersection stuff
+  # so poly 1 should be the half of the circle between poly.1 and cirlce that holds the center of the circle
+  # same for poly 2
+  # then only we check them for the order between poly 1 and 2 
+  
+  # if the edge poly is an outer edge and it includes the center of the cirlce the remaining cirlce after intersecting the cirlce and the edge poly becomes
+  # the new edge poly 
+  # if the poly doesnt cut the circle, it could never include the center so we don´t have to worry about this stuff 
+  # poly 1
+  if(isTRUE(my.plot.polys.df$e_type[1] %in% c(1,2) & nrow(sf::st_intersection(sf::st_as_sf(my.plot.polys.df[1,]), circle.pt) ) != 0 ) == T){
+    my.plot.polys.df$geometry[1] <-  sf::st_geometry(sf::st_difference(circle.17, sf::st_as_sf(my.plot.polys.df[1,])))
+  } # if the condition is not true do nothing
+  # poly 2
+  if(isTRUE(my.plot.polys.df$e_type[2] %in% c(1,2) & nrow(sf::st_intersection(sf::st_as_sf(my.plot.polys.df[2,]), circle.pt) ) != 0 ) == T){
+    my.plot.polys.df$geometry[2] <-  sf::st_geometry(sf::st_difference(circle.17, sf::st_as_sf(my.plot.polys.df[2,])))
+  }
+  
+  
   # determine intersection status between poly and trees
   # select the polygone with no trees and make it poly.1
   # if the first polygone intersects with trees, but the second polygone doesn´t have intersections with trees while the edge type is 1 or 2,
@@ -1408,7 +1439,6 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
   # poly.1 means that this is the polygone to be prioritized while 
   # --> this means the only way to prioritize the polygonn with the ID 2 is when it is an edge is an outer edge and it really doesnt have trees
   # in any other case edge ID 1is prioritized
-  
   # nrow(st_intersection(sf::st_as_sf(my.plot.polys.df[1,]), tree.sf)) != 0) && 
   if(isTRUE(my.plot.polys.df$e_type[2] %in% c(1,2) & nrow(st_intersection(sf::st_as_sf(my.plot.polys.df[2,]), tree.sf)) == 0 &
             !(my.plot.polys.df$e_type[1] %in% c(1,2)))){
@@ -1423,6 +1453,7 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
     
   }
   
+  
   # select edge ID of edge polygones
   my.e.id.1 <- my.poly.1$e_ID
   my.e.id.2 <- my.poly.2$e_ID
@@ -1434,7 +1465,8 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
   # print(c(plot(circle.17$geometry),
   #         plot(my.poly.1$geometry, col = "red", add = T),
   #       plot(my.poly.2$geometry, col = "blue",  add = T), 
-  #       plot(st_geometry(tree.sf), add = TRUE)))
+  #       plot(st_geometry(tree.sf), add = TRUE)), 
+  #       plot(circle.pt$geometry, col = "green", add = T))
   
   
   #### intersections between polygones and circles   
@@ -1458,7 +1490,7 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
   remaining.circle.17.1 <- if(nrow(st_intersection(remaining.circle.17.1.a, circle.pt))!=0){remaining.circle.17.1.a}else{inter.poly.17.1.a}
   
   # print(plot(inter.poly.17.1$geometry, col = "grey", main = paste0(my.plot.id, "-", my.e.form.1,  "-", c.r3))) 
-  # print(plot(remaining.circle.17.1$geometry, col = "grey", main = paste0(my.plot.id, "-", my.e.form.1,  "-", c.r3))) 
+  # print(plot(remaining.circle.17.1$geometry, col = "white", main = paste0(my.plot.id, "-", my.e.form.1,  "-", c.r3), add = T)) 
   
   
   ## create polygone of intersecting area of second polygone with remaining circle
@@ -1474,7 +1506,7 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
   ## create polygone of the  remaining cricle after both intersects are decucted
   # so the area of the frst remining circle minus the area of the second remaining circle 
   remaining.circle.17.1.and.2.poly <- if(nrow(inter.poly.17.2)==0){remaining.circle.17.1}else{sf::st_difference(remaining.circle.17.1, inter.poly.17.2)}
-  #print(plot(remaining.circle.17.1.and.2.poly$geometry, main = paste0(my.plot.id, "-", my.e.form.2,  "-", c.r3))) 
+  # print(plot(remaining.circle.17.1.and.2.poly$geometry, main = paste0(my.plot.id, "-", my.e.form.2,  "-", c.r3))) 
   
   ### 12m circle 
   my.circle = circle.12
@@ -1607,22 +1639,30 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
     mutate(across(c("plot_ID", "e_ID", "inv_year", "CCS_r_m", "area_m2"), as.numeric))
   
   # assing stand to the edges depedning on area and the stand with trees
-  # is there a polygone that does not incluce the middle of the plot, has the t<pe 1 or 2 (if its an edge) and doesn´t have trees 
+  # actually what i should do here is to identify which poly out of poly 1, poly2 and rem.circle holds the center of the 
+  # plot. this 
+  # all.polys.of.circle <- rbind(terra::vect(inter.poly.17.1), terra::vect(inter.poly.17.2), terra::vect(remaining.circle.17.1.and.2.poly))
+  # plot(all.polys.of.circle)
+  # text(all.polys.of.circle, labels = all.polys.of.circle$e_ID)
+  # plot(terra::vect(circle.pt), add = T)
+  #  is.related(terra::vect(circle.pt), all.polys.of.circle, "intersects") 
+  # # select the polygone out of the cirlce, inter 1 and onter 2 that intsersects the  center of the cirlce becomes the new remaining cirlce 
+  #  remaining.circle.17.1.and.2.poly <- all.polys.of.circle[apply(relate(terra::vect(circle.pt), all.polys.of.circle, "intersects"), 1, which),] 
+  
+  
+  # is there a polygone that does not incluce the middle of the plot, has the type 1 or 2 (if its an edge) and doesn´t have trees 
   # then the poylgone is labelled with "no forest" and the remaining polygones are allocated into stands by area
-  # first "if": both edges are edge type 1 or 2 and do not have trees and do not have the middle of the plot
+  # first "if": both edges are edge type 1 or 2 and do not have trees and do not have the middle of the plot --> forest edge
+  # if poly has the center of the plot but 
   if(isTRUE(nrow(st_intersection(inter.poly.17.1, tree.sf))!=0 & my.poly.1$e_type %in% c(1,2))){inter.17.1.tree.stat <- "trees but outer edge"}else{inter.17.1.tree.stat <- NA}
   if(isTRUE(nrow(st_intersection(inter.poly.17.2, tree.sf))!=0 & my.poly.2$e_type %in% c(1,2))){inter.17.2.tree.stat <- "trees but outer edge"}else{inter.17.2.tree.stat <- NA}
-  if(isTRUE(nrow(st_intersection(inter.poly.17.1, circle.pt))!=0 & my.poly.1$e_type %in% c(1,2))){inter.17.1.center.stat <- "center but outer edge"}else{inter.17.1.center.stat <- NA}
-  if(isTRUE(nrow(st_intersection(inter.poly.17.2, circle.pt))!=0 & my.poly.2$e_type %in% c(1,2))){inter.17.2.center.stat <- "center but outer edge"}else{inter.17.2.center.stat <- NA}
   if(isTRUE(nrow(st_intersection(inter.poly.17.1, tree.sf))==0 & nrow(st_intersection(inter.poly.17.1, circle.pt))==0 & my.poly.1$e_type %in% c(1,2))){inter.17.1.forest.stat <- "no forest"}else{inter.17.1.forest.stat <- NA}
   if(isTRUE(nrow(st_intersection(inter.poly.17.2, tree.sf))==0 & nrow(st_intersection(inter.poly.17.2, circle.pt))==0 & my.poly.2$e_type %in% c(1,2))){inter.17.2.forest.stat <- "no forest"}else{inter.17.2.forest.stat <- NA}
-  my.poly.1$stand <- case_when(inter.17.1.tree.stat ==  "trees but outer edge" | inter.17.1.center.stat == "center but outer edge" ~ "warning",
-                               inter.17.1.tree.stat ==  "trees but outer edge" & inter.17.1.center.stat == "center but outer edge" ~ "warning",
+  my.poly.1$stand <- case_when(inter.17.1.tree.stat ==  "trees but outer edge"  ~ "warning_1",
                                inter.17.1.forest.stat == "no forest"~ "no forest", 
                                TRUE ~ NA)
   
-  my.poly.2$stand <- case_when(inter.17.2.tree.stat ==  "trees but outer edge" | inter.17.2.center.stat == "center but outer edge" ~ "warning",
-                               inter.17.2.tree.stat ==  "trees but outer edge" | inter.17.2.center.stat == "center but outer edge" ~ "warning",
+  my.poly.2$stand <- case_when(inter.17.2.tree.stat ==  "trees but outer edge" ~ "warning_2",
                                inter.17.2.forest.stat == "no forest"~ "no forest", 
                                TRUE ~ NA)
   
@@ -1644,7 +1684,7 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
         left_join(., stand.df, by = c("plot_ID", "e_ID")) %>% 
         group_by(plot_ID, inv_year) %>% 
         arrange(desc(area_m2)) %>% 
-        filter(!(stand %in% c("no forest", "warning"))) %>% 
+        filter(!(stand %in% c("no forest", "warning_1", "warning_2"))) %>% 
         # assing stand according to row number by selecting the letter of the alphabet with the respective number e.g. row == 1 --> A: 
         # https://www.geeksforgeeks.org/sequence-of-alphabetical-character-letters-from-a-z-in-r/
         # lowest area receives stand ID C, then B, then A
@@ -1654,7 +1694,7 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
         filter(CCS_r_m  == 17.84) %>% 
         mutate(area_m2 = as.numeric(area_m2)) %>% 
         left_join(., stand.df, by = c("plot_ID", "e_ID")) %>% 
-        filter(stand %in% c("no forest", "warning")) %>% 
+        filter(stand %in% c("no forest", "warning_1", "warning_2")) %>% 
         mutate(stand = as.character(stand))
     ) %>% 
     # make stand.df joinable by only leaving plot_ID, e_ID, no matter the diameter of the CCS
@@ -1669,18 +1709,18 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
   inter.area.df <- inter.area.df %>% left_join(., stand.df, 
                                                by = c("plot_ID", "e_ID", "inv_year"))
   
-  # print(  c(plot(circle.17$geometry, main = paste0(my.plot.id, " - ", my.e.form.1, " - ", my.e.form.2)), 
-  #           plot(remaining.circle.17.1.and.2.poly$geometry, col = "grey", add = T),
-  #           plot(remaining.circle.12.1.and.2.poly$geometry, add = T),
-  #           plot(remaining.circle.5.1.and.2.poly$geometry, add = T),
-  #           plot(inter.poly.17.1$geometry, col = "green", add =TRUE),
-  #           plot(inter.poly.17.2$geometry, col = "blue", add =TRUE),
-  #           plot(circle.pt$geometry, col = "red",  add = TRUE),
-  #           legend("topleft", legend=c(paste0(unique(inter.area.df$stand[inter.area.df$e_ID == my.poly.1$e_ID]),":",  my.poly.1$e_type), 
-  #                                      paste0(unique(inter.area.df$stand[inter.area.df$e_ID == my.poly.2$e_ID]),":",  my.poly.2$e_type), 
-  #                                      paste0(unique(inter.area.df$stand[inter.area.df$e_ID == 0]),":","rem_circle")), 
-  #                  col=c("green", "blue", "grey"), lty=1:2, cex=0.8),
-  #           plot(st_geometry(tree.sf), add = TRUE)))
+  try(print(  c(plot(circle.17$geometry, main = paste0(my.plot.id, " - ", my.e.form.1, " - ", my.e.form.2)), 
+                plot(remaining.circle.17.1.and.2.poly$geometry, col = "grey", add = T),
+                plot(remaining.circle.12.1.and.2.poly$geometry, add = T),
+                plot(remaining.circle.5.1.and.2.poly$geometry, add = T),
+                plot(inter.poly.17.1$geometry, col = "green", add =TRUE),
+                plot(inter.poly.17.2$geometry, col = "blue", add =TRUE),
+                plot(circle.pt$geometry, col = "red",  add = TRUE),
+                legend("topleft", legend=c(paste0(unique(inter.area.df$stand[inter.area.df$e_ID == my.poly.1$e_ID]),":",  my.poly.1$e_type), 
+                                           paste0(unique(inter.area.df$stand[inter.area.df$e_ID == my.poly.2$e_ID]),":",  my.poly.2$e_type), 
+                                           paste0(unique(inter.area.df$stand[inter.area.df$e_ID == 0]),":","rem_circle")), 
+                       col=c("green", "blue", "grey"), lty=1:2, cex=0.8),
+                plot(st_geometry(tree.sf), add = TRUE))), silent = T)
   
   # save datacframe per plot in list
   outer.edges.list.two.edges.nogeo[[i]] <- inter.area.df
@@ -1701,8 +1741,6 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
   # in case one of the poly is multipolygones geometry type
   outer.inter.poly.1.list.nogeo[[i]] <- if(isTRUE(st_geometry_type(outer.inter.poly.1.both.types) == "POLYGON") == T){c(outer.inter.poly.1.both.types)}else{}
   outer.inter.multipoly.1.list.nogeo[[i]] <- if(isTRUE(st_geometry_type(outer.inter.poly.1.both.types) == "MULTIPOLYGON") == T){c(outer.inter.poly.1.both.types)}else{}
-  
-
   
   # poly.2
   outer.inter.poly.2.both.types <- if(nrow(inter.poly.17.2)!= 0){inter.poly.17.2}else{
@@ -1857,6 +1895,7 @@ for (i in 1:length(trees.one.edge.nogeo$tree_ID)){
   # export tree points as sf
   tree.points.list.nogeo[[i]] <- c("t_stat" = tree_status, tree.sf)
   
+  print(paste(my.plot.id, my.tree.id))
 }
 # save tree corodiantes and status into dataframe
 tree.status.one.edge.df.nogeo <- as.data.frame(rbindlist(tree.status.list.nogeo))
@@ -1886,7 +1925,7 @@ trees.two.edges.nogeo <- trees_data %>%
 tree.status.two.edges.list.nogeo <- vector("list", length = length(trees.two.edges.nogeo$tree_ID))
 tree.points.two.edges.list.nogeo <- vector("list", length = length(trees.two.edges.nogeo$tree_ID))
 for (i in 1:length(trees.two.edges.nogeo$tree_ID)){ 
-  # i = 1
+  # i = 3225
   # i = which(grepl(50122, (trees.two.edges.nogeo$plot_ID)))[2]
   
   #if(nrow(trees.two.edges.nogeo) == 0){break}
@@ -1967,6 +2006,8 @@ for (i in 1:length(trees.two.edges.nogeo$tree_ID)){
     "t_stat" = c(tree_status))) 
   
   tree.points.two.edges.list.nogeo[[i]] <- c("t_stat" = tree_status, tree.sf)
+  
+  print(paste(my.plot.id, my.tree.id))
   
 }
 # save tree corodiantes and status into dataframe
@@ -2079,6 +2120,7 @@ for (i in 1:length(trees.no.edge.nogeo$tree_ID)){
   
   tree.points.no.edge.list.nogeo[[i]] <- c("t_stat" = tree_status, tree.sf)
   
+  print(paste(my.plot.id, my.tree.id))
   
 }
 # save tree corodiantes and status into dataframe
@@ -2128,9 +2170,13 @@ trees_update_1 <- trees_data %>%
 if(exists("all.edges.area.df.nogeo")){
   # join in the area that belongs to the tree according to the CCS the tree was measured in/ belongs to
   trees_update_1 <- trees_update_1 %>% 
+    # remove and rejoin edge info 
+    select(-c(e_ID, e_form, e_type)) %>% 
+    distinct() %>% 
     left_join(., all.edges.area.df.nogeo %>% 
-                select(plot_ID, inter_stat, CCS_r_m, stand, area_m2),
+                select(plot_ID, inter_stat, CCS_r_m, stand, area_m2, e_ID),
               by = c("plot_ID", "CCS_r_m", "stand"))%>% 
+    left_join(., forest_edges %>% select(plot_ID, e_ID, e_form, e_type), by = c("plot_ID", "e_ID")) %>% 
     # if there was no plot area claualted due to the fact that there is no edger at the plot, 
     # we calcualte the area from the sampling circuit diameter assign under CCD_r_m
     mutate(area_m2 = ifelse(is.na(e_ID) & is.na(area_m2) |
@@ -2145,10 +2191,13 @@ if(exists("all.edges.area.df.nogeo")){
            # this column is for stand-wise analysis and contains the plot area per tree according to the stand and the sampling circuit it is located in according to its diameter
            stand_plot_A_ha = as.numeric(area_m2)/10000,# dividedd by 10 000 to transform m2 into hectar
            # this column is for not stand wise analysis and contains the plot area per ptree according to the sampling circiont it is located in according to its diameter
-           plot_A_ha = c_A(CCS_r_m)/10000)# %>%   # dividedd by 10 000 to transform m2 into hectar
+           plot_A_ha = c_A(CCS_r_m)/10000) #%>%   # dividedd by 10 000 to transform m2 into hectar
   # left_join(geo_loc %>% select(plot_ID, RW_MED, HW_MED), by = "plot_ID") %>% 
   # mutate(east_tree =  X_tree + RW_MED, 
   #        north_tree = Y_tree + HW_MED)
+  
+  
+  
 }else{
   trees_update_1 <- trees_update_1 %>%
     mutate(# this column is for not stand wise analysis and contains the plot area per ptree according to the sampling circiont it is located in according to its diameter
@@ -2162,16 +2211,14 @@ if(exists("all.edges.area.df.nogeo")){
 
 
 
-
-
 # 3.3.1.3. sort trees into remove and process on datasets by status "warning" --------------------------------------------------------
 trees_removed <- plyr::rbind.fill(trees_removed, 
                                   trees_update_1 %>% 
                                     anti_join(., trees_removed, by = c("plot_ID", "tree_ID")) %>% 
-                                    filter(stand == "warning") %>% 
+                                    filter(stringr::str_detect(stand, "warning")) %>% 
                                     mutate(rem_reason = "LT excluded during forest edges allocation"))
 
-trees_update_1 <- trees_update_1 %>% filter(stand != "warning")
+trees_update_1 <- trees_update_1 %>% filter(!(stringr::str_detect(stand, "warning"))) 
 
 
 # 3.3.1.4.  binding datasets together ----------------------------------------------------------
@@ -2187,10 +2234,11 @@ all.triangle.coords.df.nogeo <- plyr::rbind.fill(triangle.e1.coords.df.nogeo, tr
 
 
 
+
 # 3.3.2. exporting data ---------------------------------------------------
 # exporting tree and edge/ plot area data
 write.csv(trees_update_1, paste0(out.path, paste(unique(trees_update_1$inv)[1], "LT_update_1", sep = "_"), ".csv"), row.names = FALSE)
-if(nrow(trees_removed)!=0){write.csv2(trees_removed, paste0(out.path, paste(unique(trees_update_1$inv)[1], "LT_removed", sep = "_"), ".csv"), row.names = FALSE)}
+if(nrow(trees_removed)!=0){write.csv(trees_removed, paste0(out.path, paste(unique(trees_update_1$inv)[1], "LT_removed", sep = "_"), ".csv"), row.names = FALSE)}
 
 # export tree stand status of all trees nomatter if they have one, two or no forest edges at their plot
 write.csv(all.trees.status.df, paste0(out.path, paste(unique(trees_update_1$inv)[1], "all_LT_stand", sep = "_"), ".csv"), row.names = FALSE)
@@ -2273,7 +2321,7 @@ write.csv(all.rem.circle.coords.df,  paste0(out.path, paste(unique(trees_update_
 
 
 
-
+stop("this is where visuals of HBI momok forest edges start")
 
 # 3.4. visulaizing for all plots, edges, trees ---------------------------------------------------------------------------------------------------
 
@@ -2281,7 +2329,7 @@ for(i in 1:(nrow(trees_data %>% select(plot_ID) %>% distinct()))){
   # https://ggplot2.tidyverse.org/reference/ggsf.html
   
   #i = 1
-  # i = which(grepl(50124, unique(trees_data$plot_ID)))
+  # i = which(grepl(160036, unique(trees_data$plot_ID)))
   my.plot.id = unique(trees_data$plot_ID)[i]
   #print(my.plot.id)
   
@@ -2319,449 +2367,3 @@ for(i in 1:(nrow(trees_data %>% select(plot_ID) %>% distinct()))){
   
 }
 
-
-stop("this is vhere visualization of forest edges HBI starts")
-
-# ----- 2. visualization  -------------------------------------------------
-
-#----2.2. visual prep: tree-edge-status by combining tree and edge data ---------------------------------------
-# next step will be to join the forest edges dataset into the trees datset, 
-# via b0 and b1 and then compare the calculated tree_y with the functions result
-# if the tree_y is higher then the function_y we have to do something with the tree...
-# etc. assiningg another plot iD or something. 
-
-trees_and_edges <-
-  trees_data  %>% 
-  # join in edges info per plot
-  left_join(., forest_edges.man %>% 
-              select(plot_ID, e_ID, e_type, e_form,
-                     A_dist, A_azi, B_dist, B_azi, T_dist, T_azi, 
-                     X_A, X_B, X_T, Y_A, Y_B, Y_T,
-                     b1_AB, b1_AT, b1_BT, b0_AB, b0_AT, b0_BT, 
-                     X1_inter_AB_17, X2_inter_AB_17, Y1_inter_AB_17, Y2_inter_AB_17, inter_status_AB_17, 
-                     X1_inter_AT_17, X2_inter_AT_17, Y1_inter_AT_17, Y2_inter_AT_17, inter_status_AT_17, 
-                     X1_inter_BT_17, X2_inter_BT_17,  Y1_inter_BT_17, Y2_inter_BT_17, inter_status_BT_17,
-                     X_inter_AT_triangle_60, X_inter_BT_triangle_60, Y_inter_AT_triangle_60, Y_inter_BT_triangle_60),
-            by = c("plot_ID", "e_ID", "e_type", "e_form")) %>% 
-  # the following two functions work, however the processign through loops and polygoens which follows under section 3
-  # works better and more efficient & precise
-  mutate(t_status_AB_ABT = tree.status(e_form,
-                                       0, 0, data_circle$r0[3],
-                                       b0_AB, b1_AB,
-                                       X_tree, Y_tree,
-                                       X_A, Y_A, X_T, Y_T, b0_AT, b1_AT,
-                                       data_circle$rmax[3]*2,
-                                       X_B, Y_B,  b0_BT, b1_BT)) %>%   
-  # ---- 1.1.2.4. assigning plot area by according to diameter class (klubschwelle)  ---------------------------------------
-# this is necesarry to make the function work. why exactly remains unclear 
-mutate(id_func = row_number()) %>%
-  group_by(id_func) %>% 
-  mutate(edge_A_method = edge.A(e_form, DBH_cm,  X_A, X_B, X_T, Y_A, Y_B, Y_T, T_dist, t_status_AB_ABT, output = "method"), 
-         plot_A =  edge.A(e_form, DBH_cm,  X_A, X_B, X_T, Y_A, Y_B, Y_T, T_dist, t_status_AB_ABT, output = "area_m2")) %>% 
-  ungroup()
-
-
-# ecport treees and edges dataset  ----------------------------------------
-write.csv(trees_and_edges, paste0(out.path, paste(unique(trees_update_1$inv)[1], "LT_edges", sep = "_"), ".csv"), row.names = FALSE)
-
-
-# ----- 2.1.   Living trees visualization forest edges -----------------------------------
-# ----- 2.1.1. AB lines, edge form 1, visualization forest edges -----------------------------------
-# plotting trees and interception lines divided in t_line_status
-#AB line
-ggplot() +  
-  geom_circle(data = data_circle, aes(x0 = x0, y0 = y0, r = r0))+ # Draw ggplot2 plot with circle representing sampling circuits 
-  geom_circle(data = data_circle, aes(x0 = x0, y0 = y0, r = rmax*2))+ # Draw ggplot2 plot with circle representing sampling circuits
-  # AB line
-  geom_point(data = trees_and_edges %>%
-               filter(e_form == "1") %>% 
-               inner_join(.,   forest_edges.man %>% 
-                            filter(e_form == "1") %>% 
-                            group_by(plot_ID) %>% 
-                            summarize(n = n()) %>% 
-                            filter(n <= 1), 
-                          by = "plot_ID") %>% 
-               select(plot_ID, X1_inter_AB_17, X2_inter_AB_17, X_A, X_B, Y1_inter_AB_17, Y2_inter_AB_17, Y_A, Y_B) %>% 
-               to_long(keys = c("X_name",  "Y_name"),
-                       values = c( "X_value", "Y_value"),  
-                       names(.)[2:5], names(.)[6:9]), 
-             aes(x= X_value, y = Y_value, colour = X_name))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "1") %>% 
-              inner_join(.,   forest_edges.man %>% 
-                           filter(e_form == "1") %>% 
-                           group_by(plot_ID) %>% 
-                           summarize(n = n()) %>% 
-                           filter(n <= 1), 
-                         by = "plot_ID") %>% 
-              select(plot_ID, X_A, X_B, Y_A, Y_B) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),  
-                      names(.)[2:3], names(.)[4:5]), 
-            aes(x= X_value, y = Y_value))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "1") %>% 
-              inner_join(.,   forest_edges.man %>% 
-                           filter(e_form == "1") %>% 
-                           group_by(plot_ID) %>% 
-                           summarize(n = n()) %>% 
-                           filter(n <= 1), 
-                         by = "plot_ID") %>% 
-              select(plot_ID, X1_inter_AB_17, X_A, Y1_inter_AB_17, Y_A) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),
-                      names(.)[2:3], names(.)[4:5]),  
-            aes(x= X_value, y = Y_value, colour = X_name))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "1") %>% 
-              inner_join(.,   forest_edges.man %>% 
-                           filter(e_form == "1") %>% 
-                           group_by(plot_ID) %>% 
-                           summarize(n = n()) %>% 
-                           filter(n <= 1), 
-                         by = "plot_ID") %>% 
-              select(plot_ID, X2_inter_AB_17, X_A, Y2_inter_AB_17, Y_A) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),
-                      names(.)[2:3], names(.)[4:5]),  
-            aes(x= X_value, y = Y_value, colour = X_name))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "1") %>% 
-              inner_join(.,   forest_edges.man %>% 
-                           filter(e_form == "1") %>% 
-                           group_by(plot_ID) %>% 
-                           summarize(n = n()) %>% 
-                           filter(n <= 1), 
-                         by = "plot_ID") %>% 
-              select(plot_ID, X1_inter_AB_17, X_B, Y1_inter_AB_17, Y_B) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),
-                      names(.)[2:3], names(.)[4:5]),  
-            aes(x= X_value, y = Y_value, colour = X_name))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "1") %>% 
-              inner_join(.,   forest_edges.man %>% 
-                           filter(e_form == "1") %>% 
-                           group_by(plot_ID) %>% 
-                           summarize(n = n()) %>% 
-                           filter(n <= 1), 
-                         by = "plot_ID") %>% 
-              select(plot_ID, X2_inter_AB_17, X_B, Y2_inter_AB_17, Y_B) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),
-                      names(.)[2:3], names(.)[4:5]),  
-            aes(x= X_value, y = Y_value, colour = X_name))+
-  # trees
-  geom_point(data =  trees_and_edges %>% filter(e_form == "1"), 
-             # %>% 
-             #   inner_join(.,   forest_edges.man %>% 
-             #                filter(e_form == "1" ) %>% 
-             #                group_by(plot_ID) %>% 
-             #                summarize(n = n()) %>% 
-             #                filter(n <= 1), 
-             #              by = "plot_ID"),
-             aes(X_tree, Y_tree, colour = edge_A_method))+
-  theme_bw()+
-  facet_wrap(~plot_ID)
-
-
-# ----- 2.1.2. ABT lines, edge form 2, Visualisation forest edges -----------------------------------
-# forest edge type 2 
-# if the # i removed, this part allows to plot plots with forest edges with a turning point
-# AT line
-ggplot() +  
-  geom_circle(data = data_circle, aes(x0 = x0, y0 = y0, r = r0))+ # Draw ggplot2 plot with circle representing sampling circuits 
-  geom_circle(data = data_circle, aes(x0 = x0, y0 = y0, r = rmax*2))+ # Draw ggplot2 plot with circle representing sampling circuits
-  geom_point(data = trees_and_edges %>% 
-               filter(e_form == "2") %>% 
-               select(plot_ID, X_A, X_T, Y_A, Y_T) %>% 
-               to_long(keys = c("X_name",  "Y_name"),
-                       values = c( "X_value", "Y_value"),  
-                       names(.)[2:3], names(.)[4:5]), 
-             aes(x= X_value, y = Y_value, colour = "T"))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "2") %>% 
-              select(plot_ID, X_A, X_T, Y_A, Y_T) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),  
-                      names(.)[2:3], names(.)[4:5]), 
-            aes(x= X_value, y = Y_value))+
-  # intersections choosen to draw the triangle AT
-  geom_point(data = trees_and_edges %>% 
-               filter(e_form == "2") %>% 
-               select(plot_ID, X_inter_AT_triangle_60, X_A, Y_inter_AT_triangle_60, Y_A) %>% 
-               to_long(keys = c("X_name",  "Y_name"),
-                       values = c( "X_value", "Y_value"),  
-                       names(.)[2:3], names(.)[4:5]), 
-             aes(x= X_value, y = Y_value, colour = "A_Intercept"))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "2") %>% 
-              select(plot_ID, X_inter_AT_triangle_60, X_A, Y_inter_AT_triangle_60, Y_A) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),  
-                      names(.)[2:3], names(.)[4:5]), 
-            aes(x= X_value, y = Y_value))+
-  # BT line 
-  geom_point(data = trees_and_edges %>%
-               filter(e_form == "2") %>% 
-               select(plot_ID, X_B, X_T, Y_B, Y_T) %>% 
-               to_long(keys = c("X_name",  "Y_name"),
-                       values = c( "X_value", "Y_value"),  
-                       names(.)[2:3], names(.)[4:5]), 
-             aes(x= X_value, y = Y_value, colour = "T"))+
-  geom_line(data = trees_and_edges %>%
-              filter(e_form == "2") %>% 
-              select(plot_ID, X_B, X_T, Y_B, Y_T) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),  
-                      names(.)[2:3], names(.)[4:5]), 
-            aes(x= X_value, y = Y_value))+
-  # intersections choosen to draw the triangle BT
-  geom_point(data = trees_and_edges %>% 
-               filter(e_form == "2") %>% 
-               select(plot_ID, X_inter_BT_triangle_60, X_B, Y_inter_BT_triangle_60, Y_B) %>% 
-               to_long(keys = c("X_name",  "Y_name"),
-                       values = c( "X_value", "Y_value"),  
-                       names(.)[2:3], names(.)[4:5]), 
-             aes(x= X_value, y = Y_value, colour = "B_intercept"))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "2") %>% 
-              select(plot_ID, X_inter_BT_triangle_60, X_B, Y_inter_BT_triangle_60, Y_B) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),  
-                      names(.)[2:3], names(.)[4:5]), 
-            aes(x= X_value, y = Y_value))+
-  # trees
-  geom_point(data =  trees_and_edges %>% filter(e_form == "2"), 
-             aes(X_tree, Y_tree, colour =  edge_A_method))+
-  theme_bw()+ 
-  facet_wrap(~plot_ID)  
-
-
-
-
-# ----- 2.1.3. visulaliszing forest edge_form 1 and edge_form 2 together using m_s_status --------
-# plotting trees and interception lines divided in t_line_status
-#AB line
-ggplot() +  
-  geom_circle(data = data_circle, aes(x0 = x0, y0 = y0, r = r0))+ # Draw ggplot2 plot with circle representing sampling circuits 
-  geom_circle(data = data_circle, aes(x0 = x0, y0 = y0, r = rmax*2))+ # Draw ggplot2 plot with circle representing sampling circuits
-  ### AB line
-  geom_point(data = trees_and_edges %>%
-               filter(e_form == "1") %>% 
-               select(plot_ID, X1_inter_AB_17, X2_inter_AB_17, X_A, X_B, Y1_inter_AB_17, Y2_inter_AB_17, Y_A, Y_B) %>% 
-               to_long(keys = c("X_name",  "Y_name"),
-                       values = c( "X_value", "Y_value"),  
-                       names(.)[2:5], names(.)[6:9]), 
-             aes(x= X_value, y = Y_value, colour = X_name))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "1") %>% 
-              select(plot_ID, X_A, X_B, Y_A, Y_B) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),  
-                      names(.)[2:3], names(.)[4:5]), 
-            aes(x= X_value, y = Y_value))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "1") %>% 
-              select(plot_ID, X1_inter_AB_17, X_A, Y1_inter_AB_17, Y_A) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),
-                      names(.)[2:3], names(.)[4:5]),  
-            aes(x= X_value, y = Y_value, colour = X_name))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "1") %>%
-              select(plot_ID, X2_inter_AB_17, X_A, Y2_inter_AB_17, Y_A) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),
-                      names(.)[2:3], names(.)[4:5]),  
-            aes(x= X_value, y = Y_value, colour = X_name))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "1") %>% 
-              select(plot_ID, X1_inter_AB_17, X_B, Y1_inter_AB_17, Y_B) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),
-                      names(.)[2:3], names(.)[4:5]),  
-            aes(x= X_value, y = Y_value, colour = X_name))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "1") %>% 
-              select(plot_ID, X2_inter_AB_17, X_B, Y2_inter_AB_17, Y_B) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),
-                      names(.)[2:3], names(.)[4:5]),  
-            aes(x= X_value, y = Y_value, colour = X_name))+
-  # trees
-  geom_point(data =  trees_and_edges %>% filter(e_form == "1"), #%>% 
-             aes(X_tree, Y_tree, colour = t_status_AB_ABT))+
-  #theme_bw()+
-  #facet_wrap(~plot_ID)
-  
-  # forest edge type 2 
-  # if the # i removed, this part allows to plot plots with forest edges with a turning point
-  ### AT line
-  # ggplot() +  
-  # geom_circle(data = data_circle, aes(x0 = x0, y0 = y0, r = r0))+ # Draw ggplot2 plot with circle representing sampling circuits 
-  # geom_circle(data = data_circle, aes(x0 = x0, y0 = y0, r = rmax*2))+ # Draw ggplot2 plot with circle representing sampling circuits
-  geom_point(data = trees_and_edges %>% 
-               filter(e_form == "2") %>% 
-               select(plot_ID, X_A, X_T, Y_A, Y_T) %>% 
-               to_long(keys = c("X_name",  "Y_name"),
-                       values = c( "X_value", "Y_value"),  
-                       names(.)[2:3], names(.)[4:5]), 
-             aes(x= X_value, y = Y_value, colour = "T"))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "2") %>% 
-              select(plot_ID, X_A, X_T, Y_A, Y_T) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),  
-                      names(.)[2:3], names(.)[4:5]), 
-            aes(x= X_value, y = Y_value))+
-  # intersections choosen to draw the triangle AT
-  geom_point(data = trees_and_edges %>% 
-               filter(e_form == "2") %>% 
-               select(plot_ID, X_inter_AT_triangle_60, X_A, Y_inter_AT_triangle_60, Y_A) %>% 
-               to_long(keys = c("X_name",  "Y_name"),
-                       values = c( "X_value", "Y_value"),  
-                       names(.)[2:3], names(.)[4:5]), 
-             aes(x= X_value, y = Y_value, colour = "A_Intercept"))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "2") %>% 
-              select(plot_ID, X_inter_AT_triangle_60, X_A, Y_inter_AT_triangle_60, Y_A) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),  
-                      names(.)[2:3], names(.)[4:5]), 
-            aes(x= X_value, y = Y_value))+
-  # BT line 
-  geom_point(data = trees_and_edges %>%
-               filter(e_form == "2") %>% 
-               select(plot_ID, X_B, X_T, Y_B, Y_T) %>% 
-               to_long(keys = c("X_name",  "Y_name"),
-                       values = c( "X_value", "Y_value"),  
-                       names(.)[2:3], names(.)[4:5]), 
-             aes(x= X_value, y = Y_value, colour = "T"))+
-  geom_line(data = trees_and_edges %>%
-              filter(e_form == "2") %>% 
-              select(plot_ID, X_B, X_T, Y_B, Y_T) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),  
-                      names(.)[2:3], names(.)[4:5]), 
-            aes(x= X_value, y = Y_value))+
-  # intersections choosen to draw the triangle BT
-  geom_point(data = trees_and_edges %>% 
-               filter(e_form == "2") %>% 
-               select(plot_ID, X_inter_BT_triangle_60, X_B, Y_inter_BT_triangle_60, Y_B) %>% 
-               to_long(keys = c("X_name",  "Y_name"),
-                       values = c( "X_value", "Y_value"),  
-                       names(.)[2:3], names(.)[4:5]), 
-             aes(x= X_value, y = Y_value, colour = "B_intercept"))+
-  geom_line(data = trees_and_edges %>% 
-              filter(e_form == "2") %>% 
-              select(plot_ID, X_inter_BT_triangle_60, X_B, Y_inter_BT_triangle_60, Y_B) %>% 
-              to_long(keys = c("X_name",  "Y_name"),
-                      values = c( "X_value", "Y_value"),  
-                      names(.)[2:3], names(.)[4:5]), 
-            aes(x= X_value, y = Y_value))+
-  # trees
-  geom_point(data =  trees_and_edges %>% filter(e_form == "2"), 
-             aes(X_tree, Y_tree, colour = t_status_AB_ABT))+
-  theme_bw()+ 
-  facet_wrap(~plot_ID) 
-
-
-
-
-# Notes:  -----------------------------------------------------------------
-# there may be no egdges or edges with no trees in this case only the last loop will run: 
-# so what we need are 3 versions of the final dataset: 
-# 1. there are no edges --> if forest_edges.man is epmty, we don´t filter the trees at all
-# 2. there are only plots with 1 edge --> the forest_edges.man.sub.one.edge.df is not empty so that this loop ran
-# 3. there are only plots with 2 edges --> the forest_edges.man.sub.two.edges.df is not empty so that this loop ran
-# this should work because the forest_edges.man.sub are filtered by forest_edges_man and don´t depend on each other
-# https://www.learnbyexample.org/r-if-else-elseif-statement/
-
-# 
-# ## there are no edges 
-# if(nrow(forest_edges) == 0){
-#   trees.no.edge.nogeo <- trees_data#%>% 
-#   # remove plots that do now have a corresponding center coordiante in the BZE3 loc document
-#   # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID")
-#   
-#   ## there are no trees in plots with two edges
-# } else if (nrow(tree.status.one.edge.df.nogeo) == 0 && nrow(tree.status.two.edges.df.nogeo) != 0){
-#   trees.no.edge.nogeo <- trees_data %>% 
-#     anti_join(., tree.status.two.edges.df.nogeo %>% 
-#                 select(plot_ID) %>% 
-#                 distinct(), by = "plot_ID")#%>% 
-#   # remove plots that do now have a corresponding center coordiante in the BZE3 loc document
-#   # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID")
-#   
-#   ## there are no trees in plots with one edge
-# }else if(nrow(tree.status.one.edge.df.nogeo) != 0 && nrow(tree.status.two.edges.df.nogeo) == 0){
-#   trees.no.edge.nogeo <- trees_data %>% 
-#     anti_join(., tree.status.one.edge.df.nogeo %>% 
-#                 select(plot_ID) %>% 
-#                 distinct(), by = "plot_ID")#%>% 
-#   # remove plots that do now have a corresponding center coordiante in the BZE3 loc document
-#   # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID")
-#   
-#   ## there are plots with two and one edges and trees inside it 
-# }else if(nrow(tree.status.one.edge.df.nogeo) != 0 && nrow(tree.status.two.edges.df.nogeo) != 0){
-#   trees.no.edge.nogeo <- trees_data %>% 
-#     anti_join(., tree.status.one.edge.df.nogeo %>% 
-#                 select(plot_ID) %>% 
-#                 distinct(), by = "plot_ID") %>% 
-#     anti_join(., tree.status.two.edges.df.nogeo %>% 
-#                 select(plot_ID) %>% 
-#                 distinct(), by = "plot_ID")#%>% 
-#   # remove plots that do now have a corresponding center coordiante in the BZE3 loc document
-#   # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID")
-#   
-#   ## this is if there are edges but they don´t have trees
-# }else{
-#   trees.no.edge.nogeo <- trees_data#%>% 
-#   # remove plots that do now have a corresponding center coordiante in the BZE3 loc document
-#   # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID")
-# }
-
- 
-# ## export coordiante of all edge_triangle poligons to dataframes
-# ## export coordiantes of all edge-triangle-circle intersections polygones  to  dataframes 
-# all.edge.triangle.coords.list <- vector("list", length = nrow(unique(all.triangle.polys.df.nogeo[, c("plot_ID", "e_ID")])))
-# for (i in 1:nrow(unique(all.triangle.polys.df.nogeo[, c("plot_ID", "e_ID")]))) {
-#   # i = 1
-#   all.edge.triangle.coords.list[[i]] <- as.data.frame(cbind(
-#     "plot_ID" = c(all.triangle.polys.df.nogeo$plot_ID[i]), 
-#     "e_ID" = c(all.triangle.polys.df.nogeo$e_ID[i]),  
-#     "e_form" = c(all.triangle.polys.df.nogeo$e_form[i]),
-#     "lon" = (as_tibble(st_coordinates(all.triangle.polys.df.nogeo$geometry[i])) %>% select("X", -c( "L1", "L2"))),
-#     "lat" = (as_tibble(st_coordinates(all.triangle.polys.df.nogeo$geometry[i])) %>% select("Y", -c( "L1", "L2")))
-#   ))
-# }
-# all.edge.triangle.coords.list.final <- rbindlist(all.edge.triangle.coords.list)
-# all.edge.triangle.coords.df <- as.data.frame(all.edge.triangle.coords.list.final) %>% 
-#   # the exportet polygones only include the widest cirlce intersection at 17.84m radius
-#   mutate(CCS_r_m = 17.84) %>% 
-#   # join in the stand info by plot_ID, e_ID, CCS_r_M
-#   left_join(., all.edges.area.df.nogeo %>% select(plot_ID, e_ID, CCS_r_m, stand), 
-#             by = c("plot_ID", "e_ID", "CCS_r_m"))
-# write.csv2(all.edge.triangle.coords.df,  paste0(out.path, paste(unique(trees_data_update_1$inv)[1], "all_edge_triangle_coords", sep = "_"), ".csv"))
- 
-
-# plot(st_as_sf(all.remaning.circles.poly %>% filter(plot_ID == 50131)))
-# st_coordinates(st_as_sf(all.remaning.circles.poly %>% filter(plot_ID == 50131)))
-# plot(sfheaders::sf_multipolygon(obj = as.data.frame(st_coordinates(st_as_sf(all.remaning.circles.poly %>% filter(plot_ID == 50131))) )
-#                                 , x = "X"
-#                                 , y = "Y"
-#                                 , keep = TRUE)
-#      
-# )
-# 
-# as(st_as_sf(all.remaning.circles.poly %>% filter(plot_ID == 50131)), 'Spatial')
-# spp<- SpatialPolygonsDataFrame(as(st_as_sf(all.remaning.circles.poly %>% filter(plot_ID == 50131)), 'Spatial'), data = all.remaning.circles.poly %>% filter(plot_ID == 50131))
-# 
-# as.data.frame(spp)
-# SPDF <- SpatialPointsDataFrame(coords=xy, data=df)
-# 
-# # And then convert it (back) to a data.frame
-# DF <- as.data.frame(SPDF)
-# 
-# plot(SpatialPolygonsDataFrame(as(st_as_sf(all.remaning.circles.poly %>% filter(plot_ID == 50131)), 'Spatial'), data=as.data.frame("yourData")))
