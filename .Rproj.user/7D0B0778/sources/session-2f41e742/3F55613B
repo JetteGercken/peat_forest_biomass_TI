@@ -1,0 +1,26 @@
+{
+    "id": "3F55613B",
+    "path": "~/paper/data/R/peat_forest_biomass_TI/scripts/02_00_RG_LT_DW_inventory_plot_status_HBI.R",
+    "project_path": "scripts/02_00_RG_LT_DW_inventory_plot_status_HBI.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1729088934794.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "744,0",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1729088479,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1729088479,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,26 @@
+{
+    "id": "17C52C7E",
+    "path": "~/paper/data/R/peat_forest_biomass_TI/scripts/01_02_identify_org_soil_plots.R",
+    "project_path": "scripts/01_02_identify_org_soil_plots.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1729088006110.0,
+    "source_on_save": false,
+    "relative_order": 3,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "49,22",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1729149134,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1729149134766,
+    "read_only": false,
+    "read_only_alternatives": []
+}
