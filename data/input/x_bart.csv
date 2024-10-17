@@ -1,8 +1,8 @@
 "id","kurz","lang","icode","genus","species","ba_bwi","laub_nadel","gueltig_ab","gueltig_bis"
-"eta","ETa","Edeltanne",218,"abies","procera","ta","nb",2005-12-31,NA
-"-9","fehlt","Merkmal vergessen, nicht rekonstruierbar oder unbekannt",-9,"-2","-2",NA,NA,NA,NA
-"-2","nicht ausgeprägt","Merkmal nicht ausgeprägt/nicht vorhanden",-2,"-2","-2",NA,NA,NA,2020-04-01
-"-1","nicht erhoben","Merkmal nicht erhoben",-1,"-2","-2",NA,NA,2005-12-31,NA
+"eib","Eib","Eibe",219,"taxus","baccata","eib","nb",NA,NA
+"-9","-9","Merkmal vergessen, nicht rekonstruierbar oder unbekannt",-9,"-2","-2",NA,NA,NA,NA
+"-2","-2","Merkmal nicht ausgeprägt/nicht vorhanden",-2,"-2","-2",NA,NA,NA,2020-04-01
+"-1","-1","Merkmal nicht erhoben",-1,"-2","-2",NA,NA,2005-12-31,NA
 "ah","Ah","Ahorn",100,"acer","spp.","ah","lb",1986-12-31,NA
 "sah","SAh","Spitz-Ahorn",101,"acer","platanoides","sah","lb",1986-12-31,NA
 "bah","BAh","Berg-Ahorn",102,"acer","pseudoplatanus","bah","lb",1986-12-31,NA
@@ -89,7 +89,7 @@
 "szy","SZy","Scheinzypresse",215,"chamaecyparis","lawsoniana","snb","nb",NA,NA
 "sta","STa","Silbertanne",216,"abies","concolor","ta","nb",NA,NA
 "dki","DKi","Drehkiefer",217,"pinus","contorta","ki","nb",NA,NA
-"eib","Eib","Eibe",219,"taxus","baccata","eib","nb",NA,NA
+"eta","ETa","Edeltanne",218,"abies","procera","ta","nb",2005-12-31,NA
 "hta","HTa","Hemlocktanne",220,"tsuga","spp.","snb","nb",2004-12-31,NA
 "hlä","HLä","Hybridlaerche",221,"larix","eurolepis","lae","nb",NA,NA
 "ara","Ara","Japantanne",222,"araucaria","araucana","snb","nb",NA,NA
