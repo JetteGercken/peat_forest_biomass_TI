@@ -918,6 +918,10 @@ write.csv(LT_RG_DW, paste0(out.path, paste(LT_RG_DW_P$inv[1], "LT_RG_DW_stocks_h
 stop("there the visualization of 05_00_RG_LT_DW_summarizing_hevtar_values HBI starts")
 
 # 5. visuals --------------------------------------------------------------
+
+# comp by soil type -------------------------------------------------------
+
+
 soil_types_db <- read.delim(file = here(out.path, "soils_types_profil_db.csv"), sep = ",", dec = ".")
 # biomass by plot wit mean bio total over all plots 
 ggplot(data = (LT_summary %>% filter(stand_component == "LT" & 
@@ -939,6 +943,9 @@ ggplot(data = (LT_summary %>% filter(stand_component == "LT" &
   geom_line(aes(y = mean_B_tha, group = 1), color = "red")
 
 
+
+
+# biomass plotted for all plots -------------------------------------------
 
 
 # biomass by plot by compartiment with mean total biom over all plots
@@ -1024,19 +1031,41 @@ ggplot() +
               aes(x = DBH_cm, y = H_m, color = min_org))
 
 trees_data_h_nls <- 
-left_join(trees_data %>% filter(H_method == "sampled") %>% left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2")) %>% 
+left_join(trees_data %>% filter(H_method == "sampled" & compartiment == "ag") %>% left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2")) %>% 
             mutate(min_org = ifelse(inv == "momok", "org", min_org)),
             trees_data %>% filter(H_method == "sampled") %>%
-              left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>%mutate(min_org = ifelse(inv == "momok", "org", min_org)) %>% 
+              left_join(., soil_types_db %>% 
+                          select(bfhnr_2 , min_org), 
+                        by = c("plot_ID" = "bfhnr_2"))%>%
+            mutate(min_org = ifelse(inv == "momok", "org", min_org)) %>% 
                        group_by(min_org) %>%
-                       nls_table( H_m ~ b0 * (1 - exp( -b1 * DBH_cm))^b2, 
-                                  mod_start = c(b0=23, b1=0.03, b2 =1.3), 
-                                  output = "table"),
+                       nls_table( #H_m ~ b0 * (1 - exp( -b1 * DBH_cm))^b2, 
+                                  #mod_start = c(b0=23, b1=0.03, b2 =1.3), 
+                                  H_m ~ 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3,  # Petterson function
+                                   mod_start = c(b0=1, b1=1), 
+                                  output = "table", 
+                                  .groups = "min_org"),
                     by = c( "min_org")) %>% 
-  mutate(H_m_nls = b0 * (1 - exp( -b1 * DBH_cm))^b2, 
+  mutate(H_m_nls = 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3, 
          H_method_nls = "nls")
 
-#min: H_m ~  36.80656 * (1 - exp( -0.03493869 * DBH_cm))^1.029769
+
+# height mod min soil
+model_min <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3, 
+             data = trees_data %>% left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% filter(H_method == "sampled" & compartiment == "ag" & min_org == "min")  , 
+             start = list(a = 1, b = 1))  # Initial guesses for a and b
+
+# Step 4: View the results
+summary(model_min)
+
+# height mod org soil
+model_org <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3, 
+                 data = trees_data %>% left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% filter(H_method == "sampled" & compartiment == "ag" & min_org == "org")  , 
+                 start = list(a = 1, b = 1))  # Initial guesses for a and b
+
+# Step 4: View the results
+summary(model_org)
+
 
 ggplot() +
   geom_point(data = (trees_data %>%
@@ -1046,7 +1075,6 @@ ggplot() +
              aes(x = DBH_cm, y = H_m, color = min_org), alpha = 0.035)+
   geom_smooth(data = (trees_data_h_nls %>% 
                         filter(H_method == "sampled" & BWI_SP_group %in% c("aLh", "aLn")) %>%  
-                      #  left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
                         mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
               aes(x = DBH_cm, y = H_m_nls, color = min_org))
 

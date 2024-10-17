@@ -47,7 +47,10 @@ org_soils_analysis <- org_soils_analysis %>% filter(plot_inventur == 2 & !is.na(
 
 # 1. identify organic sites ---------------------------------------------------------
 # possible names of organic soil types according to KA5
-org_soil_types <- c("GH", "GM", "GH", "HH", "HN", "KH", "KV",  "KM", "SGm" )
+org_soil_types <- c(#"GH", "GM", "GH", 
+                    "HH", "HN", "KH"
+                    #, "KV",  "KM", "SGm" 
+                    )
 # possible names of organic horizonts
 org_horizonts <- c("Aa", "H")
 

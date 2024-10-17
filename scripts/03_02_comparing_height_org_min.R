@@ -28,6 +28,8 @@ coeff_H_SP_P <- coef_H_com %>% filter(plot_ID != "all")
 coeff_H_SP  <- coef_H_com %>% filter(plot_ID == "all")
 coeff_H_SP_P$plot_ID <- as.integer(coeff_H_SP_P$plot_ID)
 
+
+
 # 1. data prep -----------------------------------------------------------------
 # 1.1. join in soil type info  -----------------------------------------------------------------
 trees_data <- trees_data %>% 
@@ -37,13 +39,6 @@ trees_data <- trees_data %>%
   mutate(min_org = ifelse(inv == "momok", "org", min_org))
 
 
-view(
-trees_data %>% group_by(min_org, plot_ID, SP_code) %>% summarise(n_SP = n()) %>% 
-  left_join(.,trees_data %>% group_by(min_org, plot_ID) %>% summarise(n_tot = n()) , by = c("plot_ID", "min_org") ) %>% 
-  mutate(n_share = n_SP/n_tot*100) %>% 
-  filter(min_org == "org") %>% 
-  arrange(n_share)
-)
 
 # 1.2. calcualte Ho -----------------------------------------------------
 # here we calcualte the dominant height 
@@ -129,6 +124,19 @@ for (i in 1:length(unique(trees_data$plot_ID))) {
 LT_avg_SP_ST_P <- as.data.frame(rbindlist(LT_avg_SP_ST_P_list))
 top_20_trees <- as.data.frame(rbindlist(top_20_trees_list))
 
+
+
+# fit height model  -------------------------------------------------------
+
+
+
+view(
+  trees_data %>% group_by(min_org, plot_ID, SP_code) %>% summarise(n_SP = n()) %>% 
+    left_join(.,trees_data %>% group_by(min_org, plot_ID) %>% summarise(n_tot = n()) , by = c("plot_ID", "min_org") ) %>% 
+    mutate(n_share = n_SP/n_tot*100) %>% 
+    filter(min_org == "org") %>% 
+    arrange(n_share)
+)
 
 
 # 2. visuals of comparisson -----------------------------------------------------------------

@@ -101,12 +101,15 @@ out.path <- here("output/out_data//")
 
 # ----- 0.4 importing data -----------------------------------------------------
 # create complete list of momok plots to be able to separate them from bze ##momok
-momok_plot_ids <-  na.omit(plyr::rbind.fill(read.delim(file = here("data/input/LT_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(MoMoK_Nr), 
-                                    read.delim(file = here("data/input/DW_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(MoMoK_Nr),
-                                    read.delim(file = here("data/input/RG_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(MoMoK_Nr), 
-                                    read.delim(file = here("data/input/lokation_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(MoMoK_Nr),
-                                    read.delim(file = here("data/input/info_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(MoMoK_Nr)) %>% 
-  rename("bund_nr" = "MoMoK_Nr") %>% distinct())
+momok_plot_ids <-  na.omit(plyr::rbind.fill(
+  read.delim(file = here("data/input/momok_be_totholz_liste.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
+  read.delim(file = here("data/input/momok_be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
+  read.delim(file = here("data/input/momok_be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
+  read.delim(file = here("data/input/momok_beab.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
+  read.delim(file = here("data/input/momok_bejb.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
+  read.delim(file = here("data/input/momok_tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
+  read.delim(file = here("data/input/momok_vm_lokation.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)) %>% 
+    select(bund_nr) %>% distinct())
 
 ## BZE 2
 # this dataset contains the BZE file tit_1 which displays info about the BZE inventory in general
