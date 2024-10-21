@@ -1,0 +1,177 @@
+# Thuenen Institute - Bodenschutz und Waldzustand
+# Analysis of the forest inventory accompanying the  national soil inventory
+# slightly adjusted for paper about peatland biomass of alder and birch trees 
+# Henriette Gercken
+# height on organic an non organic sites
+
+# ----- 0. SETUP ---------------------------------------------------------------
+
+# ----- 0.1. packages and functions --------------------------------------------
+source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
+
+
+# ----- 0.2. working directory -------------------------------------------------
+here::here()
+
+out.path <- here("output/out_data/") 
+
+# ----- 0.3 data import --------------------------------------------------------
+# LIVING TREES
+# hbi BE dataset: 
+# this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
+# here we import a dataset called "HBI_LT_update_2.csv" which contains plot area and stand data additionally to the original tree data
+trees_data <- read.delim(file = here(out.path, "HBI_LT_update_3.csv"), sep = ",", dec = ".")
+soil_types_db <- read.delim(file = here(out.path, "soils_types_profil_db.csv"), sep = ",", dec = ".")
+
+
+
+# 1. data prep -----------------------------------------------------------------
+# 1.1. join in soil type info  -----------------------------------------------------------------
+trees_data <- trees_data %>% 
+  # join in soil type of the respective profile
+  left_join(., soil_types_db %>% select(bfhnr_2, min_org) %>% distinct(), 
+            by = c("plot_ID" = "bfhnr_2")) 
+
+# 1.2. calcualte Ho -----------------------------------------------------
+# here we calcualte the dominant height 
+# dominant height is defined as: the height of a tree that represents the 20% strongest trees in the stand
+# 1.6.1. create "pseudo stands" -------------------------------------------
+LT_avg_SP_ST_P_list <- vector("list", length = length(unique(trees_data$plot_ID))) 
+for (i in 1:length(unique(trees_data$plot_ID))) {
+  # i = 1
+  my.plot.id <- unique(trees_data$plot_ID)[i]
+  # select all trees by only one compartiment of each tree to make sure the tree enters the dataframe only once
+  my.tree.df <- trees_data[trees_data$plot_ID == my.plot.id, ] 
+  my.n.ha.df <- trees_data %>% filter(plot_ID == my.plot.id) %>% group_by(plot_ID, CCS_r_m) %>% reframe(n_ha_CCS = n()/plot_A_ha) %>% distinct()
+  my.n.plot.df <- trees_data %>% filter( plot_ID == my.plot.id) %>% group_by(plot_ID, CCS_r_m) %>% reframe(n_CCS = n()) %>% distinct()
+  
+  # calcualte how often a tree in each ccs is repeated per plot to fill the whole hektar with trees
+  my.n.ha.df$n.rep.each.tree <- round(my.n.ha.df$n_ha_CCS/my.n.plot.df$n_CCS)
+  
+  # repeat every tree per circle by the number this tree would be repeated by to reach it´s ha number
+  # so every tree id repeated as often as it would be represented on a hectar)
+  # https://stackoverflow.com/questions/11121385/repeat-rows-of-a-data-frame
+  my.tree.rep.df <- rbind(
+    # 5m circle
+    my.tree.df[my.tree.df$CCS_r_m == 5.64, ][rep(seq_len(nrow(my.tree.df[my.tree.df$CCS_r_m == 5.64, ])), 
+                                                 each = my.n.ha.df$n.rep.each.tree[my.n.ha.df$CCS_r_m == 5.64]), ],
+    # 12m circle
+    my.tree.df[my.tree.df$CCS_r_m == 12.62, ][rep(seq_len(nrow(my.tree.df[my.tree.df$CCS_r_m == 12.62, ])), 
+                                                  each = my.n.ha.df$n.rep.each.tree[my.n.ha.df$CCS_r_m == 12.62] ), ],
+    # 17m circle
+    my.tree.df[my.tree.df$CCS_r_m == 17.84, ][rep(seq_len(nrow(my.tree.df[my.tree.df$CCS_r_m == 17.84, ])), 
+                                                  each = my.n.ha.df$n.rep.each.tree[my.n.ha.df$CCS_r_m == 17.84]), ])
+  
+  # calculate upper 20%
+  n.20 <- 0.2 * nrow(my.tree.rep.df)
+  
+  LT_avg_SP_ST_P_list[[i]] <-( my.tree.rep.df %>% 
+     # select only the 20% strongest trees  
+    arrange(desc(DBH_cm)))[1:n.20, ] %>% 
+    group_by(plot_ID, inv, min_org,  stand, C_layer, SP_code, H_SP_group) %>% 
+    summarise(mean_DBH_cm = mean(DBH_cm), 
+              sd_DBH_cm = sd(DBH_cm),
+              Dg_cm = ((sqrt(mean(BA_m2)/pi))*2)*100,  
+              mean_BA_m2 = mean(BA_m2),
+              mean_H_m = mean(H_m), 
+              sd_H_m = sd(H_m), 
+              Hg_m = sum(mean(na.omit(mean_H_m))*sum(BA_m2))/sum(sum(BA_m2)), 
+              Ho_m = NA) %>% 
+    # calculate the height of the tree representing the mean BA of the upper 20% of the stand
+    unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE) %>%            # create column matching vectorised coefficients of coeff_SP_P (1.3. functions, h_nls_SP_P, dplyr::pull)
+                left_join(.,coeff_H_SP_P %>%                                              # joining R2 from coeff_SP_P -> R2.x
+                            select(plot_ID, SP_code, R2) %>% 
+                            unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE),   # create column matching vectorised coefficients of coeff_SP_P (1.3. functions, h_nls_SP_P, dplyr::pull)
+                          by = c("plot_ID", "SP_code", "SP_P_ID")) %>% 
+                left_join(., coeff_H_SP %>% select(SP_code, R2),               # joing R2 from coeff_SP data set -> R2.y
+                          by = "SP_code") %>% 
+                mutate(R2_comb = f(R2.x, R2.y, R2.y, R2.x),                               # if R2 is na, put R2 from coeff_SP_P unless R2 from coeff_SP is higher
+                       H_method = case_when(is.na(Ho_m) & !is.na(R2.x) & R2.x > 0.70 | is.na(Ho_m) & R2.x > R2.y & R2.x > 0.70 ~ "coeff_SP_P", 
+                                            is.na(Ho_m) & is.na(R2.x) & R2.y > 0.70| is.na(Ho_m) & R2.x < R2.y & R2.y > 0.70 ~ "coeff_sp",
+                                            is.na(Ho_m) & is.na(R2_comb) & !is.na(Hg_m)| is.na(Ho_m) & R2_comb < 0.70 & !is.na(Hg_m) ~ "ehk_sloboda",
+                                            is.na(Ho_m) & is.na(R2_comb) & is.na(Hg_m)| is.na(Ho_m) & R2_comb < 0.70 & is.na(Hg_m) ~ "h_curtis", 
+                                            TRUE ~ "sampled")) %>% 
+                # When h_m is na but there is a plot and species wise model with R2 above 0.7, use the model to predict the height
+                mutate(Ho_m = as.numeric(case_when(is.na(Ho_m) & !is.na(R2.x) & R2.x > 0.70 | is.na(Ho_m) & R2.x > R2.y & R2.x > 0.70 ~ h_nls_SP_P(SP_P_ID, Dg_cm),
+                                                  # if H_m is na and there is an R2 from coeff_SP_P thats bigger then 0.75 or of theres no R2 from 
+                                                  # coeff_SP_plot that´s bigger then R2 of coeff_SP_P while the given R2 from coeff_SP_P is above 
+                                                  # 0.75 then use the SP_P models
+                                                  is.na(Ho_m) & is.na(R2.x) & R2.y > 0.70 | is.na(Ho_m) & R2.x < R2.y & R2.y > 0.70 ~ h_nls_SP(SP_code, Dg_cm),
+                                                  # when there´s still no model per species or plot, or the R2 of both self-made models is below 0.7 
+                                                  # and hm is na but there is a h_g and d_G
+                                                  is.na(Ho_m) & is.na(R2_comb) & !is.na(Hg_m)| is.na(Ho_m) & R2_comb < 0.70 & !is.na(Hg_m) ~ ehk_sloboda(H_SP_group, Dg_cm*10, mean_DBH_cm*10, Dg_cm*10, Hg_m*10),
+                                                  # when there´s still no model per species or plot, or the R2 of both self-made models is below 0.7 
+                                                  # and hm is na and the Slobody function cannot eb applied because there is no h_g calculatable use the curtis function
+                                                  is.na(Ho_m) & is.na(R2_comb) & is.na(Hg_m)| is.na(Ho_m) & R2_comb < 0.70 & is.na(Hg_m) ~ h_curtis(H_SP_group, Dg_cm*10), 
+                                                  TRUE ~ Ho_m)))
+  
+ 
+}
+LT_avg_SP_ST_P <- as.data.frame(rbindlist(LT_avg_SP_ST_P_list))
+
+
+
+
+# 2. visuals of comparisson -----------------------------------------------------------------
+
+ggplot(data = LT_avg_SP_ST_P %>% 
+         left_join(., SP_names_com_ID_tapeS %>% mutate(Chr_code_ger_lower = tolower(Chr_code_ger)) %>% select(Chr_code_ger_lower, bot_name, bot_genus, bot_species), by = c("SP_code" = "Chr_code_ger_lower")) %>% 
+         filter(startsWith(bot_name, "Betula")| startsWith(bot_name, "Alnus")) %>% 
+         left_join(soil_types_db %>% select(bfhnr_2, min_org), by = c("plot_ID" = "bfhnr_2"))
+       )+
+  geom_jitter(aes(x = Dg_cm , y = H_m, colour = as.factor(min_org)))+ 
+  geom_smooth(aes(x = Dg_cm , y = H_m, colour = as.factor(min_org)))+
+  facet_wrap(~bot_name)
+
+
+# heights of alnus and betual sepcies over all NSI plots
+# by diameter 
+# separeted in organic vs. minearl sites and species (group) (botanical name) only for dominating, vital trees trees 
+ggplot(data = trees_data %>% 
+  filter(startsWith(bot_name, "Betula") & H_method == "sampled" |
+    startsWith(bot_name, "Alnus") & H_method == "sampled")%>% 
+    filter(C_layer %in% c(1) & Kraft %in% c(1)))+ 
+  geom_jitter(aes(x = DBH_cm, y = H_m, colour = as.factor(min_org)))+ 
+  geom_smooth(aes(x = DBH_cm, y = H_m, colour = as.factor(min_org)))+
+  facet_wrap(~bot_name)
+
+# heights of alnus and betula over all NSI plots
+# by diameter 
+# separeted in organic vs. minearl sites and botanical genus
+ggplot(data = trees_data %>% 
+         filter(startsWith(bot_name, "Betula") & H_method == "sampled" |
+                  startsWith(bot_name, "Alnus") & H_method == "sampled") )+
+  geom_jitter(aes(x = DBH_cm, y = H_m, colour = as.factor(min_org)))+ 
+  geom_smooth(aes(x = DBH_cm, y = H_m, colour = as.factor(min_org)))+
+  facet_wrap(bot_genus~C_layer)+
+  ylim(0, 50)
+
+
+# dbh comparisson violin plot org min boxplot separated  by bot genus and soil type
+ggplot(data = trees_data %>% 
+         mutate(hd = H_m/DBH_cm) %>% 
+         filter(startsWith(bot_name, "Betula") & H_method == "sampled" |
+                  startsWith(bot_name, "Alnus") & H_method == "sampled"))+
+  geom_boxplot(aes(x = min_org, y = DBH_cm))+
+  facet_wrap(~bot_genus)
+
+# dbh comparisson violin plot org min boxplot separated  by species and soil type 
+ggplot(data = trees_data %>% 
+         mutate(hd = H_m/DBH_cm) %>% 
+         filter(bot_name == "Betula pubescens" & H_method == "sampled" |
+         bot_name == "Alnus glutinosa" & H_method == "sampled")) +
+  geom_boxplot(aes(x = min_org, y = DBH_cm))+
+  geom_violin(aes(x = min_org, y = DBH_cm), alpha=0.2) +
+  facet_wrap(~bot_name)
+
+# dbh comparisson violin plot org min boxplot separated  by species, soil type and dominating vs. not dominating social class 
+ggplot(data = trees_data %>%
+         mutate(kraft_group = ifelse(Kraft %in% c(1, 2), "dominating", "not dominating")) %>% 
+         filter(Kraft %in% c(1, 2, 3, 4)) %>% 
+         mutate(hd = H_m/DBH_cm) %>% 
+         filter(startsWith(bot_name, "Betula") & H_method == "sampled" |
+                  startsWith(bot_name, "Alnus") & H_method == "sampled"))+
+  geom_boxplot(aes(x = min_org, y = H_m))+
+  geom_violin(aes(x = min_org, y = H_m), alpha=0.2) +
+  facet_grid(bot_genus~kraft_group)
+
