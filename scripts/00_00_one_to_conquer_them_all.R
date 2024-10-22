@@ -15,13 +15,13 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 # datasets import from postgres databank
 source(paste0(here::here(),"/scripts/01_01_get_data_from_db.R"))
 # data wrangling & sorting for bark and fruit types for forest structural indeyx calcualtion, we have to rename it: 01_02_...
-source(paste0(here(), "/scripts/01_03_bark_fruit_types_FSI.R"))
+source(paste0(here(), "/scripts/01_02_bark_fruit_types_FSI.R"))
 # sort species into species groups required for data sorting & analysis, we have to rename it: 01_03_...
-source(paste0(here(), "/scripts/01_04_species_groups.R"))
+source(paste0(here(), "/scripts/01_03_species_groups.R"))
 
 #### identify org/mineral soils -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # identify plots with organic soils: we have to rename it: 01_04_... 
-source(paste0(here::here(),"/scripts/01_02_identify_org_soil_plots.R"))
+source(paste0(here::here(),"/scripts/01_04_identify_org_soil_plots.R"))
 
 #### sorting according to inv status -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # identify plots with organic soils: we have to rename it: 01_04_... 
