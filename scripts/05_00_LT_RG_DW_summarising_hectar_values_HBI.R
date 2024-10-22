@@ -98,8 +98,8 @@ if(exists('trees_stat_2') == TRUE && nrow(trees_stat_2)!= 0){
            stand = "all", 
            SP_code = "all")
 }else{
-  LT_BCNBAn_ha <- trees_data %>% 
-    group_by(plot_ID, CCS_r_m, inv, compartiment) %>% 
+  LT_BCNBAn_ha <- trees_data %>%
+     group_by(plot_ID, CCS_r_m, inv, compartiment) %>% 
     # convert Biomass into tons per hectar and sum it up per sampling circuit 
     reframe(B_CCS_t_ha = sum(ton(B_kg_tree))/plot_A_ha, # plot are is the area of the respecitve samplign circuit in ha 
             C_CCS_t_ha = sum(ton(C_kg_tree))/plot_A_ha,
@@ -1017,66 +1017,6 @@ LT_summary_soil <- LT_summary %>% filter(stand_component == "LT" &
 
 wilcox.test(LT_summary_soil$C_t_ha[LT_summary_soil$min_org == "min"], LT_summary_soil$C_t_ha[LT_summary_soil$min_org == "org"])
 
-# DBH vs. sampled hight of all trees at all plots split by org vs. mineral soil
-ggplot() +
-  geom_point(data = (trees_data %>%
-                       filter(H_method == "sampled") %>% 
-                       left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
-                       mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
-             aes(x = DBH_cm, y = H_m, color = min_org), alpha = 0.035)+
-  geom_smooth(data = (trees_data %>% 
-                        filter(H_method == "sampled") %>% 
-                        left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
-                        mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
-              aes(x = DBH_cm, y = H_m, color = min_org))
-
-trees_data_h_nls <- 
-left_join(trees_data %>% filter(H_method == "sampled" & compartiment == "ag") %>% left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2")) %>% 
-            mutate(min_org = ifelse(inv == "momok", "org", min_org)),
-            trees_data %>% filter(H_method == "sampled") %>%
-              left_join(., soil_types_db %>% 
-                          select(bfhnr_2 , min_org), 
-                        by = c("plot_ID" = "bfhnr_2"))%>%
-            mutate(min_org = ifelse(inv == "momok", "org", min_org)) %>% 
-                       group_by(min_org) %>%
-                       nls_table( #H_m ~ b0 * (1 - exp( -b1 * DBH_cm))^b2, 
-                                  #mod_start = c(b0=23, b1=0.03, b2 =1.3), 
-                                  H_m ~ 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3,  # Petterson function
-                                   mod_start = c(b0=1, b1=1), 
-                                  output = "table", 
-                                  .groups = "min_org"),
-                    by = c( "min_org")) %>% 
-  mutate(H_m_nls = 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3, 
-         H_method_nls = "nls")
-
-
-# height mod min soil
-model_min <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3, 
-             data = trees_data %>% left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% filter(H_method == "sampled" & compartiment == "ag" & min_org == "min")  , 
-             start = list(a = 1, b = 1))  # Initial guesses for a and b
-
-# Step 4: View the results
-summary(model_min)
-
-# height mod org soil
-model_org <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3, 
-                 data = trees_data %>% left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% filter(H_method == "sampled" & compartiment == "ag" & min_org == "org")  , 
-                 start = list(a = 1, b = 1))  # Initial guesses for a and b
-
-# Step 4: View the results
-summary(model_org)
-
-
-ggplot() +
-  geom_point(data = (trees_data %>%
-                       filter(H_method == "sampled" & BWI_SP_group %in% c("aLh", "aLn")) %>% 
-                       left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
-                       mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
-             aes(x = DBH_cm, y = H_m, color = min_org), alpha = 0.035)+
-  geom_smooth(data = (trees_data_h_nls %>% 
-                        filter(H_method == "sampled" & BWI_SP_group %in% c("aLh", "aLn")) %>%  
-                        mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
-              aes(x = DBH_cm, y = H_m_nls, color = min_org))
 
 # 5.1. biomass compartiments ----------------------------------------------
 # pie chart of the percentage of biomass a compartiment averagely accumulates 

@@ -13,7 +13,7 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 # ----- 0.2. working directory -------------------------------------------------
 here::here()
 
-out.path <- here("output/out_data/") 
+out.path <- here("output/out_data//") 
 
 # ----- 0.3 data import --------------------------------------------------------
 # LIVING TREES
@@ -306,7 +306,7 @@ write.csv(HBI_trees_removed, paste0(out.path, paste(unique(HBI_trees_update_3$in
 
 # BZE3 dataset including estimated heights
 if(exists('BZE3_trees')){
-write.csv(BZE3_trees_update_3, paste0(out.path, paste(unique(BZE3_trees_update_3$inv)[1], "LT_update_3", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(BZE3_trees_update_3, paste0(out.path, "/", paste(unique(BZE3_trees_update_3$inv)[1], "LT_update_3", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 write.csv(BZE3_trees_removed, paste0(out.path, paste(unique(BZE3_trees_update_3$inv)[1], "LT_removed", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 }
 
