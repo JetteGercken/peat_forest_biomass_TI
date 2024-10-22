@@ -291,26 +291,22 @@ model_org <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3,
 # Step 4: View the results
 summary(model_org)
 
-
 h_DBH_all_SP <- ggplot() +
   geom_point(data = (trees_data %>%
                        filter(H_method == "sampled" 
-                             # & BWI_SP_group %in% c("aLh", "aLn")
-                              ) %>% 
+                              # & BWI_SP_group %in% c("aLh", "aLn")
+                       ) %>% 
                        #left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
                        mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
              aes(x = DBH_cm, y = H_m, color = min_org), alpha = 0.08)+
   geom_smooth(data = trees_data_h_nls %>% 
-                        filter(H_method == "sampled" 
-                              # & BWI_SP_group %in% c("aLh", "aLn")
-                               ),# %>%  
-                      #  mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
+                filter(H_method == "sampled" 
+                       # & BWI_SP_group %in% c("aLh", "aLn")
+                ),# %>%  
+              #  mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
               aes(x = DBH_cm, y = H_m_nls, color = min_org))
-
-tikz(
-  file = h_DBH_all_SP,
-  filename ="h_DBH_all_SP.tex",
-  width = 7,
-  height = 7)
-
+tikz(here("output/out_graphs/h_DBH_all_SP.jpg"),
+     width = 7,
+     height = 7)
+plot(h_DBH_all_SP)
 dev.off()
