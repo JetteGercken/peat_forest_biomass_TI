@@ -12,3 +12,7 @@
 %2F%2Fwo-sfs-001v-ew%2FINSTITUT%2Fa7bze%2FZZ_BZE3_Bestand_Auswertung%2Fpaper%2Fdata%2FR%2Fpeat_forest_biomass_TI%2Fscripts%2F03_00_identify_org_soil_plots.R="B38FD439"
 %2F%2Fwo-sfs-001v-ew%2FINSTITUT%2Fa7bze%2FZZ_BZE3_Bestand_Auswertung%2Fpaper%2Fdata%2FR%2Fpeat_forest_biomass_TI%2Fscripts%2Forg_soil_type.R="2626FA33"
 ~%2FTI_BZE_BE_analysis%2Fscripts%2F02_00_connect_R_PostgreSQL.R="FA3D2161"
+~%2Fpaper%2Fpeat_forest_biomass_TI%2Fscripts%2F00_00_one_to_conquer_them_all.R="D58F794B"
+~%2Fpaper%2Fpeat_forest_biomass_TI%2Fscripts%2F01_01_get_data_from_db.R="A0BB451D"
+~%2Fpaper%2Fpeat_forest_biomass_TI%2Fscripts%2F02_00_RG_LT_DW_inventory_plot_status_HBI.R="96D5FD8F"
+~%2Fpaper%2Fpeat_forest_biomass_TI%2Fscripts%2F02_01_01_LT_forest_edges_HBI.R="A439B6ED"

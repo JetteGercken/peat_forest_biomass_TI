@@ -158,7 +158,6 @@ trees_data <- trees_data %>% dplyr::select(plot_ID,  tree_ID ,  tree_inventory_s
 # HBI forest edges
 forest_edges <- read.delim(file = here("data/input/be_waldraender.csv"), sep = ",", dec = ".")
 colnames(forest_edges) <- c("plot_ID", "e_ID", "e_type", "e_form", "A_dist", "A_azi",  "B_dist", "B_azi", "T_dist", "T_azi") # t = turning point
-forest_edges$plot_ID <- as.character(forest_edges$plot_ID)
 
 
 
@@ -190,6 +189,11 @@ DW_data <- plyr::rbind.fill(read.delim(file = here("data/input/be_totholz_liste.
 colnames(DW_data) <- c("plot_ID", "tree_ID", "dw_type", "dw_sp", "count", "d_cm", "l_dm", "decay")
 
 
+##LOKATION
+geo_loc <- plyr::rbind.fill(read.delim(file = here("data/input/vm_lokation_HBI.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
+                                read.delim(file = here("data/input/momok_vm_lokation.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)) %>%  ##momok
+  left_join(., tree_inv_info %>% select(plot_ID, inv), by = c("bfhnr" = "plot_ID")) %>% 
+  mutate(inv = ifelse(bfhnr %in% momok_plot_ids$bund_nr, "momok", inv))
 
 
 

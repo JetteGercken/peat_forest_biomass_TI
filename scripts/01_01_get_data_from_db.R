@@ -568,7 +568,7 @@ write.csv(be_totholz_liste_momok, paste0(input.path, "momok_be_totholz_liste.csv
 
 
 
-
+stop("this is where getting data frmdb of paper ends")
 
 
 
