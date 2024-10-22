@@ -111,7 +111,7 @@ file.copy(from = paste0(raw.path, input.files),
 # get momok data
 # the path to the dataset on the netword folder is the following: \\wo-sfs-001v-ew\INSTITUT\a7forum\LEVEL I\BZE\Moormonitoring\Standorte\Lagemessungen... etc. 
 # we have to extract the individual sheepts from the excel workshet and then turn them into csvs
-raw.path.momok <- here::here("data/raw/")
+raw.path.momok <- here::here("data/raw//")
 # https://stackoverflow.com/questions/50238645/r-split-excel-workbook-into-csv-files
 # get names of the sheets in the excel working sheet in the raw folder
 sheets <- readxl::excel_sheets(paste0(raw.path.momok, "Lagemessungen_Bestandeserfassung_MoMoK_ges_2.xlsx"))
@@ -158,16 +158,52 @@ double_plots_momok <- lokation_momok %>%
   summarise(n_centres = n()) %>% 
   filter(n_centres > 1)
 
-lokation_momok <- lokation_momok %>% 
-  # filter only plot centres
-  # filter(stringr::str_detect(Skizzenpunkt, "MB")) %>% 
-  mutate(  MoMoK_Nr = ifelse(
-    # idenfity plots with more then one center that have a more then 2 characters long Skizzenpunkt name, 
-    MoMoK_Nr %in% double_plots_momok & nchar(Skizzenpunkt) > 2, 
-    # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
-    paste0(MoMoK_Nr, str_sub(Skizzenpunkt, start= -1)),
-    # otherwise leave old plot number
-    MoMoK_Nr))
+# lokation_momok <- lokation_momok %>% 
+#   # filter only plot centres
+#   # filter(stringr::str_detect(Skizzenpunkt, "MB")) %>% 
+#   mutate(  MoMoK_Nr = ifelse(
+#     # idenfity plots with more then one center that have a more then 2 characters long Skizzenpunkt name, 
+#     MoMoK_Nr %in% double_plots_momok & nchar(Skizzenpunkt) > 2, 
+#     # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
+#     paste0(MoMoK_Nr, str_sub(Skizzenpunkt, start= -1)),
+#     # otherwise leave old plot number
+#     MoMoK_Nr))
+
+# 0.3.1.2.3. hbi lokation momok ---------------------------------------------------- 
+# to calculate the coordinates we have to progress itteratively
+# since the structure is the following: we have a reference point (center) with a known geoloc 
+# then there is one or more points of the same plot that are measured based on that ref point
+# so their coordinates depend on joining in the corect ref point. 
+# then there will be points who´s ref point is not the ref point itself but another coordinate 
+# like corner or so
+# these coordinates can only be calculated AFTER the ref-point(center)-to-direkt-ref-point-dependent-points is calcualted
+# thus we will repeat the process as often as the max number of ref points (center) per plot, 
+# which is: 6
+max(lokation_momok %>% select(MoMoK_Nr, Ursrung) %>% distinct() %>% group_by(MoMok))
+
+# punkt includes followong columns:
+# bund_nr ld ld_bze ld_wze bwi_tnr bwi_eck eu_wze srid_ist   istre   istho raster_8x8 raster_16x16 raster hoehenn
+# lokation Hbi contains: bfhnr  rw_med  hw_med
+vm_lokation_momok <- lokation_momok %>%
+  # join in the the respective reference point coordinates  for the center of the forest inventory by "ursprung"
+  left_join(., lokation_momok %>% select( "MoMoK_Nr",  "Skizzenpunkt",  "Dezimalgrad.N..WGS84.", "Dezimalgrad.E..WGS84.") %>% 
+              rename("ref_northing" = "Dezimalgrad.N..WGS84.") %>% 
+              rename("ref_easting" = "Dezimalgrad.E..WGS84."), 
+            by = c("MoMoK_Nr", "Ursprung" = "Skizzenpunkt")) %>% 
+  filter(stringr::str_detect(Skizzenpunkt, "MB")) %>% 
+  mutate(across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing", "ref_easting", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
+  # calcualte coordiantes of mb based on utm coordinates of RP (referenzpoint) 
+  # as the center of the forest inventory is not the center of the forest inventory
+  mutate(rw_med = ifelse(is.na(Dezimalgrad.E..WGS84.), coord(ref_easting,  ref_northing, Distanz..m., Azimut..gon., coordinate = "x"), Dezimalgrad.E..WGS84.), # x, easting, longitude, RW 
+         hw_med = ifelse(is.na(Dezimalgrad.N..WGS84.), coord(ref_easting,  ref_northing, Distanz..m., Azimut..gon., coordinate = "y"), Dezimalgrad.N..WGS84.) # y, northing, latitude, HW 
+  ) %>% 
+  rename("bfhnr" = "MoMoK_Nr") %>% 
+  select(bfhnr, rw_med, hw_med) %>% 
+  distinct()
+
+write.csv(vm_lokation_momok, paste0(input.path, "momok_vm_lokation", ".csv"), row.names = FALSE)
+
+
 
 
 
@@ -251,29 +287,6 @@ colnames(tit_momok) <- c("bund_nr", "anmerkung", "datum",
                         "team" ,  "status",     "re_form",    "re_lage",    "neigung" ,   "exposition")
 write.csv(tit_momok, paste0(input.path, "momok_tit.csv"), row.names = FALSE)
 
-
-# 0.3.1.2.3. hbi lokation momok ----------------------------------------------------     
-# punkt includes followong columns:
-# bund_nr ld ld_bze ld_wze bwi_tnr bwi_eck eu_wze srid_ist   istre   istho raster_8x8 raster_16x16 raster hoehenn
-# lokation Hbi contains: bfhnr  rw_med  hw_med
-vm_lokation_momok <- lokation_momok %>%
-  # join in the the respective reference point coordinates  for the center of the forest inventory by "ursprung"
-  left_join(., lokation_momok %>% select( "MoMoK_Nr",  "Skizzenpunkt",  "Dezimalgrad.N..WGS84.", "Dezimalgrad.E..WGS84.") %>% 
-              rename("ref_northing" = "Dezimalgrad.N..WGS84.") %>% 
-              rename("ref_easting" = "Dezimalgrad.E..WGS84."), 
-            by = c("MoMoK_Nr", "Ursprung" = "Skizzenpunkt")) %>% 
-  filter(stringr::str_detect(Skizzenpunkt, "MB")) %>% 
-  mutate(across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing", "ref_easting", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
-  # calcualte coordiantes of mb based on utm coordinates of RP (referenzpoint) 
-  # as the center of the forest inventory is not the center of the forest inventory
-  mutate(rw_med = ifelse(is.na(Dezimalgrad.E..WGS84.), coord(ref_easting,  ref_northing, Distanz..m., Azimut..gon., coordinate = "x"), Dezimalgrad.E..WGS84.), # x, easting, longitude, RW 
-         hw_med = ifelse(is.na(Dezimalgrad.N..WGS84.), coord(ref_easting,  ref_northing, Distanz..m., Azimut..gon., coordinate = "y"), Dezimalgrad.N..WGS84.) # y, northing, latitude, HW 
-         ) %>% 
-  rename("bfhnr" = "MoMoK_Nr") %>% 
-  select(bfhnr, rw_med, hw_med) %>% 
-  distinct()
-
-write.csv(vm_lokation_momok, paste0(input.path, "momok_vm_lokation", ".csv"), row.names = FALSE)
 
 
 
@@ -418,7 +431,7 @@ be_totholz_punkt_momok <- DW_momok %>%
     # idenfity plots with more then one center that have a number in their sampling circuit number, 
     MoMoK_Nr %in% double_plots_momok & !is.na(as.numeric(Nr_PK)), 
     # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
-    paste0(MoMoK_Nr, "_", Nr_PK),
+    paste0(MoMoK_Nr, Nr_PK),
     # otherwise leave old plot number
     MoMoK_Nr)) %>% 
   select("MoMoK_Nr"                # "bund_nr"    
@@ -440,7 +453,7 @@ be_totholz_liste_momok <- DW_momok %>%
     # idenfity plots with more then one center that have a number in their sampling circuit number, 
     MoMoK_Nr %in% double_plots_momok & !is.na(as.numeric(Nr_PK)), 
     # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
-    paste0(MoMoK_Nr, "_", Nr_PK),
+    paste0(MoMoK_Nr, Nr_PK),
     # otherwise leave old plot number
     MoMoK_Nr)) %>% 
   select("MoMoK_Nr"                # "bund_nr"    
