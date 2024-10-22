@@ -165,7 +165,7 @@ lokation_momok <- lokation_momok %>%
     # idenfity plots with more then one center that have a more then 2 characters long Skizzenpunkt name, 
     MoMoK_Nr %in% double_plots_momok & nchar(Skizzenpunkt) > 2, 
     # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
-    paste0(MoMoK_Nr, "_", str_sub(Skizzenpunkt, start= -1)),
+    paste0(MoMoK_Nr, str_sub(Skizzenpunkt, start= -1)),
     # otherwise leave old plot number
     MoMoK_Nr))
 
@@ -215,7 +215,7 @@ if(isTRUE(nrow(double_plots_momok) != 0) == T){
     my.be.row.to.rep <- be_momok[be_momok$bund_nr == my.plot.id, ]
     # repeat the row as often as the plot has centres: https://stackoverflow.com/questions/11121385/repeat-rows-of-a-data-frame
     my.be.row.to.rep <- my.be.row.to.rep[rep(seq_len(nrow(my.be.row.to.rep)), each = n.rep), ] %>% 
-      mutate(bund_nr = paste0(bund_nr, "_", row_number()))
+      mutate(bund_nr = paste0(bund_nr, row_number()))
     
     # save to export 
     be_momok_double_plots_list[[i]] <- my.be.row.to.rep
@@ -291,7 +291,7 @@ beab_momok <- beab_momok %>%
     # idenfity plots with more then one center that have a number in their sampling circuit number, 
     MoMoK_Nr %in% double_plots_momok & !is.na(as.numeric(Nr_PK)), 
     # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
-    paste0(MoMoK_Nr, "_", Nr_PK),
+    paste0(MoMoK_Nr, Nr_PK),
     # otherwise leave old plot number
     MoMoK_Nr)) %>% 
    mutate(across(c("BHD..mm.", "Distanz..cm.",      "Azimut..Gon.",      "Azimut...."), as.numeric)) %>% 
@@ -321,7 +321,11 @@ write.csv(beab_momok, paste0(input.path, "momok_beab.csv"), row.names = FALSE)
 # 0.3.1.2.5. regeneration momok ----------------------------------------------------     
 RG_momok <- read.delim(file = here(paste0(input.path, "bej_momok.csv")), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
 
-# alter plot_ID of double inventories plots
+## alter plot_ID of double inventories plots
+# we have to notice here that we can separate the sampling circuits per plot 
+# so we can assign north 1 and north 2 of plot 34010 but we cannot actually say which 
+# of the two sampling centres of 34010 they belong to. that selection remains random
+
 RG_momok <- RG_momok %>% 
   # join in dataset that contains info about the centre the RG circuit was taken from 
   left_join(., RG_momok%>% 
@@ -334,7 +338,7 @@ RG_momok <- RG_momok %>%
     # idenfity plots with more then one center that have a number in their sampling circuit number, 
     (MoMoK_Nr) %in% c(double_plots_momok$MoMoK_Nr) & !is.na(as.numeric(pk_nr_double_plots)), 
     # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
-    paste0(MoMoK_Nr, "_", pk_nr_double_plots),
+    paste0(MoMoK_Nr, pk_nr_double_plots),
     # otherwise leave old plot number
     as.character(MoMoK_Nr))) %>% 
   select(-c(pk_nr_double_plots))
