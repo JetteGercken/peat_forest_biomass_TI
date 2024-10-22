@@ -21,18 +21,15 @@ out.path <- here("output/out_data//")
 # LIVING TREES
 # HBI BE dataset: this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
 # here one should immport the the dataset called HBI_trees_update_0.csv which includes only trees that are already sortet according to the inventory stati (PK_aufnahme, Punktstatus)
-trees_data <- read.delim(file = here(paste0(out.path, "HBI_LT_update_0.csv")), sep = ",", dec = ".")%>% 
-  mutate(plot_ID = as.character(plot_ID))
+trees_data <- read.delim(file = here(paste0(out.path, "HBI_LT_update_0.csv")), sep = ",", dec = ".")
 # this dataset contains the removed trees that evolved from the inventory status sorting. 
 # we import it to continuously collect removed data in one dataset
-trees_removed <- read.delim(file = here(paste0(out.path, "HBI_LT_removed.csv")), sep = ",", dec = ".")%>% 
-  mutate(plot_ID = as.character(plot_ID))
+trees_removed <- read.delim(file = here(paste0(out.path, "HBI_LT_removed.csv")), sep = ",", dec = ".")
 
 # HBI BE locations dataset: this dataset contains the coordinates of the center point of the tree inventory accompanying the second national soil inventory
-geo_loc <- read.delim(file = here(paste0("data/input/vm_lokation_hbi.csv")), sep = ",", dec = ".")
+geo_loc <- read.delim(file = here(paste0("output/out_data/HBI_momok_lokation.csv")), sep = ",", dec = ".")
 # HBI forest edges (Waldränder) info
-forest_edges <- read.delim(file = here(paste0(out.path, trees_data$inv[1], "_forest_edges_update_1.csv")), sep = ",", dec = ".") %>% 
-  mutate(plot_ID = as.character(plot_ID))
+forest_edges <- read.delim(file = here(paste0(out.path, trees_data$inv[1], "_forest_edges_update_1.csv")), sep = ",", dec = ".") 
 
 
 # ----- 0.6 harmonising column names & structure  -------------------------
