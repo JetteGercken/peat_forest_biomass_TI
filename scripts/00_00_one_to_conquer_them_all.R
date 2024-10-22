@@ -50,8 +50,7 @@ source(paste0(here(), "/scripts/02_03_LT_invetory_status_HBI_BZE3.R"))
 ## HBI & momok together: LT tree height
 source(paste0(here(), "/scripts/03_01_LT_heights_HBI_BZE3.R"))
 
-#comparing heights
-source(paste0(here(), "/scripts/03_02_comparing_height_org_min.R"))
+
 
 
 #### TapeS: biomass, C, N stocks -------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -73,4 +72,5 @@ source(paste0(here(), "/scripts/06_00_biodiversity_index_HBI.R"))
 
 
 
-
+#comparing heights
+source(paste0(here(), "/scripts/03_02_comparing_height_org_min.R"))
