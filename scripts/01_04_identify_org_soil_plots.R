@@ -85,6 +85,18 @@ soil_types_bze2_db <- soil_types_bze2_db %>%
   mutate(min_org = ifelse(grepl(paste(org_soil_types, collapse = "|"), bodentyp_2, text, ignore.case = F), "org", "min") ) %>%  # & erhebjahr_2 > 2000
   distinct()
 
+min_org_soil_types_bze2 <-  soil_types_bze2_db %>%
+  mutate(min_org = ifelse(grepl(paste(org_plots_according_to_soiltype$bfhnr, collapse = "|"), bfhnr_2, text, ignore.case = F), "org", "min") ) %>%  # & erhebjahr_2 > 2000
+  distinct()
+
+
+# 5. data export ----------------------------------------------------------
+write.csv(min_org_soil_types_bze2, here(out.path, "soil_types_profil_db.csv"), row.names = FALSE)
+
+
+
+stop("this is where identifying org plots ends")
+
 # eric grünebergs analysis database
 org_soils_analysis <- org_soils_analysis %>% 
   filter(grepl(paste(org_soil_types, collapse = "|"), plot_bodtyp, text, ignore.case = F) & plot_inventur == 2) %>% 
@@ -215,12 +227,7 @@ nrow(org_plots_according_to_hori_SOC) # 29
 
 
 
-# 6. data export ----------------------------------------------------------
-write.csv(soil_types_bze2_db, here(out.path, "soils_types_profil_db.csv"), row.names = FALSE)
 
-
-
-stop("this is where identifying org plots ends")
 
 # notes -------------------------------------------------------------------
 

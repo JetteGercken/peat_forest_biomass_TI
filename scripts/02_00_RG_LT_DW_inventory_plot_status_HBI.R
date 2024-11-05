@@ -190,7 +190,7 @@ colnames(DW_data) <- c("plot_ID", "tree_ID", "dw_type", "dw_sp", "count", "d_cm"
 
 
 ##LOKATION
-geo_loc <- plyr::rbind.fill(read.delim(file = here("data/input/vm_lokation_HBI.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
+geo_loc <- plyr::rbind.fill(read.delim(file = here("data/input/vm_lokation_hbi.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
                                 read.delim(file = here("data/input/momok_vm_lokation.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)) %>%  ##momok
   left_join(., tree_inv_info %>% select(plot_ID, inv), by = c("bfhnr" = "plot_ID")) %>% 
   mutate(inv = ifelse(bfhnr %in% momok_plot_ids$bund_nr, "momok", inv))

@@ -1,9 +1,9 @@
 {
     "id": "125703E6",
-    "path": "//wo-sfs-001v-ew/INSTITUT/a7bze/ZZ_BZE3_Bestand_Auswertung/paper/data/R/peat_forest_biomass_TI/scripts/01_00_functions_library.R",
+    "path": "~/paper/peat_forest_biomass_TI/scripts/01_00_functions_library.R",
     "project_path": "scripts/01_00_functions_library.R",
     "type": "r_source",
-    "hash": "3777927255",
+    "hash": "1744696549",
     "contents": "",
     "dirty": false,
     "created": 1723731927208.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "41,37",
+        "cursorPosition": "1850,15",
         "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1728470868,
+    "lastKnownWriteTime": 1724932631,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1728470868,
+    "last_content_update": 1724932631,
     "read_only": false,
     "read_only_alternatives": []
 }
