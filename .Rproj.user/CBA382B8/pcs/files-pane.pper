@@ -3,7 +3,11 @@
         {
             "columnIndex": 2,
             "ascending": true
+        },
+        {
+            "columnIndex": 4,
+            "ascending": false
         }
     ],
-    "path": "~/paper/peat_forest_biomass_TI/data/input"
+    "path": "~/paper/peat_forest_biomass_TI/scripts"
 }

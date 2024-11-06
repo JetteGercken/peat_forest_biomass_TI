@@ -39,7 +39,8 @@
  #     install.packages("gridExtra")
  #   # analysis
  #     install.packages("corrplot")
- #     install.packages("AICcmodavg")
+#      install.packages("SciViews")  # this is for ln and stuff --> to make the functions easier
+#     install.packages("AICcmodavg")
  #   # forest related
  #      install.packages("forestmangr")
  #     install.packages("rBDAT")
@@ -98,6 +99,7 @@ options(tz="CA")
 ## analysis
 library(corrplot)
 library(AICcmodavg)
+library(SciViews) # for ln and functions and stuff
 library(ggcorrplot)
 ## forest related
 library(forestmangr)
