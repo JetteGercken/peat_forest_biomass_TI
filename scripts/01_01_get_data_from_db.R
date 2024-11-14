@@ -265,12 +265,27 @@ vm_lokation_momok_5 <- vm_lokation_momok_4 %>%
 
 
 
-
+# iteration 5
+vm_lokation_momok_6 <- vm_lokation_momok_5 %>%
+  # join in the the respective reference point coordinates  for the reference point of the forest inventory by "momok nr"
+  left_join(., lokation_momok %>%
+              # filter only reference points
+              filter(Skizzenpunkt == "RP") %>% 
+              select( "MoMoK_Nr",  "Dezimalgrad.N..WGS84.", "Dezimalgrad.E..WGS84.") %>% 
+              rename("ref_northing_5" = "Dezimalgrad.N..WGS84.") %>% 
+              rename("ref_easting_5" = "Dezimalgrad.E..WGS84."), 
+            by = c("MoMoK_Nr")) %>% 
+  mutate(across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing_5", "ref_easting_5", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
+  # calcualte coordiantes of mb based on utm coordinates of RP (referenzpoint) 
+  # as the center of the forest inventory is not the center of the forest inventory
+  mutate(rw_med = ifelse(is.na(Dezimalgrad.E..WGS84.) & is.na(rw_med) ,ref_easting_5 , rw_med), # x, easting, longitude, RW 
+         hw_med = ifelse(is.na(Dezimalgrad.N..WGS84.) & is.na(hw_med), ref_northing_5, hw_med) # y, northing, latitude, HW 
+  )
 
 
 # 0.3.1.2.3.3.  export lokation -----------------------------------------------------------------------------------
 # adjust plot Id according to double sampled plots 
- vm_lokation_momok <- vm_lokation_momok_5 %>% 
+ vm_lokation_momok <- vm_lokation_momok_6 %>% 
    # filter only plot centres
     filter(stringr::str_detect(Skizzenpunkt, "MB")) %>% 
    mutate(  MoMoK_Nr = ifelse(
