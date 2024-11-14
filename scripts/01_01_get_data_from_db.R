@@ -266,7 +266,7 @@ vm_lokation_momok_5 <- vm_lokation_momok_4 %>%
 
 
 
-colSums(is.na(vm_lokation_momok_6))
+
 
 # 0.3.1.2.3.3.  export lokation -----------------------------------------------------------------------------------
 # adjust plot Id according to double sampled plots 
