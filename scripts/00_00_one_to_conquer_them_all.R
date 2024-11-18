@@ -1,3 +1,9 @@
+# Thuenen Institute - Bodenschutz und Waldzustand
+# Analysis of the forest inventory accompanying the  national soil inventory
+# paper about biomass of alnus and betula at peatland sites
+# Henriette Gercken
+
+
 # tis script is made to run all relevant momok and hbi scripts for the alnus and betual biomass paper
 
 # !!!!!!!!!!!!!! ENTER YOUR CREDENTIAL HERE !!!!!!!!!!!!!!!!!!!!!!!!!!

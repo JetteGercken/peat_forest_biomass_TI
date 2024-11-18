@@ -583,6 +583,36 @@ write.csv(be_totholz_liste_momok, paste0(input.path, "momok_be_totholz_liste.csv
 
 
 
+
+
+# 0.4. LITERATURE DATA ------------------------------------------------------------------------------------------------------------------
+# 0.3.1.1. import MOMOK data ----------------------------------------------------------------
+# get momok data
+# the path to the dataset on the netword folder is the following: \\wo-sfs-001v-ew\INSTITUT\a7forum\LEVEL I\BZE\Moormonitoring\Standorte\Lagemessungen... etc. 
+# we have to extract the individual sheepts from the excel workshet and then turn them into csvs
+raw.path.lit <- here::here("data/raw/")
+input.path <- paste0(here("data/input"), "/")
+# https://stackoverflow.com/questions/50238645/r-split-excel-workbook-into-csv-files
+# get names of the sheets in the excel working sheet in the raw folder
+sheets <- readODS::list_ods_sheets(paste0(raw.path.lit, "literature_research_functions.ods"))
+# get data from respective ecxel working sheet
+dats <- lapply(sheets, readODS::read_ods, path =paste0(raw.path.lit, "literature_research_functions.ods") )
+# create filenames and path for the excel sheets to go to
+sheet_names <- c("B_lit_functions", "B_lit_site", "B_lit_info")
+filenames <- paste0(input.path, paste0(sheet_names, ".csv"))
+# export tibbles separately
+purrr::walk2(
+  dats,            # List of tibbles
+  sheet_names,     # Names of the tibbles
+  ~ write.csv(.x, file = file.path(here("data/input"), paste0(.y, ".csv")), row.names = FALSE)
+)
+
+
+
+
+
+
+
 stop("this is where getting data frmdb of paper ends")
 
 
