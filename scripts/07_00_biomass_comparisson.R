@@ -38,7 +38,7 @@ bio_func <- bio_func %>%
               mutate(func_ID = row_number()), 
             by = c("title", "author", "year"))
 
-
+unique(bio_func$parameters.required)
 # 1. Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 
@@ -48,18 +48,23 @@ alnus_agb_func_no_ln <- bio_func %>% filter(compartiment %in% c("agb") &
 for (i in 1:length(unique(c(alnus_agb_func_no_ln$title, alnus_agb_func_no_ln$author)))){
  # i = 1
   
+  func_id <- alnus_agb_func_no_ln$func_ID[i]
   func <- alnus_agb_func_no_ln$function.[i]
   # select only part behind "=": https://stackoverflow.com/questions/57204659/how-to-extract-everything-after-a-specific-string
-  func <- sub('.+=(.+)', '\\1', func)
+  #func <- sub('.+=(.+)', '\\1', func)
   unit <- alnus_agb_func_no_ln$unit_B[i]
   vars.list <- alnus_agb_func_no_ln$parameters.required[i]
-  coef.list <- alnus_agb_func_no_ln[i,12:20]
+   # select only those cooeficients that are needed https://sparkbyexamples.com/r-programming/select-columns-by-condition-in-r/
+  coef.df <- colnames((alnus_agb_func_no_ln[i,12:20]) %>% select_if((apply(is.na(alnus_agb_func_no_ln[i,12:20]), 2, sum)<1) == T ))
+  str_extract(func, "[A-Z]+" )
+  sub("^([[:alpha:]]*).*", "\\1", func)
   
-
+  eval(parse(text = paste('f <- function(', args, ') { return(' , func , ')}', sep='')))
   
   tree.df <- (trees_data[trees_data$bot_genus %in% c("Alnus"),][1,])%>% 
     # https://stackoverflow.com/questions/58592636/r-how-to-select-columns-that-contains-strings-where-the-string-is-any-eleme
-    select(plot_ID, tree_ID, SP_code, matches(paste(vars.list, collapse="|")))
+    select(plot_ID, tree_ID, SP_code, matches(paste(vars.list, collapse="|"))) %>% 
+    dplyr::bind_cols(coef.df)
  
    tree.df %>% mutate(B_kg_tree = )
   
