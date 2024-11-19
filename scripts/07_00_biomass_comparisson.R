@@ -38,7 +38,7 @@ bio_func <- bio_func %>%
               mutate(func_ID = row_number()), 
             by = c("title", "author", "year"))
 
-unique(bio_func$parameters.required)
+unique(bio_func$arguments)
 # 1. Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 
@@ -50,25 +50,34 @@ for (i in 1:length(unique(c(alnus_agb_func_no_ln$title, alnus_agb_func_no_ln$aut
   
   func_id <- alnus_agb_func_no_ln$func_ID[i]
   func <- alnus_agb_func_no_ln$function.[i]
-  # select only part behind "=": https://stackoverflow.com/questions/57204659/how-to-extract-everything-after-a-specific-string
-  #func <- sub('.+=(.+)', '\\1', func)
   unit <- alnus_agb_func_no_ln$unit_B[i]
-  vars.list <- alnus_agb_func_no_ln$parameters.required[i]
-   # select only those cooeficients that are needed https://sparkbyexamples.com/r-programming/select-columns-by-condition-in-r/
-  coef.df <- colnames((alnus_agb_func_no_ln[i,12:20]) %>% select_if((apply(is.na(alnus_agb_func_no_ln[i,12:20]), 2, sum)<1) == T ))
-  str_extract(func, "[A-Z]+" )
-  sub("^([[:alpha:]]*).*", "\\1", func)
-  
-  eval(parse(text = paste('f <- function(', args, ') { return(' , func , ')}', sep='')))
-  
-  tree.df <- (trees_data[trees_data$bot_genus %in% c("Alnus"),][1,])%>% 
-    # https://stackoverflow.com/questions/58592636/r-how-to-select-columns-that-contains-strings-where-the-string-is-any-eleme
-    select(plot_ID, tree_ID, SP_code, matches(paste(vars.list, collapse="|"))) %>% 
-    dplyr::bind_cols(coef.df)
+  args <- alnus_agb_func_no_ln$arguments[i]
  
-   tree.df %>% mutate(B_kg_tree = )
+   ## coefficients 
+  # select only those cooeficients that are needed https://sparkbyexamples.com/r-programming/select-columns-by-condition-in-r/
+  coef.df <- as.data.frame((alnus_agb_func_no_ln[i,12:26]) %>% select_if((apply(is.na(alnus_agb_func_no_ln[i,12:26]), 2, sum)<1) == T ) )
+ # create a vector that holds all coefficients as a character string
+   coef.print <- vector("list", length = ncol(coef.df))
+  # this is where the coefficients come into the game
+  for (i in 1:ncol(coef.df)) {
+    # i = 1
+    # take every coefficient 
+    coef.print[[i]] <- paste(colnames(coef.df)[i], '<-', as.numeric(coef.df[,i]),';')
+  } 
+  # https://www.geeksforgeeks.org/how-to-collapse-a-list-of-characters-into-a-single-string-in-r/
+  coef.print <- paste(coef.print, collapse= '' )
   
+ # create function: https://stackoverflow.com/questions/26164078/r-define-a-function-from-character-string
+  eval(parse(text = paste(
+  'bio_func <- function(', args, ') {',
+  coef.print, 
+  'return(' , func , ') } '
+                          , sep='')
+  ))
   
+  tree.df[,match(as.list(strsplit(args, '\\, ')[[1]]), names(tree.df))]
+  
+  bio_func()
 }
 
 
@@ -79,6 +88,21 @@ for (i in 1:length(unique(c(alnus_agb_func_no_ln$title, alnus_agb_func_no_ln$aut
 
 
 
+
+
+# NOTES -------------------------------------------------------------------
+
+# select input for function: https://stackoverflow.com/questions/30474729/string-split-into-list-r
+tree.df[,match(as.list(strsplit(args, '\\, ')[[1]]), names(tree.df))]
+input_cols <- c(as.data.frame((tree.df[,match(as.list(strsplit(args, '\\, ')[[1]]), names(tree.df))])) )
+
+# add coefficients to tree dataset by cbind
+tree.df <- trees_data[trees_data$bot_genus %in% c("Alnus"),][1:10,]  
+# https://stackoverflow.com/questions/58592636/r-how-to-select-columns-that-contains-strings-where-the-string-is-any-eleme
+#select(plot_ID, tree_ID, SP_code, matches(paste(args, collapse="|"))) %>% 
+tree.df$B_kg_tree <- bio_func((tree.df[1,match(as.list(strsplit(args, '\\, ')[[1]]), names(tree.df))]))
+input_cols <- (tree.df[,match(as.list(strsplit(args, '\\, ')[[1]]), names(tree.df))]) %>% 
+  mutate_all(., function(x) as.numeric(as.character(x)))
 
 
 
