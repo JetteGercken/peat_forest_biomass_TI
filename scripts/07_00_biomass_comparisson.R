@@ -19,6 +19,7 @@ out.path <- ("output/out_data/")
 # here we should actually import a dataset called "HBI_trees_update_3.csv" which contains plot area and stand data additionally to 
 # tree data
 trees_data <- read.delim(file = here(paste0(out.path, "HBI_LT_update_3.csv")), sep = ",", dec = ".")
+tapes_tree_data <- read.delim(file = here(paste0(out.path, "HBI_LT_update_4.csv")), sep = ",", dec = ".")
 trees_removed <- read.delim(file = here(paste0(out.path, trees_data$inv[1], "_LT_removed.csv")), sep = ",", dec = ".")
 # soil data
 soil_types_db <- read.delim(file = here(out.path, "soils_types_profil_db.csv"), sep = ",", dec = ".")
@@ -30,17 +31,22 @@ bio_func_df <- read.delim(file = here(paste0(input.path, "B_lit_functions.csv"))
 # 0.4 data preparation ---------------------------------------------------------
 trees_data <- trees_data %>% mutate(H_m = as.numeric(H_m))  %>% distinct() %>% 
   # join in soil data
-  left_join(soil_types_db %>% select(bfhnr_2, min_org), by = c("plot_ID" = "bfhnr_2"))
+  left_join(soil_types_db %>% select(bfhnr_2, min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
+  mutate(min_org = ifelse(inv == "momok", "org", min_org))
 
+tapes_tree_data <- tapes_tree_data %>% mutate(H_m = as.numeric(H_m))  %>% distinct() %>% 
+  # join in soil data
+  left_join(soil_types_db %>% select(bfhnr_2, min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
+  mutate(min_org = ifelse(inv == "momok", "org", min_org))
 
 # assign IDs to papers and functions
 bio_func_df <- bio_func_df %>% 
   left_join(., 
             bio_func_df %>% 
-              select(title, author, year) %>% 
+              select(title, author, year, function.) %>% 
               distinct() %>% 
               mutate(func_ID = row_number()), 
-            by = c("title", "author", "year")) 
+            by = c("title", "author", "year", "function.")) 
 # convert coeffcients into numbers: https://stackoverflow.com/questions/56963214/how-can-i-use-gsub-in-multiple-specific-column-in-r
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], gsub, pattern = "[^0-9.-]", replacement = "")
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
@@ -49,12 +55,12 @@ bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 # 1. Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
-alnus_agb_func_no_ln <- bio_func_df[bio_func_df$compartiment %in% c("agb") & stringr::str_detect(bio_func_df$species, "Alnus") & is.na(bio_func_df$logarithm_B),]
+alnus_agb_func_no_ln <- unique(bio_func_df[bio_func_df$compartiment %in% c("agb") & stringr::str_detect(bio_func_df$species, "Alnus") & is.na(bio_func_df$logarithm_B),])
 # select alnus trees at organic sites
-tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",][1:10,]  
+tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",]  
 alnus_agb_kg_tree <- vector("list", length = nrow(tree.df))
-for (i in 1:length(unique(c(alnus_agb_func_no_ln$title, alnus_agb_func_no_ln$author)))){
- # i = 11
+for (i in 1:nrow(alnus_agb_func_no_ln)){
+ # i = 12
   
   func_id <- alnus_agb_func_no_ln$func_ID[i]  # ID of the function in literature research csv
   func <- alnus_agb_func_no_ln$function.[i]   # biomass function taken from respective reference 
@@ -111,10 +117,18 @@ alnus_agb_kg_tree_df <- as.data.frame(rbindlist(alnus_agb_kg_tree)) %>% arrange(
 
 
 # 2. visuals --------------------------------------------------------------
-ggplot(data = alnus_agb_kg_tree_df #%>% filter(func_id != "16")
+# avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
+alnus_ag <-  plyr::rbind.fill(alnus_agb_kg_tree_df, 
+                              (tapes_tree_data[
+                                tapes_tree_data$compartiment == "ag" & 
+                                  tapes_tree_data$bot_genus %in% c("Alnus") & 
+                                  tapes_tree_data$min_org == "org",]) %>% 
+                                mutate(func_id = "tapes")) 
+
+ggplot(data = alnus_ag %>% filter(!(func_id %in% c("25", "24"))) # 25 and 25 are somehow weird so i kicked it out 
        )+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = func_id, color = as.factor(func_id)  ))+
-  geom_smooth(aes(x = DBH_cm, y = B_kg_tree, group =func_id, color = as.factor(func_id)  ))
+  geom_smooth(aes(x = DBH_cm, y = B_kg_tree, group = func_id, color = as.factor(func_id)  ))
 
 
 
