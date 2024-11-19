@@ -25,6 +25,7 @@
  #    install.packages("gsubfn")
  #    install.packages("sjmisc")
  #    install.packages("stringr")
+ #    install.packages("readODS")
  #     ## laTex
  #     install.packages("stargazer")  #for compatability with Latex
  #     install.packages("tikzDevice") #for compatability with Latex#
@@ -41,6 +42,7 @@
  #     install.packages("corrplot")
 #      install.packages("SciViews")  # this is for ln and stuff --> to make the functions easier
 #     install.packages("AICcmodavg")
+#   install.packages("SciViews") # for ln and stuff but diesnt work? 
  #   # forest related
  #      install.packages("forestmangr")
  #     install.packages("rBDAT")
@@ -79,6 +81,7 @@ library(data.table)
 library(broom)
 library(purrr)
 library(remotes)
+library(readODS)
 # library(devtools)
 library(RODBC)
 library(rstudioapi)

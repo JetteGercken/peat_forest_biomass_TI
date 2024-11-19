@@ -156,7 +156,8 @@ trees_data <- trees_data %>% dplyr::select(plot_ID,  tree_ID ,  tree_inventory_s
                                            age ,  age_meth ,  SP_code ,  Kraft , C_layer , H_dm ,  C_h_dm , D_mm ,   DBH_h_cm )
 
 # HBI forest edges
-forest_edges <- read.delim(file = here("data/input/be_waldraender.csv"), sep = ",", dec = ".")
+forest_edges <- read.delim(file = here("data/input/be_waldraender.csv"), sep = ",", dec = ".") %>% 
+  select(bund_nr, lfd_nr, randtyp, randform, anfang_dist, anfang_azi, end_dist, end_azi, knick_dist, knick_azi)
 colnames(forest_edges) <- c("plot_ID", "e_ID", "e_type", "e_form", "A_dist", "A_azi",  "B_dist", "B_azi", "T_dist", "T_azi") # t = turning point
 
 
