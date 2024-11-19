@@ -40,38 +40,43 @@ bio_func_df <- bio_func_df %>%
               select(title, author, year) %>% 
               distinct() %>% 
               mutate(func_ID = row_number()), 
-            by = c("title", "author", "year"))
+            by = c("title", "author", "year")) 
+# convert coeffcients into numbers: https://stackoverflow.com/questions/56963214/how-can-i-use-gsub-in-multiple-specific-column-in-r
+bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], gsub, pattern = "[^0-9.-]", replacement = "")
+bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
+
 
 # 1. Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
 alnus_agb_func_no_ln <- bio_func_df[bio_func_df$compartiment %in% c("agb") & stringr::str_detect(bio_func_df$species, "Alnus") & is.na(bio_func_df$logarithm_B),]
 # select alnus trees at organic sites
-tree.df <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",][1:10,]  
-alnus_agb_kg_tree <- vector("list", )
+tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",][1:10,]  
+alnus_agb_kg_tree <- vector("list", length = nrow(tree.df))
 for (i in 1:length(unique(c(alnus_agb_func_no_ln$title, alnus_agb_func_no_ln$author)))){
- # i = 1
+ # i = 11
   
   func_id <- alnus_agb_func_no_ln$func_ID[i]  # ID of the function in literature research csv
   func <- alnus_agb_func_no_ln$function.[i]   # biomass function taken from respective reference 
   unit <- alnus_agb_func_no_ln$unit_B[i]      # unit of biomass returned, when g then /1000 for kg
-  variables <- unlist(strsplit(alnus_agb_func_no_ln$variables[i], '\\, '))  # input variables for respective function 
+  variables <- alnus_agb_func_no_ln$variables[i] # input variables for respective function 
 
   ## get input variables
-  input.df <- tree.df[, variables, drop = FALSE]
+  input.df <- tree_data_alnus[, unlist(strsplit(variables, '\\, ')), drop = FALSE]
   
   ## get coefficients 
   # select only those cooeficients that are needed https://sparkbyexamples.com/r-programming/select-columns-by-condition-in-r/
   coef.df <- as.data.frame((alnus_agb_func_no_ln[i,13:27]) %>% select_if(~ !all(is.na(.))))
  # create a vector that holds all coefficients as a character string to print it later when the function is build 
    coef.print <- vector("list", length = ncol(coef.df))
-  for (i in 1:ncol(coef.df)) {
-    # i = 1
+  for (j in 1:ncol(coef.df)) {
+    # j = 1
     # take every coefficient 
-    coef.print[[i]] <- paste(colnames(coef.df)[i], '<-', as.numeric(coef.df[,i]),';')
+    coef.print[[j]] <- paste(colnames(coef.df)[j], '<-', as.numeric(coef.df[,j]),';')
   } 
   # https://www.geeksforgeeks.org/how-to-collapse-a-list-of-characters-into-a-single-string-in-r/
   coef.print <- paste(coef.print, collapse= '' )
+  
   
   ## create function: https://stackoverflow.com/questions/26164078/r-define-a-function-from-character-string
   bio_func_code <-paste(
@@ -90,18 +95,26 @@ for (i in 1:length(unique(c(alnus_agb_func_no_ln$title, alnus_agb_func_no_ln$aut
   })
   
   # convert results to a numeric vector if needed
-  B_kg_tree <- as.numeric(bio_tree) # ifelse(unit == "kg", as.numeric(bio_tree), as.numeric(bio_tree)/1000)
   
-  cbind(tree.df, B_kg_tree, func_id)
+  tree.df <- as.data.frame(cbind(tree_data_alnus, "B_kg_tree" = c(bio_tree), "func_id" = c(func_id), "unit_b" = c(unit))) # 
+  tree.df <- tree.df %>% mutate(B_kg_tree = ifelse(unit_b == "kg", as.numeric(B_kg_tree), as.numeric(B_kg_tree)/1000))
+  
+  alnus_agb_kg_tree[[i]] <- tree.df
   
   # Print or store results
-  print(B_kg_tree)
+  print(paste(i, func_id))
 }
 
+alnus_agb_kg_tree_df <- as.data.frame(rbindlist(alnus_agb_kg_tree)) %>% arrange(plot_ID, tree_ID)
 
 
 
 
+# 2. visuals --------------------------------------------------------------
+ggplot(data = alnus_agb_kg_tree_df #%>% filter(func_id != "16")
+       )+ 
+  geom_point(aes(x = DBH_cm, y = B_kg_tree, group = func_id, color = as.factor(func_id)  ))+
+  geom_smooth(aes(x = DBH_cm, y = B_kg_tree, group =func_id, color = as.factor(func_id)  ))
 
 
 
