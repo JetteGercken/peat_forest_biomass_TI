@@ -586,7 +586,7 @@ write.csv(be_totholz_liste_momok, paste0(input.path, "momok_be_totholz_liste.csv
 
 
 # 0.4. LITERATURE DATA ------------------------------------------------------------------------------------------------------------------
-# 0.3.1.1. import MOMOK data ----------------------------------------------------------------
+# 0.3.1.1. import lit data ----------------------------------------------------------------
 # get momok data
 # the path to the dataset on the netword folder is the following: \\wo-sfs-001v-ew\INSTITUT\a7forum\LEVEL I\BZE\Moormonitoring\Standorte\Lagemessungen... etc. 
 # we have to extract the individual sheepts from the excel workshet and then turn them into csvs

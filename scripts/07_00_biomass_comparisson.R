@@ -20,45 +20,51 @@ out.path <- ("output/out_data/")
 # tree data
 trees_data <- read.delim(file = here(paste0(out.path, "HBI_LT_update_3.csv")), sep = ",", dec = ".")
 trees_removed <- read.delim(file = here(paste0(out.path, trees_data$inv[1], "_LT_removed.csv")), sep = ",", dec = ".")
-
+# soil data
+soil_types_db <- read.delim(file = here(out.path, "soils_types_profil_db.csv"), sep = ",", dec = ".")
 # importa data from literature research
-bio_func <- read.delim(file = here(paste0(input.path, "B_lit_functions.csv")), sep = ",", dec = ".") 
+bio_func_df <- read.delim(file = here(paste0(input.path, "B_lit_functions.csv")), sep = ",", dec = ".") 
 
 
 
 # 0.4 data preparation ---------------------------------------------------------
-trees_data <- trees_data %>% mutate(H_m = as.numeric(H_m))  %>% distinct() 
+trees_data <- trees_data %>% mutate(H_m = as.numeric(H_m))  %>% distinct() %>% 
+  # join in soil data
+  left_join(soil_types_db %>% select(bfhnr_2, min_org), by = c("plot_ID" = "bfhnr_2"))
+
 
 # assign IDs to papers and functions
-bio_func <- bio_func %>% 
+bio_func_df <- bio_func_df %>% 
   left_join(., 
-            bio_func %>% 
+            bio_func_df %>% 
               select(title, author, year) %>% 
               distinct() %>% 
               mutate(func_ID = row_number()), 
             by = c("title", "author", "year"))
 
-unique(bio_func$arguments)
 # 1. Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
-
-alnus_agb_func_no_ln <- bio_func %>% filter(compartiment %in% c("agb") & 
-                                              stringr::str_detect(species, "Alnus") & is.na(logarithm_B))
-
+# select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
+alnus_agb_func_no_ln <- bio_func_df[bio_func_df$compartiment %in% c("agb") & stringr::str_detect(bio_func_df$species, "Alnus") & is.na(bio_func_df$logarithm_B),]
+# select alnus trees at organic sites
+tree.df <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",][1:10,]  
+alnus_agb_kg_tree <- vector("list", )
 for (i in 1:length(unique(c(alnus_agb_func_no_ln$title, alnus_agb_func_no_ln$author)))){
  # i = 1
   
-  func_id <- alnus_agb_func_no_ln$func_ID[i]
-  func <- alnus_agb_func_no_ln$function.[i]
-  unit <- alnus_agb_func_no_ln$unit_B[i]
-  args <- alnus_agb_func_no_ln$arguments[i]
- 
-   ## coefficients 
+  func_id <- alnus_agb_func_no_ln$func_ID[i]  # ID of the function in literature research csv
+  func <- alnus_agb_func_no_ln$function.[i]   # biomass function taken from respective reference 
+  unit <- alnus_agb_func_no_ln$unit_B[i]      # unit of biomass returned, when g then /1000 for kg
+  variables <- unlist(strsplit(alnus_agb_func_no_ln$variables[i], '\\, '))  # input variables for respective function 
+
+  ## get input variables
+  input.df <- tree.df[, variables, drop = FALSE]
+  
+  ## get coefficients 
   # select only those cooeficients that are needed https://sparkbyexamples.com/r-programming/select-columns-by-condition-in-r/
-  coef.df <- as.data.frame((alnus_agb_func_no_ln[i,12:26]) %>% select_if((apply(is.na(alnus_agb_func_no_ln[i,12:26]), 2, sum)<1) == T ) )
- # create a vector that holds all coefficients as a character string
+  coef.df <- as.data.frame((alnus_agb_func_no_ln[i,13:27]) %>% select_if(~ !all(is.na(.))))
+ # create a vector that holds all coefficients as a character string to print it later when the function is build 
    coef.print <- vector("list", length = ncol(coef.df))
-  # this is where the coefficients come into the game
   for (i in 1:ncol(coef.df)) {
     # i = 1
     # take every coefficient 
@@ -67,17 +73,29 @@ for (i in 1:length(unique(c(alnus_agb_func_no_ln$title, alnus_agb_func_no_ln$aut
   # https://www.geeksforgeeks.org/how-to-collapse-a-list-of-characters-into-a-single-string-in-r/
   coef.print <- paste(coef.print, collapse= '' )
   
- # create function: https://stackoverflow.com/questions/26164078/r-define-a-function-from-character-string
-  eval(parse(text = paste(
-  'bio_func <- function(', args, ') {',
-  coef.print, 
-  'return(' , func , ') } '
-                          , sep='')
-  ))
+  ## create function: https://stackoverflow.com/questions/26164078/r-define-a-function-from-character-string
+  bio_func_code <-paste(
+    'bio_func <- function(', variables, ') {',
+    coef.print, 
+    'return(' , func , ') } '
+    , sep='')
   
-  tree.df[,match(as.list(strsplit(args, '\\, ')[[1]]), names(tree.df))]
+  ## check if function is valid
+  eval(parse(text = bio_func_code))
   
-  bio_func()
+  ## apply function 
+  bio_tree <- apply(input.df, 1, function(row) {
+    # Convert the row to a list and call bio_func with do.call
+    do.call(bio_func, as.list(row))
+  })
+  
+  # convert results to a numeric vector if needed
+  B_kg_tree <- as.numeric(bio_tree) # ifelse(unit == "kg", as.numeric(bio_tree), as.numeric(bio_tree)/1000)
+  
+  cbind(tree.df, B_kg_tree, func_id)
+  
+  # Print or store results
+  print(B_kg_tree)
 }
 
 
