@@ -69,7 +69,7 @@ alnus_agb_func <- plyr::rbind.fill(unique(bio_func_df[bio_func_df$compartiment %
 tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",]  
 alnus_agb_kg_tree <- vector("list", length = nrow(tree.df))
 for (i in 1:nrow(alnus_agb_func)){
- # i = 15
+ # i = 18
   
   paper_id <- alnus_agb_func$paper_ID[i]
   func_id <- alnus_agb_func$func_ID[i]  # ID of the function in literature research csv
