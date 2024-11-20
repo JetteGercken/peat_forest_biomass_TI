@@ -58,12 +58,18 @@ bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 
 
 # 1. Biomass calculations -------------------------------------------------
+# 1.1. ALNUS Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
-alnus_agb_func <- plyr::rbind.fill(unique(bio_func_df[bio_func_df$compartiment %in% c("agb", "abg") & stringr::str_detect(bio_func_df$species, "Alnus") & !is.na(bio_func_df$function.),]),
-                                   ## function that only have compartiment wise biomass fucntion and non for agb remove all functions that do have an agb
-                                   bio_func_df %>% anti_join(bio_func_df %>% filter(compartiment %in% c("agb", "abg")) %>% select(author, title, year, species) %>% distinct(), by = c("author", "title", "year", "species")) %>% 
-                                     filter(!is.na(compartiment) & !is.na(function.) & compartiment %in% c("ndl","fwb" ,"sw")))
+alnus_agb_func <- plyr::rbind.fill(
+  unique(bio_func_df[bio_func_df$compartiment %in% c("agb", "abg") & stringr::str_detect(bio_func_df$species, "Alnus") & !is.na(bio_func_df$function.),]),
+  ## function that only have compartiment wise biomass fucntion and non for agb remove all functions that do have an agb
+  bio_func_df %>% anti_join(bio_func_df %>% filter(compartiment %in% c("agb", "abg")) %>% 
+                              select(author, title, year, species) %>% 
+                              distinct(), 
+                            by = c("author", "title", "year", "species")) %>% 
+    filter(!is.na(compartiment) & !is.na(function.) & compartiment %in% c("ndl","fwb" ,"sw"))
+  )
 
 # select alnus trees at organic sites
 tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",]  
@@ -121,7 +127,9 @@ for (i in 1:nrow(alnus_agb_func)){
   
   tree.df <- as.data.frame(cbind(tree_data_alnus, "B_kg_tree" = c(bio_tree), "paper_ID" = c(paper_id), "func_ID" = c(func_id), "unit_B" = c(unit), "logarithm_B" = c(ln_stat), "compartiment" = c(comp))) # 
   tree.df <- tree.df %>% mutate(  B_kg_tree = ifelse(!is.na(logarithm_B) & logarithm_B == "ln", exp(B_kg_tree), B_kg_tree), # backtransform  the ln 
-                                  B_kg_tree = ifelse(unit_B == "kg", as.numeric(B_kg_tree), as.numeric(B_kg_tree)/1000))
+                                  B_kg_tree = case_when(unit_B == "kg" ~ as.numeric(B_kg_tree), 
+                                                        unit_B == "g" ~ as.numeric(B_kg_tree)/1000, 
+                                                        TRUE ~ B_kg_tree))
                                
   alnus_agb_kg_tree[[i]] <- tree.df
   
@@ -129,11 +137,140 @@ for (i in 1:nrow(alnus_agb_func)){
   print(paste(i, func_id))
 }
 
-alnus_agb_kg_tree_df <- as.data.frame(rbindlist(alnus_agb_kg_tree)) %>% arrange(plot_ID, tree_ID)
+alnus_agb_kg_tree_df <- as.data.frame(rbindlist(alnus_agb_kg_tree)) %>% arrange(plot_ID, tree_ID, paper_ID)
+# summarise those trees biomass that was calculated by compartiment
+alnus_agb_kg_tree_df <- plyr::rbind.fill(
+  alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "agb",], 
+  tree_data_alnus %>% 
+    # join the tree info with the agb compartiment per tree
+    left_join(., (alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment != "agb",]) %>% #select only trees that don´t have a agb compartiment
+                group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+                summarise(B_kg_tree = sum(B_kg_tree)) %>%      # sum up compartiemtns per tree per paper
+                mutate(compartiment = "agb", 
+                       func_ID = "agb"), 
+              by =  c("plot_ID", "tree_ID"))
+  )
+
+
+
+
+
+
+# 1.2. BETULA Biomass calculations -------------------------------------------------
+# now we will try to implement a loop for all biomass functions in the list 
+# select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
+betula_func <- plyr::rbind.fill(
+  unique(bio_func_df[bio_func_df$compartiment %in% c("agb", "abg") & stringr::str_detect(bio_func_df$species, "Betula") & !is.na(bio_func_df$function.),]),
+  ## function that only have compartiment wise biomass fucntion and non for agb remove all functions that do have an agb
+  bio_func_df %>% anti_join(bio_func_df %>% filter(compartiment %in% c("agb", "abg")) %>% 
+                              select(author, title, year, species) %>% 
+                              distinct(), 
+                            by = c("author", "title", "year", "species")) %>% 
+    filter(!is.na(compartiment) & !is.na(function.) & compartiment %in% c("ndl","fwb" ,"sw"))
+)
+
+# select alnus trees at organic sites
+tree_data_betula <- trees_data[trees_data$bot_genus %in% c("Betula") & trees_data$min_org == "org",]  
+betula_agb_kg_tree <- vector("list", length = nrow(tree.df))
+for (i in 1:nrow(betula_func)){
+  # i = 18
+  
+  paper_id <- betula_func$paper_ID[i]
+  func_id <- betula_func$func_ID[i]  # ID of the function in literature research csv
+  func <- betula_func$function.[i]   # biomass function taken from respective reference 
+  unit <- betula_func$unit_B[i]      # unit of biomass returned, when g then /1000 for kg
+  comp <- betula_func$compartiment[i] 
+  ln_stat <- betula_func$logarithm_B[i]
+  variables <- betula_func$variables[i] # input variables for respective function 
+  # if the ln status is == "ln", we have to later on backtransform the results.
+  # to build the function automatically tho, we have to remove the ln from the function. column
+  func <- ifelse(!is.na(ln_stat) & ln_stat == "ln", 
+                 paste0(gsub(".*\\((.*)\\).*", "\\1", sub('\\=.*', '', func)), '=', sub('.*=', '', func)), # select before and after symbol: https://stackoverflow.com/questions/37051288/extract-text-after-a-symbol-in-r
+                 func)
+  
+  ## get input variables
+  input.df <- tree_data_betula[, unlist(strsplit(variables, '\\, ')), drop = FALSE]
+  
+  ## get coefficients 
+  # select only those cooeficients that are needed https://sparkbyexamples.com/r-programming/select-columns-by-condition-in-r/
+  coef.df <- as.data.frame((betula_func[i,13:27]) %>% select_if(~ !all(is.na(.))))
+  # create a vector that holds all coefficients as a character string to print it later when the function is build 
+  coef.print <- vector("list", length = ncol(coef.df))
+  for (j in 1:ncol(coef.df)) {
+    # j = 1
+    # take every coefficient 
+    coef.print[[j]] <- paste(colnames(coef.df)[j], '<-', as.numeric(coef.df[,j]),';')
+  } 
+  # https://www.geeksforgeeks.org/how-to-collapse-a-list-of-characters-into-a-single-string-in-r/
+  coef.print <- paste(coef.print, collapse= '' )
+  
+  
+  ## create function: https://stackoverflow.com/questions/26164078/r-define-a-function-from-character-string
+  bio_func_code <-paste(
+    'bio_func <- function(', variables, ') {',
+    coef.print, 
+    'return(' , func , ') } '
+    , sep='')
+  
+  ## check if function is valid
+  eval(parse(text = bio_func_code))
+  
+  ## apply function 
+  bio_tree <- apply(input.df, 1, function(row) {
+    # Convert the row to a list and call bio_func with do.call
+    do.call(bio_func, as.list(row))
+  })
+  
+  # convert results to a numeric vector if needed
+  
+  tree.df <- as.data.frame(cbind(tree_data_betula, "B_kg_tree" = c(bio_tree), "paper_ID" = c(paper_id), "func_ID" = c(func_id), "unit_B" = c(unit), "logarithm_B" = c(ln_stat), "compartiment" = c(comp))) # 
+  tree.df <- tree.df %>% mutate(  B_kg_tree = ifelse(!is.na(logarithm_B) & logarithm_B == "ln", exp(B_kg_tree), B_kg_tree), # backtransform  the ln 
+                                  B_kg_tree = case_when(unit_B == "kg" ~ as.numeric(B_kg_tree), 
+                                                        unit_B == "g" ~ as.numeric(B_kg_tree)/1000, 
+                                                        TRUE ~ B_kg_tree))
+  
+  betula_agb_kg_tree[[i]] <- tree.df
+  
+  # Print or store results
+  print(paste(i, func_id))
+}
+
+betula_agb_kg_tree_df <- as.data.frame(rbindlist(betula_agb_kg_tree)) %>% arrange(plot_ID, tree_ID, paper_ID)
+# summarise those trees biomass that was calculated by compartiment
+betula_agb_kg_tree_df <- plyr::rbind.fill(
+  betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment == "agb",], 
+  tree_data_betula %>% 
+    # join the tree info with the agb compartiment per tree
+    left_join(., (betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment != "agb",]) %>% #select only trees that don´t have a agb compartiment
+                group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+                summarise(B_kg_tree = sum(B_kg_tree)) %>%      # sum up compartiemtns per tree per paper
+                mutate(compartiment = "agb", 
+                       func_ID = "agb"), 
+              by =  c("plot_ID", "tree_ID"))
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 # 2. visuals --------------------------------------------------------------
+# 2.1. ALNUS visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 alnus_ag <-  plyr::rbind.fill(alnus_agb_kg_tree_df, 
                               (tapes_tree_data[
@@ -144,15 +281,44 @@ alnus_ag <-  plyr::rbind.fill(alnus_agb_kg_tree_df,
                                        func_ID = "tapes")) %>% 
   unite( "ID", paper_ID, func_ID) %>% distinct()
 
-ggplot(data = alnus_ag %>% filter(!(ID %in% c("16_4", "16_5"))) # 25 and 25 are somehow weird so i kicked it out 
+ggplot(data = alnus_ag %>% filter(!(ID %in% c("16_4", "16_5"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
        )+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = as.factor(ID)  ))+
   geom_smooth(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = as.factor(ID)  ))+
-  theme_bw()
+  theme_bw()+
+  ggtitle("Alnus Biomass kg/tree by diameter cm")
 
 
 
+# 2.2. BETULA visuals --------------------------------------------------------------
+# avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
+betula_ag <-  plyr::rbind.fill(betula_agb_kg_tree_df, 
+                              (tapes_tree_data[
+                                tapes_tree_data$compartiment == "ag" & 
+                                  tapes_tree_data$bot_genus %in% c("Betula") & 
+                                  tapes_tree_data$min_org == "org",]) %>% 
+                                mutate(paper_ID = "tapes", 
+                                       func_ID = "tapes")) %>% 
+  unite( "ID", paper_ID, func_ID) %>% distinct()
 
+ggplot(data = betula_ag %>% filter(!(ID %in% c("16_4", "16_5")))
+       )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
+  geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = as.factor(ID)  ))+
+  geom_smooth(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = as.factor(ID)  ))+
+  theme_bw()+
+  ggtitle("Betula Biomass kg/tree by diameter cm")
+
+
+
+# 2.3. Betula & Alnus together --------------------------------------------
+bet_aln_ag <- plyr::rbind.fill(alnus_ag, betula_ag)
+ggplot(data = bet_aln_ag %>% filter(!(ID %in% c("16_4", "16_5")))
+)+ # "16_4" and "16_5" are somehow weird so i kicked it out 
+  geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = as.factor(ID)  ))+
+  geom_smooth(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = as.factor(ID)  ))+
+  theme_bw()+
+  facet_wrap(~bot_genus)+
+  ggtitle("Biomass kg/tree by diameter cm by species")
 
 
 # NOTES -------------------------------------------------------------------
