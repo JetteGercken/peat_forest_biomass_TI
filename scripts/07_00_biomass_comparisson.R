@@ -283,8 +283,9 @@ alnus_ag <-  plyr::rbind.fill(alnus_agb_kg_tree_df,
 
 ggplot(data = ungroup(alnus_ag %>% filter(!(ID %in% c("16_4", "16_5")))) # "16_4" and "16_5" are somehow weird so i kicked it out 
        )+ 
-  geom_point(aes(x = DBH_cm, y = B_kg_tree))+
-  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree))+
+  geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
+  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
+  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   theme_bw()+
   ggtitle("Alnus Biomass kg/tree by diameter cm")
 
@@ -301,10 +302,11 @@ betula_ag <-  plyr::rbind.fill(betula_agb_kg_tree_df,
                                        func_ID = "tapes")) %>% 
   unite( "ID", paper_ID, func_ID) %>% distinct()
 
-ggplot(data = betula_ag %>% filter(!(ID %in% c("16_4", "16_5")))
+ggplot(data = betula_ag %>% filter(!(ID %in% c("16_4", "16_5", "36_1", "30_agb", "9_3", "9_4", "6_agb", "38_1", "38_2", "38_3", "38_4", "38_5")))
        )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
-  geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = as.factor(ID)  ))+
-  geom_smooth(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = as.factor(ID)  ))+
+  geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
+  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
+  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   theme_bw()+
   ggtitle("Betula Biomass kg/tree by diameter cm")
 
