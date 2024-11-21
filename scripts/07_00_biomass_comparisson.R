@@ -61,7 +61,7 @@ bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 # 1.1. ALNUS Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
-alnus_agb_func <- plyr::rbind.fill(
+alnus_func <- plyr::rbind.fill(
   unique(bio_func_df[bio_func_df$compartiment %in% c("agb", "abg") & stringr::str_detect(bio_func_df$species, "Alnus") & !is.na(bio_func_df$function.),]),
   ## function that only have compartiment wise biomass fucntion and non for agb remove all functions that do have an agb
   bio_func_df %>% anti_join(bio_func_df %>% filter(compartiment %in% c("agb", "abg")) %>% 
@@ -73,17 +73,17 @@ alnus_agb_func <- plyr::rbind.fill(
 
 # select alnus trees at organic sites
 tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",]  
-alnus_agb_kg_tree <- vector("list", length = nrow(tree.df))
-for (i in 1:nrow(alnus_agb_func)){
+alnus_agb_kg_tree <- vector("list", length = nrow(tree_data_alnus))
+for (i in 1:nrow(alnus_func)){
  # i = 18
   
-  paper_id <- alnus_agb_func$paper_ID[i]
-  func_id <- alnus_agb_func$func_ID[i]  # ID of the function in literature research csv
-  func <- alnus_agb_func$function.[i]   # biomass function taken from respective reference 
-  unit <- alnus_agb_func$unit_B[i]      # unit of biomass returned, when g then /1000 for kg
-  comp <- alnus_agb_func$compartiment[i] 
-  ln_stat <- alnus_agb_func$logarithm_B[i]
-  variables <- alnus_agb_func$variables[i] # input variables for respective function 
+  paper_id <- alnus_func$paper_ID[i]
+  func_id <- alnus_func$func_ID[i]  # ID of the function in literature research csv
+  func <- alnus_func$function.[i]   # biomass function taken from respective reference 
+  unit <- alnus_func$unit_B[i]      # unit of biomass returned, when g then /1000 for kg
+  comp <- alnus_func$compartiment[i] 
+  ln_stat <- alnus_func$logarithm_B[i]
+  variables <- alnus_func$variables[i] # input variables for respective function 
  # if the ln status is == "ln", we have to later on backtransform the results.
   # to build the function automatically tho, we have to remove the ln from the function. column
   func <- ifelse(!is.na(ln_stat) & ln_stat == "ln", 
@@ -95,7 +95,7 @@ for (i in 1:nrow(alnus_agb_func)){
   
   ## get coefficients 
   # select only those cooeficients that are needed https://sparkbyexamples.com/r-programming/select-columns-by-condition-in-r/
-  coef.df <- as.data.frame((alnus_agb_func[i,13:27]) %>% select_if(~ !all(is.na(.))))
+  coef.df <- as.data.frame((alnus_func[i,13:27]) %>% select_if(~ !all(is.na(.))))
  # create a vector that holds all coefficients as a character string to print it later when the function is build 
    coef.print <- vector("list", length = ncol(coef.df))
   for (j in 1:ncol(coef.df)) {
@@ -281,10 +281,10 @@ alnus_ag <-  plyr::rbind.fill(alnus_agb_kg_tree_df,
                                        func_ID = "tapes")) %>% 
   unite( "ID", paper_ID, func_ID) %>% distinct()
 
-ggplot(data = alnus_ag %>% filter(!(ID %in% c("16_4", "16_5"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+ggplot(data = ungroup(alnus_ag %>% filter(!(ID %in% c("16_4", "16_5")))) # "16_4" and "16_5" are somehow weird so i kicked it out 
        )+ 
-  geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = as.factor(ID)  ))+
-  geom_smooth(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = as.factor(ID)  ))+
+  geom_point(aes(x = DBH_cm, y = B_kg_tree))+
+  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree))+
   theme_bw()+
   ggtitle("Alnus Biomass kg/tree by diameter cm")
 

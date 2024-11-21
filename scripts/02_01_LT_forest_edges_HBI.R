@@ -2312,17 +2312,6 @@ write.csv(all.rem.circle.coords.df,  paste0(out.path, paste(unique(trees_update_
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 stop("this is where visuals of HBI momok forest edges start")
 
 # 3.4. visulaizing for all plots, edges, trees ---------------------------------------------------------------------------------------------------
