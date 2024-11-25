@@ -306,6 +306,7 @@ ggplot(data = betula_ag %>% filter(!(ID %in% c("16_4", "16_5", "36_1", "30_agb",
        )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
+  geom_dl(label=as.factor(betula_ag$ID), method="maxvar.points", inherit.aes=T)+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   theme_bw()+
   ggtitle("Betula Biomass kg/tree by diameter cm")
