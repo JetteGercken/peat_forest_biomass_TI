@@ -370,6 +370,7 @@ write.csv(be_momok, paste0(input.path, "momok_be.csv"), row.names = FALSE)
 # beab hbi includes followong columns:
 # [1] "bund_nr"       "lfd_nr"        "baumkennzahl"  "zwiesel"       "bart"          "alter"         "alter_methode" "d_mess"        "bhd_hoehe"     "hoehe"         "kransatz"      "azi"          
 # [13] "hori"          "kraft"         "schi"  
+LT_momok <-  read.delim(file = here(paste0(input.path, "beab_momok.csv")), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
 beab_momok <- read.delim(file = here(paste0(input.path, "beab_momok.csv")), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
 colnames(beab_momok)
 # [1] "MoMoK_Nr"          "Name"              "Bundeland"         "Datum_Aufnahme"    "Nr_PK"             "BNr"               "ZW"                "St"                "Baumart..Code."   
@@ -579,6 +580,36 @@ be_totholz_liste_momok <- DW_momok %>%
 
 colnames(be_totholz_liste_momok) <- c("bund_nr","lfd_nr","typ" ,"baumgruppe" ,"durchmesser" ,"laenge" ,"zersetzung",  "anzahl")
 write.csv(be_totholz_liste_momok, paste0(input.path, "momok_be_totholz_liste.csv"), row.names = FALSE)
+
+
+
+# 0.3.1.3. DAHM TABLES MOMOK ----------------------------------------------------   
+
+# tree data
+ld_momok <- plyr::rbind.fill(
+  # tree data with double plots
+  LT_momok %>%
+  mutate(MoMoK_Nr = ifelse(
+    # idenfity plots with more then one center that have a number in their sampling circuit number, 
+    MoMoK_Nr %in% double_plots_momok & !is.na(as.numeric(Nr_PK)), 
+    # add number of Skizzenpunkt to plot ID (https://stackoverflow.com/questions/7963898/extracting-the-last-n-characters-from-a-string-in-r)
+    paste0(MoMoK_Nr, Nr_PK),
+    # otherwise leave old plot number
+    MoMoK_Nr)) %>% select(MoMoK_Nr, Bundeland) %>% distinct(), 
+  # regeneration data with double plots
+RG_momok %>% select(MoMoK_Nr, Bundeland) %>% distinct(), 
+# deadwood data with double plots
+DW_momok%>% select(MoMoK_Nr, Bundesland) %>% distinct() %>% rename("Bundeland" = "Bundesland")
+) %>% distinct() %>% mutate(inv = "momok") %>% 
+  rename("plot_ID" = "MoMoK_Nr") %>% 
+  rename("ld" = "Bundeland") %>% 
+  # nor we are goint to correct the ld codes that do not correcpond with the BZE code tables
+  mutate(ld = case_when(ld == "NS" ~ "NI", 
+                        ld == "NRW"~ "NW", 
+                        TRUE ~ ld))
+
+write.csv(ld_momok, paste0(input.path, "momok_ld.csv"), row.names = FALSE)
+
 
 
 

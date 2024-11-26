@@ -279,14 +279,23 @@ alnus_ag <-  plyr::rbind.fill(alnus_agb_kg_tree_df,
                                   tapes_tree_data$min_org == "org",]) %>% 
                                 mutate(paper_ID = "tapes", 
                                        func_ID = "tapes")) %>% 
-  unite( "ID", paper_ID, func_ID) %>% distinct()
+  unite( "ID", paper_ID, func_ID, remove = F) %>% distinct()
+
+alnus_ag_labels <- alnus_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree))%>% mutate_at("paper_ID", ~as.integer(.)) %>% 
+  left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Alnus")) %>% select(paper_ID, country)) %>% distinct(), by = "paper_ID" ) %>% 
+  mutate(country_code = toupper(substr(country, start = 1, stop = 2)),
+         label_name = paste0(ID, ", ",country_code))
 
 ggplot(data = ungroup(alnus_ag %>% filter(!(ID %in% c("16_4", "16_5")))) # "16_4" and "16_5" are somehow weird so i kicked it out 
        )+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
+  # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
+ geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
+           data = (ungroup(alnus_ag_labels %>% filter(!(ID %in% c("16_4", "16_5"))))))+
   theme_bw()+
+ theme(legend.position="none")+
   ggtitle("Alnus Biomass kg/tree by diameter cm")
 
 
@@ -300,15 +309,23 @@ betula_ag <-  plyr::rbind.fill(betula_agb_kg_tree_df,
                                   tapes_tree_data$min_org == "org",]) %>% 
                                 mutate(paper_ID = "tapes", 
                                        func_ID = "tapes")) %>% 
-  unite( "ID", paper_ID, func_ID) %>% distinct()
+  unite( "ID", paper_ID, func_ID, remove = F) %>% distinct()
+
+betula_ag_labels <- betula_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree))%>% mutate_at("paper_ID", ~as.integer(.)) %>% 
+  left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Betula")) %>% select(paper_ID, country)) %>% distinct(), by = "paper_ID" ) %>% 
+  mutate(country_code = toupper(substr(country, start = 1, stop = 2)),
+         label_name = paste0(ID, ", ",country_code))
 
 ggplot(data = betula_ag %>% filter(!(ID %in% c("16_4", "16_5", "36_1", "30_agb", "9_3", "9_4", "6_agb", "38_1", "38_2", "38_3", "38_4", "38_5")))
        )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
-  geom_dl(label=as.factor(betula_ag$ID), method="maxvar.points", inherit.aes=T)+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
+  # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
+  geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
+            data = (ungroup(betula_ag_labels %>% filter(!(ID %in% c("16_4", "16_5", "36_1", "30_agb", "9_3", "9_4", "6_agb", "38_1", "38_2", "38_3", "38_4", "38_5"))) )))+
   theme_bw()+
+  theme(legend.position="none")+
   ggtitle("Betula Biomass kg/tree by diameter cm")
 
 

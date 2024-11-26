@@ -137,17 +137,20 @@ here::here()
 
 # ----- 0.4.1. diameter correction Dahm parameters ------------------------
 # change region sheet to x_ld_neu aus code tables
-# DBH_region <- read.delim(file = here("data/input/general/neu_x_ld.csv"), sep = ";", dec = ",")
-# DBH_region <- DBH_region %>% dplyr::select(ICode, KurzD,  LangD, bl, region)
-# colnames(DBH_region) <- c("icode_reg", "reg_shortG", "reg_longG","country",  "region")
+ DBH_region <- read.delim(file = here("data/input/x_ld.csv"), sep = ",", dec = ".")
+ DBH_region <- DBH_region %>% dplyr::select( id ,kurz,lang, region)
+ colnames(DBH_region) <- c("icode_reg", "reg_shortG", "reg_longG", "region")
 # 
 # # change tangenz csv to neu_k_tangens from code tabellen in 
-# DBH_tan <- read.delim(file = here("data/input/general/neu_k_tangenz.csv"), sep = ";", dec = ",")
-# DBH_tan <- DBH_tan %>% dplyr::select( ba_bwi, region, tangenz, Icode)
-# colnames(DBH_tan) <- c("SP_BWI1",  "region", "tangenz", "icode")
+ DBH_tan <- read.delim(file = here("data/input/k_tangenz.csv"), sep = ",", dec = ".")
+DBH_tan <- DBH_tan %>% dplyr::select( ba_bwi, region, tangenz)
+colnames(DBH_tan) <- c("SP_BWI1",  "region", "tangenz")
 # dput(DBH_tan)
 # 
-# 
+
+DBH_region_momok <- read.delim(file = here("data/input/momok_ld.csv"), sep = ",", dec = ".")
+
+
 # # ----- 0.4.2. nitrogen content datasets ----------------------------------
 # ## nitrogen content in foliage based on nitrgen content in leafe samples of the national soil inventory 
 #   # import
@@ -185,13 +188,13 @@ here::here()
 # 
 # # 0.4.3. import species names dataest x_bart ------------------------------
 # # species names & codes 
-# SP_names_com_ID_tapeS <- read.delim(file = here("output/out_data/x_bart_tapeS.csv"), sep = ";", dec = ".", 
-#                                     encoding = "UTF-8", 
-#                                     stringsAsFactors=FALSE
-#                                     ) 
-# the join always works like this: 
-# left_join(., SP_names_com_ID_tapeS %>% 
-#             mutate(char_code_ger_lowcase = tolower(Chr_code_ger)), 
+SP_names_com_ID_tapeS <- read.delim(file = here("output/out_data/x_bart_tapeS.csv"), sep = ",", dec = ".", 
+                                    encoding = "UTF-8", 
+                                    stringsAsFactors=FALSE
+                                   ) 
+# the join always works like this:
+# left_join(., SP_names_com_ID_tapeS %>%
+#             mutate(char_code_ger_lowcase = tolower(Chr_code_ger)),
 #           by = c("SP_code" = "char_code_ger_lowcase"))
 
 
@@ -266,7 +269,7 @@ DBH_BWI <- function(d.mm, d.h.cm){
 # Refference: \\wo-sfs-001v-ew\INSTITUT\a7bze\ZZ_BZE3_Bestand\Erfassungssoftware\BHD_Umrechung
 #               Brusthöhendurchmesser bei abweichender Meßhöhe nach Abholzigkeitsfunktion lt. Stefan Dahm 
 #             tabes required to perfom linkage between trees dataset and tangenz dataste: x_ba.Ba_BWI1, x_bl.Region, [k_Tangenz (Ba_Bwi1, Region)].Ba_BWI1+Region bwi.xyk1.k_tangenz 
-DBH_Dahm <- function(plot.id, d.mm, d.h.cm, spec){
+DBH_Dahm <- function(inv, plot.id, d.mm, d.h.cm, spec){
   # avoidind error: "longer object length is not a multiple of shorter object length" by https://stackoverflow.com/questions/10865095/why-do-i-get-warning-longer-object-length-is-not-a-multiple-of-shorter-object-l
   # we have to do two things: 
   # link the species with the right ICode by their BWI_SP_oode
@@ -282,7 +285,11 @@ DBH_Dahm <- function(plot.id, d.mm, d.h.cm, spec){
   # the DBH tangez region 
   # https://www.geeksforgeeks.org/count-number-of-characters-in-string-in-r/
   # https://stackoverflow.com/questions/61954941/extract-first-x-digits-of-n-digit-numbers
-  ld_icode <- ifelse(stringr::str_length(plot.id) == 5, substr(plot.id, 1, 1), substr(plot.id, 1, 2))
+  ld_icode <- ifelse(inv != "momok" & stringr::str_length(plot.id) == 5, substr(plot.id, 1, 1),
+                     ifelse(inv != "momok" & stringr::str_length(plot.id) == 6, substr(plot.id, 1, 2), 
+                            # if plot id is momok select the ld code to the plot id of the momok plot and then find the region of that ld code in the DBH_reg dataset 
+                            ifelse(inv == "momok", DBH_region$icode_reg[
+                              which(DBH_region$reg_shortG %in% unique(DBH_region_momok$ld[which(DBH_region_momok$plot_ID %in% plot.id)]))],  substr(plot.id, 1, 2))))
   #ld <- DBH_region$icode_reg[which(grepl(ld_plot, DBH_region$icode_reg))]
   # select the region belonign to the state that belongs to the plot_ID from DBH_region dataset 
   reg_tan <- unique(DBH_region$region[which(DBH_region$icode_reg %in% ld_icode)])

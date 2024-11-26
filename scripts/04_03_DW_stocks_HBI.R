@@ -73,10 +73,10 @@ DW_data <- DW_data %>%
 # for whole standing or laying deadwood trees all compartiments except foliage ("ndl" ) are calculated via TapeS
 DW_data_whole <- DW_data[DW_data$dw_type %in% c(2, 5) & DW_data$decay  %in% c(1,2) & DW_data$l_dm > 13, ] ## change
 # export list for biomasse
-bio.dw.whole.kg.list <- vector("list", length = nrow(  DW_data_whole))
+bio.dw.whole.kg.list <- vector("list", length = nrow(DW_data_whole))
 # export list for volume
-for (i in 1:nrow( DW_data_whole)){
-  # i = 512
+for (i in 1:nrow(DW_data_whole)){
+  # i = 5080
   
   # select general info about the DW item
   my.plot.id <-  DW_data_whole[,"plot_ID"][i]
@@ -84,6 +84,7 @@ for (i in 1:nrow( DW_data_whole)){
   my.decay.type <-  DW_data_whole[,"dec_type_BWI"][i]
   my.dw.spec <-  DW_data_whole[,"dw_sp"][i]
   my.CF.BL <-  DW_data_whole[,"LH_NH_stand"][i]
+
   
   # select variables fot TprTrees object
   spp =  na.omit(as.numeric(unique( DW_data_whole$tpS_ID[DW_data_whole$plot_ID==my.plot.id & DW_data_whole$tree_ID==my.tree.id]))) 
@@ -205,11 +206,12 @@ bio_dw_broken_kg_df <- as.data.frame(rbindlist(bio.dw.broken.kg.list))
 DW_data_stump <- DW_data[DW_data$dw_type == 4 & DW_data$decay  %in% c(1,2),]
 bio.dw.stump.kg.list <- vector("list", length = nrow(DW_data_stump))
 for (i in 1:nrow(DW_data_stump)){
-  # i = 1
+  # i = 858
   
   # select general info about the DW item
   my.plot.id <- DW_data_stump[,"plot_ID"][i]
   my.tree.id <- DW_data_stump[,"tree_ID"][i]
+  my.inv <-  DW_data_whole[,"inv"][i]
   my.decay.type <- DW_data_stump[,"dec_type_BWI"][i]
   my.dw.spec <- DW_data_stump[,"dw_sp"][i]
   
@@ -219,7 +221,7 @@ for (i in 1:nrow(DW_data_stump)){
   bwi.spp = na.omit((unique(DW_data_stump$BWI[DW_data_stump$plot_ID==my.plot.id & DW_data_stump$tree_ID==my.tree.id]))) 
   d.cm = as.numeric(unique(DW_data_stump$d_cm[DW_data_stump$plot_ID==my.plot.id & DW_data_stump$tree_ID==my.tree.id])) # diameter in cm
   l.m = as.numeric(unique(DW_data_stump$l_dm[DW_data_stump$plot_ID==my.plot.id & DW_data_stump$tree_ID==my.tree.id]))/10
-  Dm = as.list(DBH_Dahm(my.plot.id, as.numeric(d.cm)*10, l.m, bwi.spp))
+  Dm = as.list(DBH_Dahm(my.inv, my.plot.id, as.numeric(d.cm)*10, l.m, bwi.spp))
   # estimate height a tree with the estimated DBH diameter would have
   Hm = as.list(as.numeric(1.3))
   Ht = (as.numeric(estHeight(d13 = as.numeric(Dm), sp = spp))) # lenth in meter m
