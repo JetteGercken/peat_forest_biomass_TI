@@ -25,7 +25,8 @@ trees_removed <- read.delim(file = here(paste0(out.path, trees_data$inv[1], "_LT
 soil_types_db <- read.delim(file = here(out.path, "soils_types_profil_db.csv"), sep = ",", dec = ".")
 # importa data from literature research
 bio_func_df <- read.delim(file = here(paste0("data/input/", "B_lit_functions.csv")), sep = ",", dec = ".") 
-
+all_summary <- read.delim(file = here(paste0(out.path, "HBI_LT_RG_DW_stocks_ha_all_groups.csv")), sep = ",", dec = ".")
+LT_summary <- all_summary %>% filter(stand_component == "LT") %>% select(-c(dw_sp, dw_type, decay, inv_year, ST_LY_type, mean_d_cm, sd_d_cm, mean_l_m, sd_l_m, n_dec, n_dw_TY))
 
 
 # 0.4 data preparation ---------------------------------------------------------
@@ -339,6 +340,27 @@ ggplot(data = bet_aln_ag %>% filter(!(ID %in% c("16_4", "16_5")))
   theme_bw()+
   facet_wrap(~bot_genus)+
   ggtitle("Biomass kg/tree by diameter cm by species")
+
+
+
+
+# 2.4. BA verteilung over all organic plots -------------------------------
+install.packages("forcats")
+library(forcats)
+
+BA_distri <- LT_summary %>% filter(SP_code != "all") %>% select(plot_ID, SP_code, BA_m2_ha) %>% mutate(plot_ID = as.integer(plot_ID)) %>% 
+  left_join(., soil_types_db %>% select(bfhnr_2, min_org), by = c("plot_ID" = "bfhnr_2")) %>% 
+  filter(min_org == "org") %>% distinct() %>% 
+  group_by(SP_code, BA_m2_ha, min_org) %>% 
+  summarise(BA_m2_ha = sum(BA_m2_ha))
+
+ggplot(data = BA_distri %>% arrange(BA_m2_ha), aes(x=fct_infreq(SP_code), y= BA_m2_ha, fill = SP_code)) + 
+  geom_bar( stat = "identity")+
+  theme_bw()+
+  ggtitle("Basal area in m2 per ha by tree species")
+
+
+(group)
 
 
 # NOTES -------------------------------------------------------------------

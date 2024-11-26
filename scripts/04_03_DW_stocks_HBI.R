@@ -211,7 +211,7 @@ for (i in 1:nrow(DW_data_stump)){
   # select general info about the DW item
   my.plot.id <- DW_data_stump[,"plot_ID"][i]
   my.tree.id <- DW_data_stump[,"tree_ID"][i]
-  my.inv <-  DW_data_whole[,"inv"][i]
+  my.inv <-  DW_data_stump[,"inv"][i]
   my.decay.type <- DW_data_stump[,"dec_type_BWI"][i]
   my.dw.spec <- DW_data_stump[,"dw_sp"][i]
   

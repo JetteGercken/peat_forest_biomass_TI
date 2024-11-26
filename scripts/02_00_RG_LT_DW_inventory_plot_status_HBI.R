@@ -257,7 +257,7 @@ trees_data <- trees_data %>%
             by = c("SP_code" = "char_code_ger_lowcase")) %>% 
   mutate(DBH_h_cm = ifelse(is.na(DBH_h_cm), 130, DBH_h_cm),        # assign DBH measuring height of 130cm when missing 
          # calculate corrected BDH if measuringheight != 1.3m
-         DBH_cm = ifelse(DBH_h_cm == 130, as.numeric(D_mm)/10, DBH_Dahm(plot_ID, D_mm, DBH_h_cm, BWI))) %>% 
+         DBH_cm = ifelse(DBH_h_cm == 130, as.numeric(D_mm)/10, DBH_Dahm(inv, plot_ID, D_mm, DBH_h_cm, BWI))) %>% 
   # asssing corect samling circle diameter according to DBH of the tree to be able to join in the right plot area
   mutate(CCS_r_m = case_when(DBH_cm >= 7  & DBH_cm < 10 & inv != "momok" ~ 5.64, 
                              DBH_cm >= 10 & DBH_cm < 30 & inv != "momok" ~ 12.62, 
