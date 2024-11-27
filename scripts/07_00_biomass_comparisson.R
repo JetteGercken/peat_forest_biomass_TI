@@ -157,7 +157,6 @@ alnus_agb_kg_tree_df <- plyr::rbind.fill(
 
 
 
-
 # 1.2. BETULA Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
