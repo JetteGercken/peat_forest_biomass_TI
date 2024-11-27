@@ -56,7 +56,10 @@ bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], gsub, pattern = "[^0-9.-]", r
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.character)
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 
-
+bio_func_df <- bio_func_df %>% mutate(a = case_when(str_detect(species, "Alnus") & paper_ID == "16" & func_ID == "4" ~ -2.86990000, 
+                                     str_detect(species, "Alnus") & paper_ID == "16" & func_ID == "5" ~ -1.68460000,
+                                     TRUE ~ a), 
+                                     function. = ifelse(str_detect(species, "Alnus") & paper_ID == "12" & func_ID == "2", "B_g = a*( DBH_cm^2*H_m )^b", function.))
 
 
 # 1. Biomass calculations -------------------------------------------------
@@ -77,7 +80,7 @@ alnus_func <- plyr::rbind.fill(
 tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",]  
 alnus_agb_kg_tree <- vector("list", length = nrow(tree_data_alnus))
 for (i in 1:nrow(alnus_func)){
- # i = 10
+ # i = 11
   
   paper_id <- alnus_func$paper_ID[i]
   func_id <- alnus_func$func_ID[i]  # ID of the function in literature research csv
@@ -174,7 +177,7 @@ betula_func <- plyr::rbind.fill(
 tree_data_betula <- trees_data[trees_data$bot_genus %in% c("Betula") & trees_data$min_org == "org",]  
 betula_agb_kg_tree <- vector("list", length = nrow(tree.df))
 for (i in 1:nrow(betula_func)){
-  # i = 18
+  # i = 10
   
   paper_id <- betula_func$paper_ID[i]
   func_id <- betula_func$func_ID[i]  # ID of the function in literature research csv
@@ -287,14 +290,14 @@ alnus_ag_labels <- alnus_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DB
   mutate(country_code = toupper(substr(country, start = 1, stop = 2)),
          label_name = paste0(ID, ", ",country_code))
 
-ggplot(data = ungroup(alnus_ag) %>% filter(!(ID %in% c("16_4", "16_5"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+ggplot(data = ungroup(alnus_ag) #%>% filter(!(ID %in% c("16_4", "16_5"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
        )+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
  geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-           data = (ungroup(alnus_ag_labels %>% filter(!(ID %in% c("16_4", "16_5"))))))+
+           data = alnus_ag_labels)+
   theme_bw()+
  #theme(legend.position="none")+
   ggtitle("Alnus Biomass kg/tree by diameter cm")
