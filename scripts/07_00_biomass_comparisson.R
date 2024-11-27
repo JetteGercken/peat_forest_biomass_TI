@@ -53,6 +53,7 @@ bio_func_df <- bio_func_df %>%
             by = c("title", "author", "year")) 
 # convert coeffcients into numbers: https://stackoverflow.com/questions/56963214/how-can-i-use-gsub-in-multiple-specific-column-in-r
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], gsub, pattern = "[^0-9.-]", replacement = "")
+bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.character)
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 
 
@@ -76,7 +77,7 @@ alnus_func <- plyr::rbind.fill(
 tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",]  
 alnus_agb_kg_tree <- vector("list", length = nrow(tree_data_alnus))
 for (i in 1:nrow(alnus_func)){
- # i = 18
+ # i = 10
   
   paper_id <- alnus_func$paper_ID[i]
   func_id <- alnus_func$func_ID[i]  # ID of the function in literature research csv
@@ -97,7 +98,7 @@ for (i in 1:nrow(alnus_func)){
   ## get coefficients 
   # select only those cooeficients that are needed https://sparkbyexamples.com/r-programming/select-columns-by-condition-in-r/
   coef.df <- as.data.frame((alnus_func[i,13:27]) %>% select_if(~ !all(is.na(.))))
- # create a vector that holds all coefficients as a character string to print it later when the function is build 
+  # create a vector that holds all coefficients as a character string to print it later when the function is build 
    coef.print <- vector("list", length = ncol(coef.df))
   for (j in 1:ncol(coef.df)) {
     # j = 1
@@ -105,7 +106,7 @@ for (i in 1:nrow(alnus_func)){
     coef.print[[j]] <- paste(colnames(coef.df)[j], '<-', as.numeric(coef.df[,j]),';')
   } 
   # https://www.geeksforgeeks.org/how-to-collapse-a-list-of-characters-into-a-single-string-in-r/
-  coef.print <- paste(coef.print, collapse= '' )
+    coef.print <- paste(coef.print, collapse= '' )
   
   
   ## create function: https://stackoverflow.com/questions/26164078/r-define-a-function-from-character-string
@@ -287,7 +288,7 @@ alnus_ag_labels <- alnus_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DB
   mutate(country_code = toupper(substr(country, start = 1, stop = 2)),
          label_name = paste0(ID, ", ",country_code))
 
-ggplot(data = ungroup(alnus_ag %>% filter(!(ID %in% c("16_4", "16_5")))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+ggplot(data = ungroup(alnus_ag) %>% filter(!(ID %in% c("16_4", "16_5"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
        )+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
@@ -296,7 +297,7 @@ ggplot(data = ungroup(alnus_ag %>% filter(!(ID %in% c("16_4", "16_5")))) # "16_4
  geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
            data = (ungroup(alnus_ag_labels %>% filter(!(ID %in% c("16_4", "16_5"))))))+
   theme_bw()+
- theme(legend.position="none")+
+ #theme(legend.position="none")+
   ggtitle("Alnus Biomass kg/tree by diameter cm")
 
 
