@@ -302,6 +302,53 @@ ggplot(data = ungroup(alnus_ag) #%>% filter(!(ID %in% c("16_4", "16_5"))) # "16_
  #theme(legend.position="none")+
   ggtitle("Alnus Biomass kg/tree by diameter cm")
 
+# 3d plot including height: https://stackoverflow.com/questions/45052188/how-to-plot-3d-scatter-diagram-using-ggplot
+install.packages("plotly")
+library(plotly)
+
+plot_ly(x=alnus_ag$DBH_cm, y= alnus_ag$H_m, z = alnus_ag$B_kg_tree, 
+        type="scatter3d", 
+        color=alnus_ag$ID, 
+        size = 0.5)  
+# %>% add_trace(x=alnus_ag$DBH_cm, y= alnus_ag$H_m, z = alnus_ag$B_kg_tree,color=alnus_ag$ID, 
+#                 type="scatter3d", mode="lines",
+#                 line = list(width=8),
+#                 opacity = 1) 
+
+library(splines)
+fit <- lm(cbind(alnus_ag$DBH_cm, alnus_ag$H_m) ~ ns(alnus_ag$B_kg_tree, df = length(unique(alnus_ag$ID))))
+
+#The fitted values will be returned in a two-column matrix by predict(fit). To plot the result, you can use rgl:
+install.packages("rgl")
+  library(rgl)
+
+lines3d(cbind(predict(fit), z = alnus_ag$B_kg_tree))
+
+plot(plot3d(alnus_ag$DBH_cm, alnus_ag$H_m, alnus_ag$B_kg_tree, colors = alnus_ag$ID))
+
+# %>% 
+#   add_trace(x=alnus_ag$DBH_cm, y= alnus_ag$H_m, z = alnus_ag$B_kg_tree, 
+#             color = alnus_ag$ID,
+#             type = "scatter3d",
+#             mode = "lines", 
+#             trendline = "ols")
+
+# 3d plot including height: https://www.sthda.com/english/wiki/scatterplot3d-3d-graphics-r-software-and-data-visualization
+install.packages("scatterplot3d") # Install
+library("scatterplot3d") # load
+
+colors <- colors[as.factor(alnus_ag$ID)]
+rainbow(length(unique(alnus_ag$ID)))[as.factor(alnus_ag$ID)]
+
+scatterplot3d(alnus_ag[,c("DBH_cm", "H_m", "B_kg_tree")],
+              main="3D Scatter Plot",
+              xlab = "DBH (cm)",
+              ylab = "Height (m)",
+              zlab = "Biomass (kg tree-1)", 
+              color =  rainbow(length(unique(alnus_ag$ID)))[as.factor(alnus_ag$ID)])
+demo("regression")
+
+
 
 
 # 2.2. BETULA visuals --------------------------------------------------------------
