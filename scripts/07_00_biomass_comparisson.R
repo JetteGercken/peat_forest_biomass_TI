@@ -25,6 +25,7 @@ trees_removed <- read.delim(file = here(paste0(out.path, trees_data$inv[1], "_LT
 soil_types_db <- read.delim(file = here(out.path, "soils_types_profil_db.csv"), sep = ",", dec = ".")
 # importa data from literature research
 bio_func_df <- read.delim(file = here(paste0("data/input/", "B_lit_functions.csv")), sep = ",", dec = ".") 
+# summaries
 all_summary <- read.delim(file = here(paste0(out.path, "HBI_LT_RG_DW_stocks_ha_all_groups.csv")), sep = ",", dec = ".")
 LT_summary <- all_summary %>% filter(stand_component == "LT") %>% select(-c(dw_sp, dw_type, decay, inv_year, ST_LY_type, mean_d_cm, sd_d_cm, mean_l_m, sd_l_m, n_dec, n_dw_TY))
 
@@ -362,16 +363,16 @@ betula_ag_labels <- betula_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(
   mutate(country_code = toupper(substr(country, start = 1, stop = 2)),
          label_name = paste0(ID, ", ",country_code))
 
-ggplot(data = betula_ag %>% filter(!(ID %in% c("16_4", "16_5", "36_1", "30_agb", "9_3", "9_4", "6_agb", "38_1", "38_2", "38_3", "38_4", "38_5")))
+ggplot(data = betula_ag %>% filter(!(ID %in% c( "2_3", "36_1", "38_1", "38_2", "38_3", "38_4", "38_5"))) #%>% filter(!(ID %in% c("16_4", "16_5", "36_1", "30_agb", "9_3", "9_4", "6_agb", "38_1", "38_2", "38_3", "38_4", "38_5")))
        )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-            data = (ungroup(betula_ag_labels %>% filter(!(ID %in% c("16_4", "16_5", "36_1", "30_agb", "9_3", "9_4", "6_agb", "38_1", "38_2", "38_3", "38_4", "38_5"))) )))+
+            data = (ungroup(betula_ag_labels  %>% filter(!(ID %in% c( "2_3", "36_1", "38_1", "38_2", "38_3", "38_4", "38_5")))  )))+
   theme_bw()+
-  theme(legend.position="none")+
+  #theme(legend.position="none")+
   ggtitle("Betula Biomass kg/tree by diameter cm")
 
 
