@@ -53,13 +53,13 @@ bio_func_df <- bio_func_df %>%
             by = c("title", "author", "year")) 
 # convert coeffcients into numbers: https://stackoverflow.com/questions/56963214/how-can-i-use-gsub-in-multiple-specific-column-in-r
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], gsub, pattern = "[^0-9.-]", replacement = "")
-bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.character)
+#bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.character)
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 
-bio_func_df <- bio_func_df %>% mutate(a = case_when(str_detect(species, "Alnus") & paper_ID == "16" & func_ID == "4" ~ -2.86990000, 
-                                     str_detect(species, "Alnus") & paper_ID == "16" & func_ID == "5" ~ -1.68460000,
-                                     TRUE ~ a), 
-                                     function. = ifelse(str_detect(species, "Alnus") & paper_ID == "12" & func_ID == "2", "B_g = a*( DBH_cm^2*H_m )^b", function.))
+# bio_func_df <- bio_func_df %>% mutate(a = case_when(str_detect(species, "Alnus") & paper_ID == "16" & func_ID == "4" ~ -2.86990000, 
+#                                      str_detect(species, "Alnus") & paper_ID == "16" & func_ID == "5" ~ -1.68460000,
+#                                      TRUE ~ a), 
+#                                      function. = ifelse(str_detect(species, "Alnus") & paper_ID == "12" & func_ID == "2", "B_g = a*( DBH_cm^2*H_m )^b", function.))
 
 
 # 1. Biomass calculations -------------------------------------------------
