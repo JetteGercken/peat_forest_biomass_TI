@@ -51,9 +51,6 @@ bio_func_df <- bio_func_df %>%
               distinct() %>% 
               mutate(paper_ID = row_number()), 
             by = c("title", "author", "year")) 
-# convert coeffcients into numbers: https://stackoverflow.com/questions/56963214/how-can-i-use-gsub-in-multiple-specific-column-in-r
-bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], gsub, pattern = "[^0-9.-]", replacement = "")
-#bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.character)
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 
 # bio_func_df <- bio_func_df %>% mutate(a = case_when(str_detect(species, "Alnus") & paper_ID == "16" & func_ID == "4" ~ -2.86990000, 
@@ -252,8 +249,6 @@ betula_agb_kg_tree_df <- plyr::rbind.fill(
                        func_ID = "agb"), 
               by =  c("plot_ID", "tree_ID"))
 )
-
-
 
 
 
