@@ -71,14 +71,14 @@ alnus_func <- plyr::rbind.fill(
                               select(author, title, year, species) %>% 
                               distinct(), 
                             by = c("author", "title", "year", "species")) %>% 
-    filter(!is.na(compartiment) & !is.na(function.) & compartiment %in% c("ndl","fwb" ,"sw"))
+    filter(!is.na(compartiment) & !is.na(function.) & compartiment %in% c("ndl","fwb" ,"sw") & stringr::str_detect(species, "Alnus"))
   )
 
 # select alnus trees at organic sites
 tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",]  
 alnus_agb_kg_tree <- vector("list", length = nrow(tree_data_alnus))
 for (i in 1:nrow(alnus_func)){
- # i = 11
+ # i = 14
   
   paper_id <- alnus_func$paper_ID[i]
   func_id <- alnus_func$func_ID[i]  # ID of the function in literature research csv
@@ -168,7 +168,7 @@ betula_func <- plyr::rbind.fill(
                               select(author, title, year, species) %>% 
                               distinct(), 
                             by = c("author", "title", "year", "species")) %>% 
-    filter(!is.na(compartiment) & !is.na(function.) & compartiment %in% c("ndl","fwb" ,"sw"))
+    filter(!is.na(compartiment) & !is.na(function.) & compartiment %in% c("ndl","fwb" ,"sw")& stringr::str_detect(species, "Betula"))
 )
 
 # select alnus trees at organic sites
@@ -363,14 +363,15 @@ betula_ag_labels <- betula_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(
   mutate(country_code = toupper(substr(country, start = 1, stop = 2)),
          label_name = paste0(ID, ", ",country_code))
 
-ggplot(data = betula_ag %>% filter(!(ID %in% c( "2_3", "36_1", "38_1", "38_2", "38_3", "38_4", "38_5"))) #%>% filter(!(ID %in% c("16_4", "16_5", "36_1", "30_agb", "9_3", "9_4", "6_agb", "38_1", "38_2", "38_3", "38_4", "38_5")))
+ggplot(data = betula_ag %>% filter(!(ID %in% c("36_1", "38_1", "38_2", "38_3", "38_4", "38_5"))) #%>% filter(!(ID %in% c("16_4", "16_5", "36_1", "30_agb", "9_3", "9_4", "6_agb", "38_1", "38_2", "38_3", "38_4", "38_5")))
        )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-            data = (ungroup(betula_ag_labels  %>% filter(!(ID %in% c( "2_3", "36_1", "38_1", "38_2", "38_3", "38_4", "38_5")))  )))+
+            data = (ungroup(betula_ag_labels  %>% filter(!(ID %in% c("36_1", "38_1", "38_2", "38_3", "38_4", "38_5")))  
+                            )))+
   theme_bw()+
   #theme(legend.position="none")+
   ggtitle("Betula Biomass kg/tree by diameter cm")
@@ -428,7 +429,7 @@ input_cols <- (tree.df[,match(as.list(strsplit(args, '\\, ')[[1]]), names(tree.d
 
 
 
-
+write.csv(bio_func_df, paste0(out.path, "bio_func_df.csv"), row.names = FALSE)
 
 
 
