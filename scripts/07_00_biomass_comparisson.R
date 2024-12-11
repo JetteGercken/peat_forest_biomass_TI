@@ -433,4 +433,4 @@ write.csv(bio_func_df, paste0(out.path, "bio_func_df.csv"), row.names = FALSE)
 
 
 
-
+ln(B_g) =  ln(a) + b*ln(DBH_cm) + c*(ln(    ( (    (H_m* (1 + a* (50/age)^c -1 )  ) / ( 1-b*H_m*((50/age)^c -1) )     ) / (  1+(a+b* ( (H_m* (1 + a* (50/age)^c -1 )  ) / ( 1-b*H_m*((50/age)^c -1) ) )   )*(0.5^c-1 ) )      )) )+ d*ln(age)
