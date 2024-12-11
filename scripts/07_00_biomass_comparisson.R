@@ -98,7 +98,7 @@ for (i in 1:nrow(alnus_func)){
   
   ## get coefficients 
   # select only those cooeficients that are needed https://sparkbyexamples.com/r-programming/select-columns-by-condition-in-r/
-  coef.df <- as.data.frame((alnus_func[i,13:27]) %>% select_if(~ !all(is.na(.))))
+  coef.df <- as.data.frame((alnus_func[i,15:29]) %>% select_if(~ !all(is.na(.))))
   # create a vector that holds all coefficients as a character string to print it later when the function is build 
    coef.print <- vector("list", length = ncol(coef.df))
   for (j in 1:ncol(coef.df)) {
@@ -195,7 +195,7 @@ for (i in 1:nrow(betula_func)){
   
   ## get coefficients 
   # select only those cooeficients that are needed https://sparkbyexamples.com/r-programming/select-columns-by-condition-in-r/
-  coef.df <- as.data.frame((betula_func[i,13:27]) %>% select_if(~ !all(is.na(.))))
+  coef.df <- as.data.frame((betula_func[i,15:29]) %>% select_if(~ !all(is.na(.))))
   # create a vector that holds all coefficients as a character string to print it later when the function is build 
   coef.print <- vector("list", length = ncol(coef.df))
   for (j in 1:ncol(coef.df)) {
@@ -355,22 +355,23 @@ betula_ag <-  plyr::rbind.fill(betula_agb_kg_tree_df,
                                   tapes_tree_data$bot_genus %in% c("Betula") & 
                                   tapes_tree_data$min_org == "org",]) %>% 
                                 mutate(paper_ID = "tapes", 
-                                       func_ID = "tapes")) %>% 
+                                       func_ID = "tapes", 
+                                       country = "Germany")) %>% 
   unite( "ID", paper_ID, func_ID, remove = F) %>% distinct()
 
-betula_ag_labels <- betula_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree))%>% mutate_at("paper_ID", ~as.integer(.)) %>% 
-  left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Betula")) %>% select(paper_ID, country)) %>% distinct(), by = "paper_ID" ) %>% 
+betula_ag_labels <- betula_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree))%>% #mutate_at("paper_ID", ~as.integer(.)) %>% 
+  left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Betula")) %>% select(paper_ID, country)) %>% distinct() %>% mutate_at("paper_ID", ~as.character(.)), by = "paper_ID" ) %>% 
   mutate(country_code = toupper(substr(country, start = 1, stop = 2)),
          label_name = paste0(ID, ", ",country_code))
 
-ggplot(data = betula_ag %>% filter(!(ID %in% c("36_1", "38_1", "38_2", "38_3", "38_4", "38_5"))) #%>% filter(!(ID %in% c("16_4", "16_5", "36_1", "30_agb", "9_3", "9_4", "6_agb", "38_1", "38_2", "38_3", "38_4", "38_5")))
+ggplot(data = betula_ag %>% filter(!(ID %in% c("36_1", "34_4")))# , "38_1", "38_2", "38_3", "38_4", "38_5"))) #%>% filter(!(ID %in% c("16_4", "16_5", "36_1", "30_agb", "9_3", "9_4", "6_agb", "38_1", "38_2", "38_3", "38_4", "38_5")))
        )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-            data = (ungroup(betula_ag_labels  %>% filter(!(ID %in% c("36_1", "38_1", "38_2", "38_3", "38_4", "38_5")))  
+            data = (ungroup(betula_ag_labels %>% filter(!(ID %in% c("36_1", "34_4")))#, "38_1", "38_2", "38_3", "38_4", "38_5")))  
                             )))+
   theme_bw()+
   #theme(legend.position="none")+
