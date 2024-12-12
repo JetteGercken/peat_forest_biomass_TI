@@ -175,7 +175,7 @@ betula_func <- plyr::rbind.fill(
 tree_data_betula <- trees_data[trees_data$bot_genus %in% c("Betula") & trees_data$min_org == "org",]  
 betula_agb_kg_tree <- vector("list", length = nrow(tree.df))
 for (i in 1:nrow(betula_func)){
-  # i = 10
+  # i = 1
   
   paper_id <- betula_func$paper_ID[i]
   func_id <- betula_func$func_ID[i]  # ID of the function in literature research csv
@@ -186,7 +186,7 @@ for (i in 1:nrow(betula_func)){
   variables <- betula_func$variables[i] # input variables for respective function 
   # if the ln status is == "ln", we have to later on backtransform the results.
   # to build the function automatically tho, we have to remove the ln from the function. column
-  func <- ifelse(!is.na(ln_stat) & ln_stat == "ln", 
+  func <- ifelse(!is.na(ln_stat) & ln_stat == "ln" | !is.na(ln_stat) & ln_stat == "log10", 
                  paste0(gsub(".*\\((.*)\\).*", "\\1", sub('\\=.*', '', func)), '=', sub('.*=', '', func)), # select before and after symbol: https://stackoverflow.com/questions/37051288/extract-text-after-a-symbol-in-r
                  func)
   
@@ -226,7 +226,9 @@ for (i in 1:nrow(betula_func)){
   # convert results to a numeric vector if needed
   
   tree.df <- as.data.frame(cbind(tree_data_betula, "B_kg_tree" = c(bio_tree), "paper_ID" = c(paper_id), "func_ID" = c(func_id), "unit_B" = c(unit), "logarithm_B" = c(ln_stat), "compartiment" = c(comp))) # 
-  tree.df <- tree.df %>% mutate(  B_kg_tree = ifelse(!is.na(logarithm_B) & logarithm_B == "ln", exp(B_kg_tree), B_kg_tree), # backtransform  the ln 
+  tree.df <- tree.df %>% mutate(  B_kg_tree = case_when(!is.na(logarithm_B) & logarithm_B == "ln" ~ exp(B_kg_tree), 
+                                                        !is.na(logarithm_B) & logarithm_B == "log10" ~ 10^(B_kg_tree), 
+                                                        TRUE ~ B_kg_tree), # backtransform  the ln 
                                   B_kg_tree = case_when(unit_B == "kg" ~ as.numeric(B_kg_tree), 
                                                         unit_B == "g" ~ as.numeric(B_kg_tree)/1000, 
                                                         TRUE ~ B_kg_tree))
