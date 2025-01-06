@@ -54,10 +54,6 @@ bio_func_df <- bio_func_df %>%
             by = c("title", "author", "year")) 
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 
-# bio_func_df <- bio_func_df %>% mutate(a = case_when(str_detect(species, "Alnus") & paper_ID == "16" & func_ID == "4" ~ -2.86990000, 
-#                                      str_detect(species, "Alnus") & paper_ID == "16" & func_ID == "5" ~ -1.68460000,
-#                                      TRUE ~ a), 
-#                                      function. = ifelse(str_detect(species, "Alnus") & paper_ID == "12" & func_ID == "2", "B_g = a*( DBH_cm^2*H_m )^b", function.))
 
 
 # 1. Biomass calculations -------------------------------------------------
@@ -89,7 +85,7 @@ for (i in 1:nrow(alnus_func)){
   variables <- alnus_func$variables[i] # input variables for respective function 
  # if the ln status is == "ln", we have to later on backtransform the results.
   # to build the function automatically tho, we have to remove the ln from the function. column
-  func <- ifelse(!is.na(ln_stat) & ln_stat == "ln", 
+  func <- ifelse(!is.na(ln_stat) & ln_stat == "ln" | !is.na(ln_stat) & ln_stat == "log10", 
                  paste0(gsub(".*\\((.*)\\).*", "\\1", sub('\\=.*', '', func)), '=', sub('.*=', '', func)), # select before and after symbol: https://stackoverflow.com/questions/37051288/extract-text-after-a-symbol-in-r
                  func)
   
@@ -129,7 +125,9 @@ for (i in 1:nrow(alnus_func)){
   # convert results to a numeric vector if needed
   
   tree.df <- as.data.frame(cbind(tree_data_alnus, "B_kg_tree" = c(bio_tree), "paper_ID" = c(paper_id), "func_ID" = c(func_id), "unit_B" = c(unit), "logarithm_B" = c(ln_stat), "compartiment" = c(comp))) # 
-  tree.df <- tree.df %>% mutate(  B_kg_tree = ifelse(!is.na(logarithm_B) & logarithm_B == "ln", exp(B_kg_tree), B_kg_tree), # backtransform  the ln 
+  tree.df <- tree.df %>% mutate(  B_kg_tree = case_when(!is.na(logarithm_B) & logarithm_B == "ln" ~ exp(B_kg_tree), 
+                                                        !is.na(logarithm_B) & logarithm_B == "log10" ~ 10^(B_kg_tree), 
+                                                        TRUE ~ B_kg_tree), # backtransform  the ln 
                                   B_kg_tree = case_when(unit_B == "kg" ~ as.numeric(B_kg_tree), 
                                                         unit_B == "g" ~ as.numeric(B_kg_tree)/1000, 
                                                         TRUE ~ B_kg_tree))
@@ -301,53 +299,6 @@ ggplot(data = ungroup(alnus_ag) %>% filter(!(ID %in% c("13_1"))) # "16_4" and "1
  #theme(legend.position="none")+
   ggtitle("Alnus Biomass kg/tree by diameter cm")
 
-# 3d plot including height: https://stackoverflow.com/questions/45052188/how-to-plot-3d-scatter-diagram-using-ggplot
-install.packages("plotly")
-library(plotly)
-
-plot_ly(x=alnus_ag$DBH_cm, y= alnus_ag$H_m, z = alnus_ag$B_kg_tree, 
-        type="scatter3d", 
-        color=alnus_ag$ID, 
-        size = 0.5)  
-# %>% add_trace(x=alnus_ag$DBH_cm, y= alnus_ag$H_m, z = alnus_ag$B_kg_tree,color=alnus_ag$ID, 
-#                 type="scatter3d", mode="lines",
-#                 line = list(width=8),
-#                 opacity = 1) 
-
-library(splines)
-fit <- lm(cbind(alnus_ag$DBH_cm, alnus_ag$H_m) ~ ns(alnus_ag$B_kg_tree, df = length(unique(alnus_ag$ID))))
-
-#The fitted values will be returned in a two-column matrix by predict(fit). To plot the result, you can use rgl:
-install.packages("rgl")
-  library(rgl)
-
-lines3d(cbind(predict(fit), z = alnus_ag$B_kg_tree))
-
-plot(plot3d(alnus_ag$DBH_cm, alnus_ag$H_m, alnus_ag$B_kg_tree, colors = alnus_ag$ID))
-
-# %>% 
-#   add_trace(x=alnus_ag$DBH_cm, y= alnus_ag$H_m, z = alnus_ag$B_kg_tree, 
-#             color = alnus_ag$ID,
-#             type = "scatter3d",
-#             mode = "lines", 
-#             trendline = "ols")
-
-# 3d plot including height: https://www.sthda.com/english/wiki/scatterplot3d-3d-graphics-r-software-and-data-visualization
-install.packages("scatterplot3d") # Install
-library("scatterplot3d") # load
-
-colors <- colors[as.factor(alnus_ag$ID)]
-rainbow(length(unique(alnus_ag$ID)))[as.factor(alnus_ag$ID)]
-
-scatterplot3d(alnus_ag[,c("DBH_cm", "H_m", "B_kg_tree")],
-              main="3D Scatter Plot",
-              xlab = "DBH (cm)",
-              ylab = "Height (m)",
-              zlab = "Biomass (kg tree-1)", 
-              color =  rainbow(length(unique(alnus_ag$ID)))[as.factor(alnus_ag$ID)])
-demo("regression")
-
-
 
 
 # 2.2. BETULA visuals --------------------------------------------------------------
@@ -367,14 +318,14 @@ betula_ag_labels <- betula_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(
   mutate(country_code = toupper(substr(country, start = 1, stop = 2)),
          label_name = paste0(ID, ", ",country_code))
 
-ggplot(data = betula_ag %>% filter(!(ID %in% c("36_1", "34_4", "17_1")))# , "38_1", "38_2", "38_3", "38_4", "38_5"))) #%>% filter(!(ID %in% c("16_4", "16_5", "36_1", "30_agb", "9_3", "9_4", "6_agb", "38_1", "38_2", "38_3", "38_4", "38_5")))
+ggplot(data = betula_ag %>% filter(!(ID %in% c("34_4", "36_1")))
        )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-            data = (ungroup(betula_ag_labels %>% filter(!(ID %in% c("36_1", "34_4", "17_1")))#, "38_1", "38_2", "38_3", "38_4", "38_5")))  
+            data = (ungroup(betula_ag_labels %>% filter(!(ID %in% c("34_4", "36_1")))# "17_1")))#, "38_1", "38_2", "38_3", "38_4", "38_5")))  
                             )))+
   theme_bw()+
   #theme(legend.position="none")+
@@ -433,8 +384,75 @@ input_cols <- (tree.df[,match(as.list(strsplit(args, '\\, ')[[1]]), names(tree.d
 
 
 
+# 3d plot including height: https://stackoverflow.com/questions/45052188/how-to-plot-3d-scatter-diagram-using-ggplot
+install.packages("plotly")
+library(plotly)
+
+plot_ly(x=alnus_ag$DBH_cm, y= alnus_ag$H_m, z = alnus_ag$B_kg_tree, 
+        type="scatter3d", 
+        color=alnus_ag$ID, 
+        size = 0.5)  
+# %>% add_trace(x=alnus_ag$DBH_cm, y= alnus_ag$H_m, z = alnus_ag$B_kg_tree,color=alnus_ag$ID, 
+#                 type="scatter3d", mode="lines",
+#                 line = list(width=8),
+#                 opacity = 1) 
+
+library(splines)
+fit <- lm(cbind(alnus_ag$DBH_cm, alnus_ag$H_m) ~ ns(alnus_ag$B_kg_tree, df = length(unique(alnus_ag$ID))))
+
+#The fitted values will be returned in a two-column matrix by predict(fit). To plot the result, you can use rgl:
+install.packages("rgl")
+library(rgl)
+
+lines3d(cbind(predict(fit), z = alnus_ag$B_kg_tree))
+
+plot(plot3d(alnus_ag$DBH_cm, alnus_ag$H_m, alnus_ag$B_kg_tree, colors = alnus_ag$ID))
+
+# %>% 
+#   add_trace(x=alnus_ag$DBH_cm, y= alnus_ag$H_m, z = alnus_ag$B_kg_tree, 
+#             color = alnus_ag$ID,
+#             type = "scatter3d",
+#             mode = "lines", 
+#             trendline = "ols")
+
+# 3d plot including height: https://www.sthda.com/english/wiki/scatterplot3d-3d-graphics-r-software-and-data-visualization
+install.packages("scatterplot3d") # Install
+library("scatterplot3d") # load
+
+colors <- colors[as.factor(alnus_ag$ID)]
+rainbow(length(unique(alnus_ag$ID)))[as.factor(alnus_ag$ID)]
+
+scatterplot3d(alnus_ag[,c("DBH_cm", "H_m", "B_kg_tree")],
+              main="3D Scatter Plot",
+              xlab = "DBH (cm)",
+              ylab = "Height (m)",
+              zlab = "Biomass (kg tree-1)", 
+              color =  rainbow(length(unique(alnus_ag$ID)))[as.factor(alnus_ag$ID)])
+demo("regression")
+
+
+
+
+
 write.csv(bio_func_df, paste0(out.path, "bio_func_df.csv"), row.names = FALSE)
 
 
 
 ln(B_g) =  ln(a) + b*ln(DBH_cm) + c*(ln(    ( (    (H_m* (1 + a* (50/age)^c -1 )  ) / ( 1-b*H_m*((50/age)^c -1) )     ) / (  1+(a+b* ( (H_m* (1 + a* (50/age)^c -1 )  ) / ( 1-b*H_m*((50/age)^c -1) ) )   )*(0.5^c-1 ) )      )) )+ d*ln(age)
+
+
+# leafes or no leafes 
+bio_func_df %>% mutate(A_B = case_when(str_detect(species, "Alnus") ~ "Alnus",
+                                       str_detect(species, "Betula") ~ "Betula",
+                                       TRUE ~ NA)) %>% 
+  select(paper_ID, A_B, leafes_inkl) %>% 
+  distinct() %>% group_by(leafes_inkl, A_B) %>% 
+  summarise(n = n())
+
+bio_func_df %>% mutate(A_B = case_when(str_detect(species, "Alnus") ~ "Alnus",
+                                       str_detect(species, "Betula") ~ "Betula",
+                                       TRUE ~ NA)) %>% 
+  select(A_B, leafes_inkl, country) %>% 
+  filter(leafes_inkl %in% c("possible", "not included")) %>% 
+  distinct() %>% 
+  arrange(A_B) %>% ungroup()
