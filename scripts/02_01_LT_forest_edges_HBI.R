@@ -1343,7 +1343,7 @@ outer.intersection.warning.edges.list.nogeo <- vector("list", length = length(un
 
 for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){ 
   #i = 30
-  # i = which(grepl(50009, unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID)))
+  # i = which(grepl(70124, unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID)))
   
   #if(nrow(forest_edges.man.sub.2.outer.edges.nogeo) == 0){break}
   
@@ -1508,6 +1508,9 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
   ## create polygone of the  remaining cricle after both intersects are decucted
   # so the area of the frst remining circle minus the area of the second remaining circle 
   remaining.circle.17.1.and.2.poly <- if(nrow(inter.poly.17.2)==0){remaining.circle.17.1}else{sf::st_difference(remaining.circle.17.1, inter.poly.17.2)}
+  # as there was a problem with mutlipolygones and geometry collections being created in this step, we have to extract the collection into one poly
+  remaining.circle.17.1.and.2.poly <- if(isTRUE(sf::st_geometry_type(remaining.circle.17.1.and.2.poly) == "GEOMETRYCOLLECTION") == T){
+    sf::st_collection_extract(remaining.circle.17.1.and.2.poly, c("POLYGON"), warn = FALSE)} else{remaining.circle.17.1.and.2.poly}
   # print(plot(remaining.circle.17.1.and.2.poly$geometry, main = paste0(my.plot.id, "-", my.e.form.2,  "-", c.r3))) 
   
   ### 12m circle 
@@ -1544,6 +1547,11 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
   ## create polygone of the  remaining cricle after both intersects are decucted
   # so the area of the frst remining circle minus the area of the second remaining circle 
   remaining.circle.12.1.and.2.poly <- if(nrow(inter.poly.12.2)==0){remaining.circle.12.1}else{sf::st_difference(remaining.circle.12.1, inter.poly.12.2)}
+  # as there was a problem with mutlipolygones and geometry collections being created in this step, we have to extract the collection into one poly
+  remaining.circle.12.1.and.2.poly <- if(isTRUE(sf::st_geometry_type(remaining.circle.12.1.and.2.poly) == "GEOMETRYCOLLECTION") == T){
+    sf::st_collection_extract(remaining.circle.12.1.and.2.poly, c("POLYGON"), warn = FALSE)} else{remaining.circle.12.1.and.2.poly}
+  
+  
   
   ### 5m circle 
   my.circle = circle.5
@@ -1580,6 +1588,10 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
   ## create polygone of the  remaining cricle after both intersects are decucted
   # so the area of the frst remining circle minus the area of the second remaining circle 
   remaining.circle.5.1.and.2.poly <- if(nrow(inter.poly.5.2)==0){remaining.circle.5.1}else{sf::st_difference(remaining.circle.5.1, inter.poly.5.2)}
+  # as there was a problem with mutlipolygones and geometry collections being created in this step, we have to extract the collection into one poly
+  remaining.circle.5.1.and.2.poly <- if(isTRUE(sf::st_geometry_type(remaining.circle.5.1.and.2.poly) == "GEOMETRYCOLLECTION") == T){
+    sf::st_collection_extract(remaining.circle.5.1.and.2.poly, c("POLYGON"), warn = FALSE)} else{remaining.circle.5.1.and.2.poly}
+  
   
   
   #### calculate the area
@@ -1920,15 +1932,16 @@ trees.two.edges.nogeo <- trees_data %>%
               select(plot_ID) %>% distinct(), by = "plot_ID") %>% 
   # filter for trees located in plots htat haev only one forest edge
   semi_join(forest_edges.man %>% filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") #%>% 
+              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
+  distinct()#%>% 
 ## remove plots that do now have a corresponding center coordiante in the HBI loc document
 # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID")
 
 tree.status.two.edges.list.nogeo <- vector("list", length = length(trees.two.edges.nogeo$tree_ID))
 tree.points.two.edges.list.nogeo <- vector("list", length = length(trees.two.edges.nogeo$tree_ID))
 for (i in 1:length(trees.two.edges.nogeo$tree_ID)){ 
-  # i = 3225
-  # i = which(grepl(50122, (trees.two.edges.nogeo$plot_ID)))[2]
+  # i = 1988+57
+  # i = which(grepl(60093 , (trees.two.edges.nogeo$plot_ID)))[2]
   
   #if(nrow(trees.two.edges.nogeo) == 0){break}
   

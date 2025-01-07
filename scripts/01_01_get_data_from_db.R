@@ -621,7 +621,7 @@ write.csv(ld_momok, paste0(input.path, "momok_ld.csv"), row.names = FALSE)
 # get momok data
 # the path to the dataset on the netword folder is the following: \\wo-sfs-001v-ew\INSTITUT\a7forum\LEVEL I\BZE\Moormonitoring\Standorte\Lagemessungen... etc. 
 # we have to extract the individual sheepts from the excel workshet and then turn them into csvs
-raw.path.lit <- here::here("data/raw/")
+raw.path.lit <- paste0(here("data/raw"), "/")
 input.path <- paste0(here("data/input"), "/")
 # https://stackoverflow.com/questions/50238645/r-split-excel-workbook-into-csv-files
 # get names of the sheets in the excel working sheet in the raw folder
