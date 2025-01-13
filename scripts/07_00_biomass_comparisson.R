@@ -258,6 +258,13 @@ betula_agb_kg_tree_df <- plyr::rbind.fill(
 
 
 
+# 2. calculate biomass without leaf mass ----------------------------------
+
+# this part is meant to calcualte the woody biomass only. 
+# meaning we summ up the mass of all woody compartiments if there are
+# so if the method has compartiments apart from agb and if the plot has compartiments
+# woody_compartiments <- c("sw", "swb", "stw", "stb", "fwb")
+# of the woody type compartiment %in% woody_compartiments
 
 
 
