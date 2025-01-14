@@ -11,22 +11,22 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 # ----- 0.2. working directory -------------------------------------------------
 here::here()
 
-out.path <- ("output/out_data/") 
+out.path <- ("/output/out_data/") 
 
 # ----- 0.3 data import --------------------------------------------------------
 # LIVING TREES
 # hbi BE dataset: this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
 # here we should actually import a dataset called "HBI_trees_update_3.csv" which contains plot area and stand data additionally to 
 # tree data
-trees_data <- read.delim(file = here(paste0(out.path, "HBI_LT_update_3.csv")), sep = ",", dec = ".")
-tapes_tree_data <- read.delim(file = here(paste0(out.path, "HBI_LT_update_4.csv")), sep = ",", dec = ".")
-trees_removed <- read.delim(file = here(paste0(out.path, trees_data$inv[1], "_LT_removed.csv")), sep = ",", dec = ".")
+trees_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_3.csv"), sep = ",", dec = ".")
+tapes_tree_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_4.csv"), sep = ",", dec = ".")
+trees_removed <- read.delim(file =paste0(getwd(), out.path, trees_data$inv[1], "_LT_removed.csv"), sep = ",", dec = ".")
 # soil data
-soil_types_db <- read.delim(file = here(out.path, "soils_types_profil_db.csv"), sep = ",", dec = ".")
+soil_types_db <- read.delim(file = paste0(getwd(), out.path, "soils_types_profil_db.csv"), sep = ",", dec = ".")
 # importa data from literature research
-bio_func_df <- read.delim(file = here(paste0("data/input/", "B_lit_functions.csv")), sep = ",", dec = ".") %>% select(-c(func_ID, paper_ID))
+bio_func_df <- read.delim(file = paste0(getwd(), "/data/input/", "B_lit_functions.csv"), sep = ",", dec = ".") %>% select(-c(func_ID, paper_ID))
 # summaries
-all_summary <- read.delim(file = here(paste0(out.path, "HBI_LT_RG_DW_stocks_ha_all_groups.csv")), sep = ",", dec = ".")
+all_summary <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_RG_DW_stocks_ha_all_groups.csv"), sep = ",", dec = ".")
 LT_summary <- all_summary %>% filter(stand_component == "LT") %>% select(-c(dw_sp, dw_type, decay, inv_year, ST_LY_type, mean_d_cm, sd_d_cm, mean_l_m, sd_l_m, n_dec, n_dw_TY))
 
 
@@ -60,7 +60,7 @@ bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 # 1.1. ALNUS Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
-alnus_func <- plyr::rbind.fill(
+alnus_func <- dplyr::bind_rows(      # had to replace rbind.fill: https://stackoverflow.com/questions/44464441/r-is-there-a-good-replacement-for-plyrrbind-fill-in-dplyr
   unique(bio_func_df[bio_func_df$compartiment %in% c("agb", "abg") & stringr::str_detect(bio_func_df$species, "Alnus") & !is.na(bio_func_df$function.),]),
   ## function that only have compartiment wise biomass fucntion and non for agb remove all functions that do have an agb
   bio_func_df %>% anti_join(bio_func_df %>% filter(compartiment %in% c("agb", "abg")) %>% 
@@ -140,7 +140,7 @@ for (i in 1:nrow(alnus_func)){
 
 alnus_agb_kg_tree_df <- as.data.frame(rbindlist(alnus_agb_kg_tree)) %>% arrange(plot_ID, tree_ID, paper_ID)
 # summarise those trees biomass that was calculated by compartiment
-alnus_agb_kg_tree_df <- plyr::rbind.fill(
+alnus_agb_kg_tree_df <- dplyr::bind_rows(
   alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "agb",], 
   tree_data_alnus %>% 
     # join the tree info with the agb compartiment per tree
@@ -159,7 +159,7 @@ alnus_agb_kg_tree_df <- plyr::rbind.fill(
 # 1.2. BETULA Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
-betula_func <- plyr::rbind.fill(
+betula_func <- dplyr::bind_rows(
   unique(bio_func_df[bio_func_df$compartiment %in% c("agb", "abg") & stringr::str_detect(bio_func_df$species, "Betula") & !is.na(bio_func_df$function.),]),
   ## function that only have compartiment wise biomass fucntion and non for agb remove all functions that do have an agb
   bio_func_df %>% anti_join(bio_func_df %>% filter(compartiment %in% c("agb", "abg")) %>% 
@@ -239,7 +239,7 @@ for (i in 1:nrow(betula_func)){
 
 betula_agb_kg_tree_df <- as.data.frame(rbindlist(betula_agb_kg_tree)) %>% arrange(plot_ID, tree_ID, paper_ID)
 # summarise those trees biomass that was calculated by compartiment
-betula_agb_kg_tree_df <- plyr::rbind.fill(
+betula_agb_kg_tree_df <- dplyr::bind_rows(
   betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment == "agb",], 
   tree_data_betula %>% 
     # join the tree info with the agb compartiment per tree
@@ -279,7 +279,7 @@ betula_agb_kg_tree_df <- plyr::rbind.fill(
 # 2. visuals --------------------------------------------------------------
 # 2.1. ALNUS visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
-alnus_ag <-  plyr::rbind.fill(alnus_agb_kg_tree_df, 
+alnus_ag <-  dplyr::bind_rows(alnus_agb_kg_tree_df, 
                               (tapes_tree_data[
                                 tapes_tree_data$compartiment == "ag" & 
                                   tapes_tree_data$bot_genus %in% c("Alnus") & 
@@ -310,7 +310,7 @@ ggplot(data = ungroup(alnus_ag) %>% filter(!(ID %in% c("13_1"))) # "16_4" and "1
 
 # 2.2. BETULA visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
-betula_ag <-  plyr::rbind.fill(betula_agb_kg_tree_df, 
+betula_ag <-  dplyr::bind_rows(betula_agb_kg_tree_df, 
                               (tapes_tree_data[
                                 tapes_tree_data$compartiment == "ag" & 
                                   tapes_tree_data$bot_genus %in% c("Betula") & 
@@ -341,7 +341,7 @@ ggplot(data = betula_ag %>% filter(!(ID %in% c("34_4", "36_1")))
 
 
 # 2.3. Betula & Alnus together --------------------------------------------
-bet_aln_ag <- plyr::rbind.fill(alnus_ag, betula_ag)
+bet_aln_ag <- dplyr::bind_rows(alnus_ag, betula_ag)
 ggplot(data = bet_aln_ag %>% filter(!(ID %in% c("16_4", "16_5")))
 )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = as.factor(ID)  ))+
