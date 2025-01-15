@@ -123,18 +123,18 @@ here::here()
 
 # ----- 0.4.1. diameter correction Dahm parameters ------------------------
 # change region sheet to x_ld_neu aus code tables
- DBH_region <- read.delim(file = here("data/input/x_ld.csv"), sep = ",", dec = ".")
+ DBH_region <- read.delim(file = paste0(getwd(), "/data/input/x_ld.csv"), sep = ",", dec = ".")
  DBH_region <- DBH_region %>% dplyr::select( id ,kurz,lang, region)
  colnames(DBH_region) <- c("icode_reg", "reg_shortG", "reg_longG", "region")
 # 
 # # change tangenz csv to neu_k_tangens from code tabellen in 
- DBH_tan <- read.delim(file = here("data/input/k_tangenz.csv"), sep = ",", dec = ".")
+ DBH_tan <- read.delim(file = paste0(getwd(),"/data/input/k_tangenz.csv"), sep = ",", dec = ".")
 DBH_tan <- DBH_tan %>% dplyr::select( ba_bwi, region, tangenz)
 colnames(DBH_tan) <- c("SP_BWI1",  "region", "tangenz")
 # dput(DBH_tan)
 # 
 
-DBH_region_momok <- read.delim(file = here("data/input/momok_ld.csv"), sep = ",", dec = ".")
+DBH_region_momok <- read.delim(file = paste0(getwd(), "/data/input/momok_ld.csv"), sep = ",", dec = ".")
 
 
 # # ----- 0.4.2. nitrogen content datasets ----------------------------------
