@@ -40,6 +40,7 @@
       # #install.packages("ggrepel")
       #  options(tz="CA")
       #  install.packages("gridExtra")
+      #  install.packages("plotly")
       # ## analysis
       #  install.packages("corrplot")
       #  install.packages("SciViews")  # this is for ln and stuff --> to make the functions easier
@@ -97,6 +98,7 @@
     # library(ggrepel)
     options(tz="CA")
     library(gridExtra)
+    library(plotly)
     # analysis
     library(corrplot)
     library(SciViews)  # this is for ln and stuff --> to make the functions easier
@@ -133,11 +135,7 @@ here::here()
  colnames(DBH_region) <- c("icode_reg", "reg_shortG", "reg_longG", "region")
 # 
 # # change tangenz csv to neu_k_tangens from code tabellen in 
-<<<<<<< HEAD
- DBH_tan <- read.delim(file = paste0(getwd(), "/data/input/k_tangenz.csv"), sep = ",", dec = ".")
-=======
  DBH_tan <- read.delim(file = paste0(getwd(),"/data/input/k_tangenz.csv"), sep = ",", dec = ".")
->>>>>>> 61a56b146b157a990b6688e83db88622f5f6f558
 DBH_tan <- DBH_tan %>% dplyr::select( ba_bwi, region, tangenz)
 colnames(DBH_tan) <- c("SP_BWI1",  "region", "tangenz")
 # dput(DBH_tan)

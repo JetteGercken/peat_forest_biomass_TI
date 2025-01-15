@@ -60,7 +60,7 @@ bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 # 1.1. ALNUS Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
-alnus_func <- dplyr::bind_rows(      # had to replace rbind.fill: https://stackoverflow.com/questions/44464441/r-is-there-a-good-replacement-for-plyrrbind-fill-in-dplyr
+alnus_func <- dplyr::bind_rows(      # had to replace rbind.fill: https://stackoverflow.com/questions/18003717/efficient-way-to-rbind-data-frames-with-different-columns, https://stackoverflow.com/questions/44464441/r-is-there-a-good-replacement-for-plyrrbind-fill-in-dplyr 
   unique(bio_func_df[bio_func_df$compartiment %in% c("agb", "abg") & stringr::str_detect(bio_func_df$species, "Alnus") & !is.na(bio_func_df$function.),]),
   ## function that only have compartiment wise biomass fucntion and non for agb remove all functions that do have an agb
   bio_func_df %>% anti_join(bio_func_df %>% filter(compartiment %in% c("agb", "abg")) %>% 
@@ -140,17 +140,17 @@ for (i in 1:nrow(alnus_func)){
 
 alnus_agb_kg_tree_df <- as.data.frame(rbindlist(alnus_agb_kg_tree)) %>% arrange(plot_ID, tree_ID, paper_ID)
 # summarise those trees biomass that was calculated by compartiment
-alnus_agb_kg_tree_df <- plyr::rbind.fill(
-  alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "agb",], 
-  tree_data_alnus %>% 
+alnus_agb_kg_tree_df <- rbind(
+  setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "agb",]), 
+  setDT(tree_data_alnus %>% 
     # join the tree info with the agb compartiment per tree
     left_join(., (alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment != "agb",]) %>% #select only trees that don´t have a agb compartiment
                 dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
                 dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%      # sum up compartiemtns per tree per paper
                 mutate(compartiment = "agb", 
                        func_ID = "agb"), 
-              by =  c("plot_ID", "tree_ID"))
-  )
+              by =  c("plot_ID", "tree_ID"))), 
+  fill = T)
 
 
 
@@ -239,17 +239,17 @@ for (i in 1:nrow(betula_func)){
 
 betula_agb_kg_tree_df <- as.data.frame(rbindlist(betula_agb_kg_tree)) %>% arrange(plot_ID, tree_ID, paper_ID)
 # summarise those trees biomass that was calculated by compartiment
-betula_agb_kg_tree_df <- plyr::rbind.fill(
-  betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment == "agb",], 
-  tree_data_betula %>% 
+betula_agb_kg_tree_df <- rbind(
+ setDT( betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment == "agb",]), 
+ setDT(tree_data_betula %>% 
     # join the tree info with the agb compartiment per tree
     left_join(., (betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment != "agb",]) %>% #select only trees that don´t have a agb compartiment
                 group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
                 summarise(B_kg_tree = sum(B_kg_tree)) %>%      # sum up compartiemtns per tree per paper
                 mutate(compartiment = "agb", 
                        func_ID = "agb"), 
-              by =  c("plot_ID", "tree_ID"))
-)
+              by =  c("plot_ID", "tree_ID"))), 
+ fill = T)
 
 
 
@@ -279,14 +279,14 @@ betula_agb_kg_tree_df <- plyr::rbind.fill(
 # 2. visuals --------------------------------------------------------------
 # 2.1. ALNUS visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
-alnus_ag <-  dplyr::bind_rows(alnus_agb_kg_tree_df, 
-                              (tapes_tree_data[
-                                tapes_tree_data$compartiment == "ag" & 
-                                  tapes_tree_data$bot_genus %in% c("Alnus") & 
-                                  tapes_tree_data$min_org == "org",]) %>% 
-                                mutate(paper_ID = "tapes", 
-                                       func_ID = "tapes", 
-                                       country = "Germany")) %>% 
+alnus_ag <-  rbind(setDT(alnus_agb_kg_tree_df),
+                   setDT((tapes_tree_data[
+                     tapes_tree_data$compartiment == "ag" & 
+                       tapes_tree_data$bot_genus %in% c("Alnus") & 
+                       tapes_tree_data$min_org == "org",]) %>% 
+                       mutate(paper_ID = "tapes", 
+                              func_ID = "tapes", 
+                              country = "Germany")), fill = T ) %>% 
   unite( "ID", paper_ID, func_ID, remove = F) %>% distinct()
 
 alnus_ag_labels <- alnus_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
@@ -310,14 +310,15 @@ ggplot(data = ungroup(alnus_ag) %>% filter(!(ID %in% c("13_1"))) # "16_4" and "1
 
 # 2.2. BETULA visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
-betula_ag <-  dplyr::bind_rows(betula_agb_kg_tree_df, 
-                              (tapes_tree_data[
-                                tapes_tree_data$compartiment == "ag" & 
-                                  tapes_tree_data$bot_genus %in% c("Betula") & 
-                                  tapes_tree_data$min_org == "org",]) %>% 
-                                mutate(paper_ID = "tapes", 
-                                       func_ID = "tapes", 
-                                       country = "Germany")) %>% 
+betula_ag <- 
+  rbind(setDT(betula_agb_kg_tree_df),
+        setDT((tapes_tree_data[
+          tapes_tree_data$compartiment == "ag" & 
+            tapes_tree_data$bot_genus %in% c("Betula") & 
+            tapes_tree_data$min_org == "org",]) %>% 
+            mutate(paper_ID = "tapes", 
+                   func_ID = "tapes", 
+                   country = "Germany")), fill = T ) %>% 
   unite( "ID", paper_ID, func_ID, remove = F) %>% distinct()
 
 betula_ag_labels <- betula_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree))%>% #mutate_at("paper_ID", ~as.integer(.)) %>% 
