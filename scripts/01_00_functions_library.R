@@ -8,112 +8,114 @@
 # ----- 0. SETUP ---------------------------------------------------------------
 # ----- 0.1. Packages  ---------------------------------------------------------
 ## datamanagement
-       install.packages("usethis")
-       install.packages('RPostgreSQL')
-       install.packages("RPostgres")
-       install.packages("DBI")
-       install.packages("here")
-      # install.packages("readr")
-       install.packages("tidyverse")
-      # install.packages("tibble")
-      # install.packages("dplyr")
-       install.packages("data.table")
-       install.packages("broom")
-       #install.packages("purrr")
-       install.packages("later")
-       install.packages("devtools")
-       install.packages("plyr")
-       install.packages("RODBC")
-       install.packages("rstudioapi")
-       install.packages("gsubfn")
-       install.packages("sjmisc")
-       #install.packages("stringr")
-       install.packages("readODS")
-   #     ## laTex
-        install.packages("stargazer")  #for compatability with Latex
-        install.packages("tikzDevice") #for compatability with Latex#
- #       # visualisation
-        install.packages("ggthemes")
-        #install.packages("ggplot2")
-        install.packages("reshape2") #for multiple y values
-        install.packages("ggforce") #for zooming in parts of the plot
-        install.packages("ggrepel")
-        options(tz="CA")
-        install.packages("reshape2")
-        install.packages("gridExtra")
-      # analysis
-        install.packages("corrplot")
-        install.packages("SciViews")  # this is for ln and stuff --> to make the functions easier
-        install.packages("AICcmodavg")
- #    # # forest related
-        devtools::install_github("sollano/forestmangr")
-        install.packages("rBDAT")
-        install.packages("TapeR")
-       install.packages("pkgbuild")
-        if (! require("remotes"))install.packages("remotes")
-       remotes::install_gitlab("vochr/TapeS", build_vignettes = TRUE)
-     install.packages("magrittr")
-      # spatial
-       install.packages("sf")
-       install.packages("rgdal")
-       install.packages("terra")
-      install.packages("sfheaders")
-    install.packages("splancs")
+      #  install.packages("usethis")
+      #  install.packages('RPostgreSQL')
+      #  install.packages("RPostgres")
+      #  install.packages("DBI")
+      #  install.packages("here")
+      # #install.packages("readr")
+      #  install.packages("tidyverse")
+      # #install.packages("tibble")
+      # #install.packages("dplyr")
+      #  install.packages("data.table")
+      #  install.packages("broom")
+      # #install.packages("purrr")
+      #  install.packages("later")
+      # #install.packages("devtools")
+      #  install.packages("plyr")
+      #  install.packages("RODBC")
+      #  install.packages("rstudioapi")
+      #  install.packages("gsubfn")
+      #  install.packages("sjmisc")
+      # #install.packages("stringr")
+      #  install.packages("readODS")
+      # ## laTex
+      #  install.packages("stargazer")  #for compatability with Latex
+      #  install.packages("tikzDevice") #for compatability with Latex#
+      # ## visualisation
+      #  install.packages("ggthemes")
+      # #install.packages("ggplot2")
+      # #install.packages("reshape2") #for multiple y values
+      # #install.packages("ggforce") #for zooming in parts of the plot
+      # #install.packages("ggrepel")
+      #  options(tz="CA")
+      #  install.packages("gridExtra")
+      # ## analysis
+      #  install.packages("corrplot")
+      #  install.packages("SciViews")  # this is for ln and stuff --> to make the functions easier
+      # #install.packages("AICcmodavg")
+      # ## forest related
+      #  if (! require("remotes"))install.packages("remotes")
+      #  remotes::install_github("sollano/forestmangr")
+      #  install.packages("rBDAT")
+      #  install.packages("TapeR")
+      #  install.packages("pkgbuild")
+      #  if (! require("remotes"))install.packages("remotes")
+      #  remotes::install_gitlab("vochr/TapeS", build_vignettes = TRUE)
+      #  install.packages("magrittr")
+      # ## spatial
+      #  install.packages("sf")
+      # #install.packages("rgdal")
+      #  install.packages("terra")
+      #  Sys.setenv("R_REMOTES_NO_ERRORS_FROM_WARNINGS" = "true")
+      #  remotes::install_github("rspatial/terra")
+      #  install.packages("sfheaders")
+      #  install.packages("splancs")
  
 # ----- 0.2. require   ---------------------------------------------------------
-# datamanagement
-library(usethis)
-library(DBI)
-library(RPostgreSQL)
-library(RPostgres)
-library(here)
-library(readr)
-## library(tidyverse)
-library(tidyr)
-library(tibble)
-library(dplyr)
-library(data.table)
-library(broom)
-library(purrr)
-library(remotes)
-library(readODS)
-# library(devtools)
-library(RODBC)
-library(rstudioapi)
-library(gsubfn)
-library(stringr)
-   require(plyr)
-## laTex
-library(stargazer)  #for compatability with Latex
-library(tikzDevice) #for compatability with Latex
-## visualisation
-library(ggthemes)
-library(ggplot2)
-library(reshape2) #for multiple y values
-library(ggforce) #for zooming in parts of the plot
-library(ggrepel)
-library(gridExtra)
-options(tz="CA")
-## analysis
-library(corrplot)
-library(AICcmodavg)
-library(SciViews) # for ln and functions and stuff
-library(ggcorrplot)
-## forest related
-require(forestmangr)
-library(rBDAT)
-library(TapeR)
-require(TapeS)
-#require(tapes)
-library(magrittr)
-library(sjmisc)
-library(ggforce)                      # Load ggforce package
-## spatial 
-library(sf)
-# require(rgdal)
-#library(terra)
-library(sfheaders)
-library(splancs)
+    ## datamanagement
+    library(usethis)
+    library(DBI)
+    library(RPostgreSQL)
+    library(RPostgres)
+    library(here)
+    # library(readr)
+    library(tidyverse)
+    # library(tibble)
+    # library(dplyr)
+    library(data.table)
+    library(broom)
+    #library(purrr)
+    library(later)
+    #library(devtools)
+    library(plyr)
+    library(RODBC)
+    library(rstudioapi)
+    library(gsubfn)
+    library(sjmisc)
+    #library(stringr)
+    library(readODS)
+    require(remotes)
+    ## laTex
+    library(stargazer)  #for compatability with Latex
+    library(tikzDevice) #for compatability with Latex#
+    ## visualisation
+    library(ggthemes)
+    #library(ggplot2)
+    # library(reshape2) #for multiple y values
+    # library(ggforce) #for zooming in parts of the plot
+    # library(ggrepel)
+    options(tz="CA")
+    library(gridExtra)
+    # analysis
+    library(corrplot)
+    library(SciViews)  # this is for ln and stuff --> to make the functions easier
+    #library(AICcmodavg)
+    ## forest related
+    library(forestmangr)
+    library(rBDAT)
+    library(TapeR)
+    library(pkgbuild)
+    if (! require(remotes))install.packages("remotes")
+    remotes::install_gitlab("vochr/TapeS", build_vignettes = TRUE)
+    require(TapeS)
+    library(magrittr)
+    ## spatial
+    library(sf)
+    #library(rgdal)
+    library(terra)
+    library(sfheaders)
+    library(splancs)
 
 
 
