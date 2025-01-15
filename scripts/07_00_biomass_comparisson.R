@@ -43,14 +43,14 @@ tapes_tree_data <- tapes_tree_data %>% mutate(H_m = as.numeric(H_m))  %>% distin
 
 # assign IDs to papers and functions
 bio_func_df <- bio_func_df %>% 
-  distinct() %>% 
-  group_by(title, author, year) %>% 
-  mutate(func_ID = row_number()) %>% 
+  dplyr::distinct() %>% 
+  dplyr::group_by(title, author, year) %>% 
+  dplyr::mutate(func_ID = dplyr::row_number()) %>% 
   left_join(., 
             bio_func_df %>% 
               select(title, author, year) %>% 
               distinct() %>% 
-              mutate(paper_ID = row_number()), 
+              dplyr::mutate(paper_ID = dplyr::row_number()), 
             by = c("title", "author", "year")) 
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 
@@ -74,7 +74,7 @@ alnus_func <- dplyr::bind_rows(      # had to replace rbind.fill: https://stacko
 tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",]  
 alnus_agb_kg_tree <- vector("list", length = nrow(tree_data_alnus))
 for (i in 1:nrow(alnus_func)){
- # i = 1
+ # i = 16
   
   paper_id <- alnus_func$paper_ID[i]
   func_id <- alnus_func$func_ID[i]  # ID of the function in literature research csv
@@ -125,13 +125,13 @@ for (i in 1:nrow(alnus_func)){
   # convert results to a numeric vector if needed
   
   tree.df <- as.data.frame(cbind(tree_data_alnus, "B_kg_tree" = c(bio_tree), "paper_ID" = c(paper_id), "func_ID" = c(func_id), "unit_B" = c(unit), "logarithm_B" = c(ln_stat), "compartiment" = c(comp))) # 
-  tree.df <- tree.df %>% mutate(  B_kg_tree = case_when(!is.na(logarithm_B) & logarithm_B == "ln" ~ exp(B_kg_tree), 
-                                                        !is.na(logarithm_B) & logarithm_B == "log10" ~ 10^(B_kg_tree), 
-                                                        TRUE ~ B_kg_tree), # backtransform  the ln 
-                                  B_kg_tree = case_when(unit_B == "kg" ~ as.numeric(B_kg_tree), 
+  tree.df <- tree.df %>% mutate(  B_kg_tree = dplyr::case_when(!is.na(logarithm_B) & logarithm_B == "ln" ~ as.numeric(exp(B_kg_tree)), 
+                                                        !is.na(logarithm_B) & logarithm_B == "log10" ~ as.numeric(10^(B_kg_tree)), 
+                                                        TRUE ~ as.numeric(B_kg_tree))) %>%  # backtransform  the ln 
+                         mutate(  B_kg_tree = dplyr::case_when(unit_B == "kg" ~ as.numeric(B_kg_tree), 
                                                         unit_B == "g" ~ as.numeric(B_kg_tree)/1000, 
-                                                        TRUE ~ B_kg_tree))
-                               
+                                                        TRUE ~ as.numeric(B_kg_tree)))
+  
   alnus_agb_kg_tree[[i]] <- tree.df
   
   # Print or store results
@@ -140,13 +140,13 @@ for (i in 1:nrow(alnus_func)){
 
 alnus_agb_kg_tree_df <- as.data.frame(rbindlist(alnus_agb_kg_tree)) %>% arrange(plot_ID, tree_ID, paper_ID)
 # summarise those trees biomass that was calculated by compartiment
-alnus_agb_kg_tree_df <- dplyr::bind_rows(
+alnus_agb_kg_tree_df <- plyr::rbind.fill(
   alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "agb",], 
   tree_data_alnus %>% 
     # join the tree info with the agb compartiment per tree
     left_join(., (alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment != "agb",]) %>% #select only trees that don´t have a agb compartiment
-                group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
-                summarise(B_kg_tree = sum(B_kg_tree)) %>%      # sum up compartiemtns per tree per paper
+                dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+                dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%      # sum up compartiemtns per tree per paper
                 mutate(compartiment = "agb", 
                        func_ID = "agb"), 
               by =  c("plot_ID", "tree_ID"))
@@ -224,12 +224,12 @@ for (i in 1:nrow(betula_func)){
   # convert results to a numeric vector if needed
   
   tree.df <- as.data.frame(cbind(tree_data_betula, "B_kg_tree" = c(bio_tree), "paper_ID" = c(paper_id), "func_ID" = c(func_id), "unit_B" = c(unit), "logarithm_B" = c(ln_stat), "compartiment" = c(comp))) # 
-  tree.df <- tree.df %>% mutate(  B_kg_tree = case_when(!is.na(logarithm_B) & logarithm_B == "ln" ~ exp(B_kg_tree), 
-                                                        !is.na(logarithm_B) & logarithm_B == "log10" ~ 10^(B_kg_tree), 
-                                                        TRUE ~ B_kg_tree), # backtransform  the ln 
-                                  B_kg_tree = case_when(unit_B == "kg" ~ as.numeric(B_kg_tree), 
-                                                        unit_B == "g" ~ as.numeric(B_kg_tree)/1000, 
-                                                        TRUE ~ B_kg_tree))
+  tree.df <- tree.df %>% mutate(  B_kg_tree = dplyr::case_when(!is.na(logarithm_B) & logarithm_B == "ln" ~ as.numeric(exp(B_kg_tree)), 
+                                                                                 !is.na(logarithm_B) & logarithm_B == "log10" ~ as.numeric(10^(B_kg_tree)), 
+                                                                                 TRUE ~ as.numeric(B_kg_tree))) %>%  # backtransform  the ln 
+                        mutate(  B_kg_tree = dplyr::case_when(unit_B == "kg" ~ as.numeric(B_kg_tree), 
+                                                              unit_B == "g" ~ as.numeric(B_kg_tree)/1000, 
+                                                              TRUE ~ as.numeric(B_kg_tree)))
   
   betula_agb_kg_tree[[i]] <- tree.df
   
@@ -239,7 +239,7 @@ for (i in 1:nrow(betula_func)){
 
 betula_agb_kg_tree_df <- as.data.frame(rbindlist(betula_agb_kg_tree)) %>% arrange(plot_ID, tree_ID, paper_ID)
 # summarise those trees biomass that was calculated by compartiment
-betula_agb_kg_tree_df <- dplyr::bind_rows(
+betula_agb_kg_tree_df <- plyr::rbind.fill(
   betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment == "agb",], 
   tree_data_betula %>% 
     # join the tree info with the agb compartiment per tree
