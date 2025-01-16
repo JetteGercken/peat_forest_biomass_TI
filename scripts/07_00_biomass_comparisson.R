@@ -57,6 +57,21 @@ bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 
 
 # 1. Biomass calculations -------------------------------------------------
+# we need the biomass without leafes. 
+# so we have these 3 scenarios: 
+  # leafes are one of many compartiments and possible to be excluded --> possible
+      # L> we calculate all compartiments and only sum up the woody ones 
+  # leafes are included but not possible to be excluded --> included 
+      # L> these functions are excluded
+  # status of leafes is unklnown --> unknown
+      # L> there functions are excluded
+  # the leafes are not available as a compartiment --> not included 
+      # L> no further calcualtions necesarry, we just do the biomass for agb and thats it 
+
+view(bio_func_df[ bio_func_df$leafes_inkl == "possible" & "compartiment" != "agb", ])
+
+
+
 # 1.1. ALNUS Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
