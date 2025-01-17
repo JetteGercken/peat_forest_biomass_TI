@@ -68,31 +68,25 @@ bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
   # the leafes are not available as a compartiment --> not included 
       # L> no further calcualtions necesarry, we just do the biomass for agb and thats it 
 
-view(bio_func_df[ bio_func_df$leafes_inkl == "possible" & "compartiment" != "agb", ])
-
-
 
 # 1.1. ALNUS Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
-alnus_func <- dplyr::bind_rows(      # had to replace rbind.fill: https://stackoverflow.com/questions/18003717/efficient-way-to-rbind-data-frames-with-different-columns, https://stackoverflow.com/questions/44464441/r-is-there-a-good-replacement-for-plyrrbind-fill-in-dplyr 
-  unique(bio_func_df[bio_func_df$compartiment %in% c("agb", "abg") & stringr::str_detect(bio_func_df$species, "Alnus") & !is.na(bio_func_df$function.),]),
-  ## function that only have compartiment wise biomass fucntion and non for agb remove all functions that do have an agb
-  bio_func_df %>% anti_join(bio_func_df %>% filter(compartiment %in% c("agb", "abg")) %>% 
-                              select(author, title, year, species) %>% 
-                              distinct(), 
-                            by = c("author", "title", "year", "species")) %>% 
-    filter(!is.na(compartiment) & !is.na(function.) & compartiment %in% c("ndl","fwb" ,"sw") & stringr::str_detect(species, "Alnus"))
-  )
+alnus_func <- subset(bio_func_df, species %like% "Alnus" &     # select only Alnus specific species
+                            !is.na(function.) &                    # select only those papers with functions
+                            compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb", "abg"))            # select only those paper which have leafes not icluded or a possible compartimentalisation
+# add a column that combines func id and paper id
+alnus_func$ID <- paste0(alnus_func$paper_ID,"_", alnus_func$func_ID)
 
 # select alnus trees at organic sites
 tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",]  
 alnus_agb_kg_tree <- vector("list", length = nrow(tree_data_alnus))
 for (i in 1:nrow(alnus_func)){
- # i = 16
+ # i = 1
   
-  paper_id <- alnus_func$paper_ID[i]
+  paper_id <- alnus_func$paper_ID[i]# ID of the paper in literature research csv
   func_id <- alnus_func$func_ID[i]  # ID of the function in literature research csv
+  id <- alnus_func$ID[i]            # combination of func and paper id 
   func <- alnus_func$function.[i]   # biomass function taken from respective reference 
   unit <- alnus_func$unit_B[i]      # unit of biomass returned, when g then /1000 for kg
   comp <- alnus_func$compartiment[i] 
@@ -139,7 +133,7 @@ for (i in 1:nrow(alnus_func)){
   
   # convert results to a numeric vector if needed
   
-  tree.df <- as.data.frame(cbind(tree_data_alnus, "B_kg_tree" = c(bio_tree), "paper_ID" = c(paper_id), "func_ID" = c(func_id), "unit_B" = c(unit), "logarithm_B" = c(ln_stat), "compartiment" = c(comp))) # 
+  tree.df <- as.data.frame(cbind(tree_data_alnus, "B_kg_tree" = c(bio_tree), "paper_ID" = c(paper_id), "func_ID" = c(func_id), "ID" = c(id), "unit_B" = c(unit), "logarithm_B" = c(ln_stat), "compartiment" = c(comp))) # 
   tree.df <- tree.df %>% mutate(  B_kg_tree = dplyr::case_when(!is.na(logarithm_B) & logarithm_B == "ln" ~ as.numeric(exp(B_kg_tree)), 
                                                         !is.na(logarithm_B) & logarithm_B == "log10" ~ as.numeric(10^(B_kg_tree)), 
                                                         TRUE ~ as.numeric(B_kg_tree))) %>%  # backtransform  the ln 
@@ -152,20 +146,72 @@ for (i in 1:nrow(alnus_func)){
   # Print or store results
   print(paste(i, func_id))
 }
-
 alnus_agb_kg_tree_df <- as.data.frame(rbindlist(alnus_agb_kg_tree)) %>% arrange(plot_ID, tree_ID, paper_ID)
+
 # summarise those trees biomass that was calculated by compartiment
+  # normal  compatiments without ag: !(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb")) 
+## total ag
+  # ag for those papers that include already ndl alnus_func$ID[alnus_func$leafes_inkl == "included"] 
+  # can include ndl: alnus_func$ID[alnus_func$leafes_inkl == "possible"] 
+## wood ag 
+ # ag that doesnt include leafes alnus_func$ID[alnus_func$leafes_inkl == "not included"]
+ # ag that can include leafes but we exclude them: alnus_func$ID[alnus_func$leafes_inkl == "not included"] !(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl"))
+
+# now do we need thefilter which indentify the papers that do not come with a explicit function for ag  ?
+  # --> yes because we also have papers that have tree compartimens and ag functions 
+  # while if there is a ag function we want to use the results of that function and we want to aviod the ag be added up with the other compartiments 
+
+
+# had to replace rbind.fill: https://stackoverflow.com/questions/18003717/efficient-way-to-rbind-data-frames-with-different-columns, https://stackoverflow.com/questions/44464441/r-is-there-a-good-replacement-for-plyrrbind-fill-in-dplyr 
 alnus_agb_kg_tree_df <- rbind(
-  setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "agb",]), 
+  # seperate tree compartiments without ag 
+  setDT(alnus_agb_kg_tree_df[!(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb")),]),
+  # agb with leaf mass
+  setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb") & 
+                               alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl == "included"]),]), 
+  # agb calculated from compartiments when function for agb explicitly is not provided in the paper
   setDT(tree_data_alnus %>% 
     # join the tree info with the agb compartiment per tree
-    left_join(., (alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment != "agb",]) %>% #select only trees that don´t have a agb compartiment
-                dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
-                dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%      # sum up compartiemtns per tree per paper
+    left_join(., (alnus_agb_kg_tree_df[!(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb")) &            # select seperate compartiments that are not ag or leafes 
+                # filter for those papers that don´t include a function for agb explicitly
+                # but contain all compartiments to cacualte it (possible)
+                                          alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl == "possible"]), ]) %>% #select only trees that don´t have a agb compartiment
+                anti_join(., 
+                          bio_func_df %>% 
+                            filter(compartiment %in% c("agb", "abg")) %>% 
+                            select(paper_ID, func_ID) %>% 
+                            distinct() %>% 
+                            mutate(func_ID = as.character(func_ID)), 
+                          by = c("paper_ID", "func_ID")) %>% 
+                dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%                                    #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+                dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
                 mutate(compartiment = "agb", 
                        func_ID = "agb"), 
-              by =  c("plot_ID", "tree_ID"))), 
-  fill = T)
+              by =  c("plot_ID", "tree_ID"))),
+  # biomass of trees where function already excludes leaf mass
+  setDT((alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb") &          # compartiment ag
+                               alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl == "not included"])   # of papers which have "not included"
+                               , ]) %>% mutate(compartiment = "w_agb")),  
+  # biomass of trees where function does not already excludes leaf mass and we have to sum up the woody compartiments  
+  setDT(tree_data_alnus %>% 
+          # join the tree info with the agb compartiment per tree
+          left_join(., (alnus_agb_kg_tree_df[!(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl")) &            # select seperate compartiments that are not ag or leafes 
+                                alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl == "possible"]), ]) %>%   # of papers which have "possible"
+                      anti_join(., 
+                                bio_func_df %>% 
+                                  filter(compartiment %in% c("agb", "abg")) %>% 
+                                  select(paper_ID, func_ID) %>% 
+                                  distinct() %>% 
+                                  mutate(func_ID = as.character(func_ID)), 
+                                by = c("paper_ID", "func_ID")) %>% 
+                      dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%                                    #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+                      dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
+                      mutate(compartiment = "w_agb",
+                             func_ID = "w_agb"), 
+          by =  c("plot_ID", "tree_ID")) ),
+  fill = T) 
+
+
 
 
 
@@ -301,8 +347,7 @@ alnus_ag <-  rbind(setDT(alnus_agb_kg_tree_df),
                        tapes_tree_data$min_org == "org",]) %>% 
                        mutate(paper_ID = "tapes", 
                               func_ID = "tapes", 
-                              country = "Germany")), fill = T ) %>% 
-  unite( "ID", paper_ID, func_ID, remove = F) %>% distinct()
+                              country = "Germany")), fill = T )
 
 alnus_ag_labels <- alnus_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
   left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Alnus")) %>% select(paper_ID, country)) %>% distinct()%>% mutate_at("paper_ID", ~as.character(.)), by = "paper_ID" ) %>% 
