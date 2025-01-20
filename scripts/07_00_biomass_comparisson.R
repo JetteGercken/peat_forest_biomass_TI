@@ -229,6 +229,7 @@ for (i in 1:nrow(betula_func)){
   paper_id <- betula_func$paper_ID[i]
   func_id <- betula_func$func_ID[i]  # ID of the function in literature research csv
   func <- betula_func$function.[i]   # biomass function taken from respective reference 
+  id <- betula_func$ID[i]            # combination of func and paper id 
   unit <- betula_func$unit_B[i]      # unit of biomass returned, when g then /1000 for kg
   comp <- betula_func$compartiment[i] 
   ln_stat <- betula_func$logarithm_B[i]
@@ -274,7 +275,7 @@ for (i in 1:nrow(betula_func)){
   
   # convert results to a numeric vector if needed
   
-  tree.df <- as.data.frame(cbind(tree_data_betula, "B_kg_tree" = c(bio_tree), "paper_ID" = c(paper_id), "func_ID" = c(func_id), "unit_B" = c(unit), "logarithm_B" = c(ln_stat), "compartiment" = c(comp))) # 
+  tree.df <- as.data.frame(cbind(tree_data_betula, "B_kg_tree" = c(bio_tree), "paper_ID" = c(paper_id), "func_ID" = c(func_id), "ID" = c(id), "unit_B" = c(unit), "logarithm_B" = c(ln_stat), "compartiment" = c(comp)))
   tree.df <- tree.df %>% mutate(  B_kg_tree = dplyr::case_when(!is.na(logarithm_B) & logarithm_B == "ln" ~ as.numeric(exp(B_kg_tree)), 
                                                                                  !is.na(logarithm_B) & logarithm_B == "log10" ~ as.numeric(10^(B_kg_tree)), 
                                                                                  TRUE ~ as.numeric(B_kg_tree))) %>%  # backtransform  the ln 
@@ -367,9 +368,9 @@ betula_wagb_tapes <- setDT(subset(tapes_tree_data, select = -c(B_kg_tree,   N_kg
 
 
 
-# 2. visuals --------------------------------------------------------------
-# 2.1. ALNUS visuals --------------------------------------------------------------
-# 2.1.1. ALNUS ag visuals --------------------------------------------------------------
+# 3. visuals --------------------------------------------------------------
+# 3.1. ALNUS visuals --------------------------------------------------------------
+# 3.1.1. ALNUS ag visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 alnus_ag <-  rbind(setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "agb"]),
                    setDT((tapes_tree_data[
@@ -382,24 +383,26 @@ alnus_ag <-  rbind(setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment 
 
 alnus_ag_labels <- alnus_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
   left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Alnus")) %>% select(paper_ID, country)) %>% distinct()%>% mutate_at("paper_ID", ~as.character(.)), by = "paper_ID" ) %>% 
-  mutate(country_code = toupper(substr(country, start = 1, stop = 2)),
+  mutate(country_code = ifelse(func_ID == "tapes", "GER", toupper(substr(country, start = 1, stop = 2))),
+         ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
          label_name = paste0(ID, ", ",country_code))
 
-ggplot(data = ungroup(alnus_ag) %>% filter(!(ID %in% c("13_1"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+ggplot(data = ungroup(alnus_ag) # %>% filter(!(ID %in% c("13_1"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
        )+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
  geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-           data = alnus_ag_labels%>% filter(!(ID %in% c("13_1"))))+
+           data = alnus_ag_labels # %>% filter(!(ID %in% c("13_1")))
+           )+
   theme_bw()+
  #theme(legend.position="none")+
   ggtitle("Alnus Biomass kg/tree by diameter cm")
 
 
 
-# 2.1.2. ALNUS wabg visuals --------------------------------------------------------------
+# 3.1.2. ALNUS wabg visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 alnus_wag <-  rbind(setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "w_agb", ]),
                    setDT(alnus_wagb_tapes), fill = T )
@@ -408,19 +411,19 @@ alnus_wag_labels <- alnus_wag %>% group_by(paper_ID, func_ID, ID) %>% summarise(
   left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Alnus")) %>% select(paper_ID, country)) %>% distinct() 
              # mutate_at("paper_ID", ~as.character(.))
             , by = "paper_ID" ) %>% 
-  mutate(country_code = toupper(substr(country, start = 1, stop = 2)),
+  mutate(country_code = ifelse(func_ID == "tapes", "GER", toupper(substr(country, start = 1, stop = 2))),
          ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
          label_name = paste0(ID, ", ",country_code)) %>% 
   distinct()
 
-ggplot(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("4_w_agb"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+ggplot(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("4_w_agb", "13_1"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
 )+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-            data = alnus_wag_labels %>% filter(!(ID %in% c("4_w_agb")))
+            data = alnus_wag_labels %>% filter(!(ID %in% c("4_w_agb", "13_1")))
             )+
   theme_bw()+
   #theme(legend.position="none")+
@@ -429,10 +432,12 @@ ggplot(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("4_w_agb"))) # "16_4" an
 alnus_wag %>% filter(is.na())
  
 
-# 2.2. BETULA visuals --------------------------------------------------------------
+# 3.2. BETULA visuals --------------------------------------------------------------
+# 3.2.1. BETULA ag visuals --------------------------------------------------------------
+
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 betula_ag <- 
-  rbind(setDT(betula_agb_kg_tree_df),
+  rbind(setDT(betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment == "agb", ]),
         setDT((tapes_tree_data[
           tapes_tree_data$compartiment == "ag" & 
             tapes_tree_data$bot_genus %in% c("Betula") & 
@@ -444,17 +449,19 @@ betula_ag <-
 
 betula_ag_labels <- betula_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree))%>% #mutate_at("paper_ID", ~as.integer(.)) %>% 
   left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Betula")) %>% select(paper_ID, country)) %>% distinct() %>% mutate_at("paper_ID", ~as.character(.)), by = "paper_ID" ) %>% 
-  mutate(country_code = toupper(substr(country, start = 1, stop = 2)),
-         label_name = paste0(ID, ", ",country_code))
+  mutate(country_code = ifelse(func_ID == "tapes", "GER", toupper(substr(country, start = 1, stop = 2))),
+         ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
+         label_name = paste0(ID, ", ",country_code)) %>% 
+  distinct()
 
-ggplot(data = betula_ag %>% filter(!(ID %in% c("34_4", "36_1")))
+ggplot(data = betula_ag  %>% filter(!(ID %in% c("36_1", "34_4")))
        )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-            data = (ungroup(betula_ag_labels %>% filter(!(ID %in% c("34_4", "36_1")))# "17_1")))#, "38_1", "38_2", "38_3", "38_4", "38_5")))  
+            data = (ungroup(betula_ag_labels  %>% filter(!(ID %in% c("36_1", "34_4")))# "17_1")))#, "38_1", "38_2", "38_3", "38_4", "38_5")))  
                             )))+
   theme_bw()+
   #theme(legend.position="none")+
@@ -462,7 +469,40 @@ ggplot(data = betula_ag %>% filter(!(ID %in% c("34_4", "36_1")))
 
 
 
-# 2.3. Betula & Alnus together --------------------------------------------
+# 3.1.2. BETULA wabg visuals --------------------------------------------------------------
+# avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
+betula_wag <-  rbind(setDT(betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment == "w_agb", ]),
+                    setDT(betula_wagb_tapes), fill = T )
+
+betula_wag_labels <- betula_wag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
+  left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Betula")) %>% select(paper_ID, country)) %>% distinct() 
+            # mutate_at("paper_ID", ~as.character(.))
+            , by = "paper_ID" ) %>% 
+  mutate(country_code = ifelse(func_ID == "tapes", "GER", toupper(substr(country, start = 1, stop = 2))),
+         ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
+         label_name = paste0(ID, ", ",country_code)) %>% 
+  distinct()
+
+ggplot(data = ungroup(betula_wag) %>% filter(!(ID %in% c("34_w_agb"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+)+ 
+  geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
+  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
+  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
+  # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
+  geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
+            data = betula_wag_labels %>% filter(!(ID %in% c("34_w_agb")))
+  )+
+  theme_bw()+
+  #theme(legend.position="none")+
+  ggtitle("betula Biomass kg/tree by diameter cm")
+
+
+
+
+
+
+
+# 3.3. Betula & Alnus together --------------------------------------------
 bet_aln_ag <- dplyr::bind_rows(alnus_ag, betula_ag)
 ggplot(data = bet_aln_ag %>% filter(!(ID %in% c("16_4", "16_5")))
 )+ # "16_4" and "16_5" are somehow weird so i kicked it out 

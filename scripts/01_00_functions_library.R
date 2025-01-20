@@ -108,14 +108,14 @@
     library(rBDAT)
     library(TapeR)
     library(pkgbuild)
-    if (! require(remotes))install.packages("remotes")
-    remotes::install_gitlab("vochr/TapeS", build_vignettes = TRUE)
+    # if (! require(remotes))install.packages("remotes")
+    # remotes::install_gitlab("vochr/TapeS", build_vignettes = TRUE)
     require(TapeS)
     library(magrittr)
     ## spatial
     library(sf)
     #library(rgdal)
-    library(terra)
+    #library(terra)
     library(sfheaders)
     library(splancs)
 
