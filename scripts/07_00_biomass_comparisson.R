@@ -337,7 +337,7 @@ betula_agb_kg_tree_df <- rbind(
 
 # 2. tapeS wagb compartiement calculation ---------------------------------------------------------
 # 2.1. alnus tapeS wagb compartiement calculation ---------------------------------------------------------
-alnus_wagb_tapes <- setDT(tapes_tree_data[, -c("B_kg_tree",   "N_kg_tree",   "C_kg_tree", "compartiment")])[setDT(
+alnus_wagb_tapes <- setDT(subset(tapes_tree_data, select = -c(B_kg_tree,   N_kg_tree,   C_kg_tree, compartiment)))[setDT(
   tapes_tree_data [!(tapes_tree_data$compartiment %in% c("ag", "bg", "total", "ndl")) & 
   tapes_tree_data$bot_genus %in% c("Alnus") & 
   tapes_tree_data$min_org == "org",] %>% 
@@ -351,7 +351,7 @@ alnus_wagb_tapes <- setDT(tapes_tree_data[, -c("B_kg_tree",   "N_kg_tree",   "C_
   ), on = .(plot_ID, tree_ID) ]
 
 # 2.2. betula tapeS wagb compartiement calculation ---------------------------------------------------------
-betula_wagb_tapes <- setDT(tapes_tree_data[, -c("B_kg_tree",   "N_kg_tree",   "C_kg_tree", "compartiment")])[setDT(
+betula_wagb_tapes <- setDT(subset(tapes_tree_data, select = -c(B_kg_tree,   N_kg_tree,   C_kg_tree, compartiment)))[setDT(
   tapes_tree_data [!(tapes_tree_data$compartiment %in% c("ag", "bg", "total", "ndl")) & 
                      tapes_tree_data$bot_genus %in% c("Betula") & 
                      tapes_tree_data$min_org == "org",] %>% 
@@ -371,7 +371,7 @@ betula_wagb_tapes <- setDT(tapes_tree_data[, -c("B_kg_tree",   "N_kg_tree",   "C
 # 2.1. ALNUS visuals --------------------------------------------------------------
 # 2.1.1. ALNUS ag visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
-alnus_ag <-  rbind(setDT(alnus_agb_kg_tree_df),
+alnus_ag <-  rbind(setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "agb"]),
                    setDT((tapes_tree_data[
                      tapes_tree_data$compartiment == "ag" & 
                        tapes_tree_data$bot_genus %in% c("Alnus") & 
@@ -426,7 +426,8 @@ ggplot(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("4_w_agb"))) # "16_4" an
   #theme(legend.position="none")+
   ggtitle("Alnus Biomass kg/tree by diameter cm")
 
-
+alnus_wag %>% filter(is.na())
+ 
 
 # 2.2. BETULA visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 

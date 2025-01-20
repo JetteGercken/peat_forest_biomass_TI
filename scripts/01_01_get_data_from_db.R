@@ -622,7 +622,7 @@ write.csv(ld_momok, paste0(input.path, "momok_ld.csv"), row.names = FALSE)
 # the path to the dataset on the netword folder is the following: \\wo-sfs-001v-ew\INSTITUT\a7forum\LEVEL I\BZE\Moormonitoring\Standorte\Lagemessungen... etc. 
 # we have to extract the individual sheepts from the excel workshet and then turn them into csvs
 raw.path.lit <- here::here("data/raw/")
-input.path <- paste0(here("data/input"), "/")
+input.path <- paste0(here::here("data/input"), "/")
 # https://stackoverflow.com/questions/50238645/r-split-excel-workbook-into-csv-files
 # get names of the sheets in the excel working sheet in the raw folder
 sheets <- readODS::list_ods_sheets(paste0(raw.path.lit, "literature_research_functions.ods"))
@@ -635,7 +635,7 @@ filenames <- paste0(input.path, paste0(sheet_names, ".csv"))
 purrr::walk2(
   dats,            # List of tibbles
   sheet_names,     # Names of the tibbles
-  ~ write.csv(.x, file = file.path(here("data/input"), paste0(.y, ".csv")), row.names = FALSE)
+  ~ write.csv(.x, file = file.path(here::here("data/input"), paste0(.y, ".csv")), row.names = FALSE)
 )
 
 
