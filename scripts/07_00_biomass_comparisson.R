@@ -186,7 +186,8 @@ alnus_agb_kg_tree_df <- rbind(
                 dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
                 dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                      # sum up compartiemtns per tree per paper
                 mutate(compartiment = "agb",                                          # name the calculates sum of compartiments agb
-                       func_ID = "agb"), 
+                       func_ID = "agb", 
+                       ID = paste0(paper_ID, "_", func_ID)), 
               by =  c("plot_ID", "tree_ID")) ),
   # biomass of trees where function already EXcludes leaf mass
   setDT((alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb") &          # compartiment ag
@@ -200,7 +201,8 @@ alnus_agb_kg_tree_df <- rbind(
                       dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
                       dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
                       mutate(compartiment = "w_agb",
-                             func_ID = "w_agb"), 
+                             func_ID = "w_agb", 
+                             ID = paste0(paper_ID, "_", func_ID)), 
           by =  c("plot_ID", "tree_ID")) ),
   fill = T) %>% 
   arrange(plot_ID, tree_ID, paper_ID, func_ID)
@@ -210,14 +212,14 @@ alnus_agb_kg_tree_df <- rbind(
 
 
 
-# 1.2. BETULA Biomass calculations -------------------------------------------------
+# 1.2. BETULA  -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
 betula_func <- subset(bio_func_df, species %like% "Betula" &     # select only Alnus specific species
                         !is.na(function.) &                    # select only those papers with functions
                         compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb", "abg"))            # select only those paper which have leafes not icluded or a possible compartimentalisation
 
-
+# 1.2.1. BETULA compartiment biomass calculations -------------------------------------------------
 # select alnus trees at organic sites
 tree_data_betula <- trees_data[trees_data$bot_genus %in% c("Betula") & trees_data$min_org == "org",]  
 betula_agb_kg_tree <- vector("list", length = nrow(tree.df))
@@ -285,7 +287,10 @@ for (i in 1:nrow(betula_func)){
   # Print or store results
   print(paste(i, func_id))
 }
+betula_agb_kg_tree_df <- as.data.frame(rbindlist(betula_agb_kg_tree)) %>% arrange(plot_ID, tree_ID, paper_ID)
 
+
+# 1.2.2. BETULA agb, wagb compartiement calculation ---------------------------------------------------------
 # had to replace rbind.fill: https://stackoverflow.com/questions/18003717/efficient-way-to-rbind-data-frames-with-different-columns, https://stackoverflow.com/questions/44464441/r-is-there-a-good-replacement-for-plyrrbind-fill-in-dplyr 
 betula_agb_kg_tree_df <- rbind(
   # seperate tree compartiments without ag 
@@ -306,7 +311,8 @@ betula_agb_kg_tree_df <- rbind(
               dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
               dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                      # sum up compartiemtns per tree per paper
               mutate(compartiment = "agb",                                          # name the calculates sum of compartiments agb
-                     func_ID = "agb"), 
+                     func_ID = "agb", 
+                     ID = paste0(paper_ID, "_", func_ID)), 
             by =  c("plot_ID", "tree_ID")) ),
   # biomass of trees where function already EXcludes leaf mass
   setDT((betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment %in% c("abg", "agb") &          # compartiment ag
@@ -320,7 +326,8 @@ betula_agb_kg_tree_df <- rbind(
                       dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
                       dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
                       mutate(compartiment = "w_agb",
-                             func_ID = "w_agb"), 
+                             func_ID = "w_agb", 
+                             ID = paste0(paper_ID, "_", func_ID)), 
                     by =  c("plot_ID", "tree_ID")) ),
   fill = T) %>% 
   arrange(plot_ID, tree_ID, paper_ID, func_ID)
@@ -328,27 +335,41 @@ betula_agb_kg_tree_df <- rbind(
 
 
 
+# 2. tapeS wagb compartiement calculation ---------------------------------------------------------
+# 2.1. alnus tapeS wagb compartiement calculation ---------------------------------------------------------
+alnus_wagb_tapes <- setDT(tapes_tree_data[, -c("B_kg_tree",   "N_kg_tree",   "C_kg_tree", "compartiment")])[setDT(
+  tapes_tree_data [!(tapes_tree_data$compartiment %in% c("ag", "bg", "total", "ndl")) & 
+  tapes_tree_data$bot_genus %in% c("Alnus") & 
+  tapes_tree_data$min_org == "org",] %>% 
+    group_by(plot_ID, tree_ID) %>% 
+    summarise(B_kg_tree = sum(B_kg_tree)) %>% 
+    mutate(compartiment = "w_agb",
+           paper_ID = as.numeric(max(bio_func_df$paper_ID))+1, 
+           func_ID = "tapes",
+           ID = paste0(paper_ID, "_", func_ID), 
+           country = "Germany")
+  ), on = .(plot_ID, tree_ID) ]
 
-# 2. calculate biomass without leaf mass ----------------------------------
-
-# this part is meant to calcualte the woody biomass only. 
-# meaning we summ up the mass of all woody compartiments if there are
-# so if the method has compartiments apart from agb and if the plot has compartiments
-# woody_compartiments <- c("sw", "swb", "stw", "stb", "fwb")
-# of the woody type compartiment %in% woody_compartiments
-
-
-
-
-
-
-
+# 2.2. betula tapeS wagb compartiement calculation ---------------------------------------------------------
+betula_wagb_tapes <- setDT(tapes_tree_data[, -c("B_kg_tree",   "N_kg_tree",   "C_kg_tree", "compartiment")])[setDT(
+  tapes_tree_data [!(tapes_tree_data$compartiment %in% c("ag", "bg", "total", "ndl")) & 
+                     tapes_tree_data$bot_genus %in% c("Betula") & 
+                     tapes_tree_data$min_org == "org",] %>% 
+    group_by(plot_ID, tree_ID) %>% 
+    summarise(B_kg_tree = sum(B_kg_tree)) %>% 
+    mutate(compartiment = "w_agb",
+           paper_ID = as.numeric(max(bio_func_df$paper_ID))+1, 
+           func_ID = "tapes",
+           ID = paste0(paper_ID, "_", func_ID),  
+           country = "Germany")
+), on = .(plot_ID, tree_ID) ]
 
 
 
 
 # 2. visuals --------------------------------------------------------------
 # 2.1. ALNUS visuals --------------------------------------------------------------
+# 2.1.1. ALNUS ag visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 alnus_ag <-  rbind(setDT(alnus_agb_kg_tree_df),
                    setDT((tapes_tree_data[
@@ -374,6 +395,35 @@ ggplot(data = ungroup(alnus_ag) %>% filter(!(ID %in% c("13_1"))) # "16_4" and "1
            data = alnus_ag_labels%>% filter(!(ID %in% c("13_1"))))+
   theme_bw()+
  #theme(legend.position="none")+
+  ggtitle("Alnus Biomass kg/tree by diameter cm")
+
+
+
+# 2.1.2. ALNUS wabg visuals --------------------------------------------------------------
+# avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
+alnus_wag <-  rbind(setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "w_agb", ]),
+                   setDT(alnus_wagb_tapes), fill = T )
+
+alnus_wag_labels <- alnus_wag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
+  left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Alnus")) %>% select(paper_ID, country)) %>% distinct() 
+             # mutate_at("paper_ID", ~as.character(.))
+            , by = "paper_ID" ) %>% 
+  mutate(country_code = toupper(substr(country, start = 1, stop = 2)),
+         ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
+         label_name = paste0(ID, ", ",country_code)) %>% 
+  distinct()
+
+ggplot(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("4_w_agb"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+)+ 
+  geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
+  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
+  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
+  # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
+  geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
+            data = alnus_wag_labels %>% filter(!(ID %in% c("4_w_agb")))
+            )+
+  theme_bw()+
+  #theme(legend.position="none")+
   ggtitle("Alnus Biomass kg/tree by diameter cm")
 
 
