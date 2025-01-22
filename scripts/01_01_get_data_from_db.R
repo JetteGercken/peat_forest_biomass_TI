@@ -49,7 +49,7 @@ for (i in 1:length(soil_data_table_names)) {
   # get table from database and transform into dataframe
   df <- dbGetQuery(con, paste0("SELECT * FROM"," ", my.schema.name,".", my.table.name))
   # name dataframe and export it to raw data folder
-  write.csv(df, paste0(here("data/raw"), "/", my.table.name, ".csv"), row.names = FALSE)
+  write.csv(df, paste0(getwd(), "/data/raw/", my.table.name, ".csv"), row.names = FALSE)
 }
 
 
@@ -68,7 +68,7 @@ for (i in 1:length(forest_data_table_names)) {
   # get table from database and transform into dataframe
   df <- dbGetQuery(con, paste0("SELECT * FROM"," ", my.schema.name,".", my.table.name))
   # name dataframe and export it to raw data folder
-  write.csv(df, paste0(here("data/raw"), "/", my.table.name, ".csv"), row.names = FALSE)
+  write.csv(df, paste0(getwd(),"/data/raw/", my.table.name, ".csv"), row.names = FALSE)
 }
 
 
@@ -88,17 +88,17 @@ for (i in 1:length(code_table_names)) {
   # get table from database and transform into dataframe
   df <- dbGetQuery(con, paste0("SELECT * FROM"," ", my.schema.name,".", my.table.name))
   # name dataframe and export it to raw data folder
-  write.csv(df, paste0(here("data/raw"), "/", my.table.name, ".csv"), row.names = FALSE)
+  write.csv(df, paste0(getwd(), "/data/raw", "/", my.table.name, ".csv"), row.names = FALSE)
 }
 
 ## copy soil data files from raw data general to input general fo
 
 # 1. create raw data path: 
-raw.path <- paste0(here("data/raw"), "/")
+raw.path <- paste0(getwd(), "/data/raw/")
 # 2. get names of all files in the raw outout folder: https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/list.files
 input.files <- list.files(raw.path) 
 # 3. create input path
-input.path <- paste0(here("data/input"), "/")
+input.path <- paste0(getwd(), "/data/input/")
 # copy the files from one raw filder to the input other: https://statisticsglobe.com/move-files-between-folders-r
 file.copy(from = paste0(raw.path, input.files),
           to = paste0(input.path, input.files),
@@ -111,7 +111,7 @@ file.copy(from = paste0(raw.path, input.files),
 # get momok data
 # the path to the dataset on the netword folder is the following: \\wo-sfs-001v-ew\INSTITUT\a7forum\LEVEL I\BZE\Moormonitoring\Standorte\Lagemessungen... etc. 
 # we have to extract the individual sheepts from the excel workshet and then turn them into csvs
-raw.path.momok <- here::here("data/raw//")
+raw.path.momok <- paste0(getwd(), "/data/raw/")
 # https://stackoverflow.com/questions/50238645/r-split-excel-workbook-into-csv-files
 # get names of the sheets in the excel working sheet in the raw folder
 sheets <- readxl::excel_sheets(paste0(raw.path.momok, "Lagemessungen_Bestandeserfassung_MoMoK_ges_2.xlsx"))
@@ -124,7 +124,7 @@ filenames <- paste0(input.path, paste0(sheet_names, ".csv"))
 purrr::walk2(
   dats,            # List of tibbles
   sheet_names,     # Names of the tibbles
-  ~ write.csv(.x, file = file.path(here("data/input"), paste0(.y, ".csv")), row.names = FALSE)
+  ~ write.csv(.x, file = file.path(paste0(getwd(), "/data/input/"), paste0(.y, ".csv")), row.names = FALSE)
 )
 
 
@@ -137,7 +137,7 @@ purrr::walk2(
 # 0.3.1.2.2. deal with double plots ----------------------------------------------------     
 # tit includes followong columns:
 # "bund_nr"    "team"       "datum"      "status"     "re_form"    "re_lage"    "neigung"    "exposition" "anmerkung"
-lokation_momok <- read.delim(file = here(paste0(input.path, "lokation_momok.csv")), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
+lokation_momok <- read.delim(file = paste0(input.path, "lokation_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
 colnames(lokation_momok)
 # [1] "MoMoK_Nr"              "Name"                  "Skizzenpunkt"          "Messausgangspunkt"     "Azimut..gon."          "Azimut...."            "Distanz..cm."          "Distanz..m."          
 # [9] "Ursprung"              "Erläuterung"           "Dezimalgrad.N..WGS84." "Dezimalgrad.E..WGS84."
@@ -314,7 +314,7 @@ write.csv(vm_lokation_momok, paste0(input.path, "momok_vm_lokation", ".csv"), ro
 # [8] "schlussgrad_schi1"      "schlussgrad_schi2"      "mischung"               "pk1_aufnahme"           "pk2_aufnahme"           "pk3_aufnahme"           "geraet"                
 # [15] "beschreibungbestockung" "anmerkung" 
 
-be_momok <- read.delim(file = here(paste0(input.path, "info_momok.csv")), sep = ",", dec = ".")
+be_momok <- read.delim(file = paste0(input.path, "info_momok.csv"), sep = ",", dec = ".")
 be_momok <- be_momok %>%  
   select("MoMoK_Nr",                  # "bund_nr"    
          "Datum_Aufnahme",            #"datum"  
@@ -370,8 +370,8 @@ write.csv(be_momok, paste0(input.path, "momok_be.csv"), row.names = FALSE)
 # beab hbi includes followong columns:
 # [1] "bund_nr"       "lfd_nr"        "baumkennzahl"  "zwiesel"       "bart"          "alter"         "alter_methode" "d_mess"        "bhd_hoehe"     "hoehe"         "kransatz"      "azi"          
 # [13] "hori"          "kraft"         "schi"  
-LT_momok <-  read.delim(file = here(paste0(input.path, "beab_momok.csv")), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
-beab_momok <- read.delim(file = here(paste0(input.path, "beab_momok.csv")), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
+LT_momok <-  read.delim(file = paste0(input.path, "beab_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
+beab_momok <- read.delim(file = paste0(input.path, "beab_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
 colnames(beab_momok)
 # [1] "MoMoK_Nr"          "Name"              "Bundeland"         "Datum_Aufnahme"    "Nr_PK"             "BNr"               "ZW"                "St"                "Baumart..Code."   
 # [10] "Baumart"           "Schi"              "Kraft"             "Alt"               "Alt.Meth"          "BHD..mm."          "BHD.Hoehe..cm."    "Permanent.Maßband" "Punktdendrometer" 
@@ -440,7 +440,7 @@ colnames(tit_momok) <- c("bund_nr", "anmerkung", "datum",
 write.csv(tit_momok, paste0(input.path, "momok_tit.csv"), row.names = FALSE)
 
 # 0.3.1.2.6. REGENERATION momok ----------------------------------------------------     
-RG_momok <- read.delim(file = here(paste0(input.path, "bej_momok.csv")), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
+RG_momok <- read.delim(file = paste0(input.path, "bej_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
 
 ## alter plot_ID of double inventories plots
 # we have to notice here that we can separate the sampling circuits per plot 
@@ -526,7 +526,7 @@ write.csv(bejb_momok, paste0(input.path, "momok_bejb.csv"), row.names = FALSE)
 
 
 # 0.3.1.2.7.DEADWOOD MOMOK ----------------------------------------------------   
-DW_momok <- read.delim(file = here(paste0(input.path, "be_totholz_momok.csv")), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
+DW_momok <- read.delim(file = paste0(input.path, "be_totholz_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
 colnames(DW_momok)
 # [1] "MoMoK_Nr"          "Name"              "Bundesland"        "Datum"             "Nr_PK"             "Nr"                "Baumartengruppe"   "TYP"               "Hoehe.Laenge..dm."
 # [10] "Durchmesser..cm."  "Zersetzungsgrad"
@@ -621,8 +621,8 @@ write.csv(ld_momok, paste0(input.path, "momok_ld.csv"), row.names = FALSE)
 # get momok data
 # the path to the dataset on the netword folder is the following: \\wo-sfs-001v-ew\INSTITUT\a7forum\LEVEL I\BZE\Moormonitoring\Standorte\Lagemessungen... etc. 
 # we have to extract the individual sheepts from the excel workshet and then turn them into csvs
-raw.path.lit <- here::here("data/raw/")
-input.path <- paste0(here::here("data/input"), "/")
+raw.path.lit <- paste0(getwd(), "/data/raw/")
+input.path <- paste0(getwd(), "/data/input/")
 # https://stackoverflow.com/questions/50238645/r-split-excel-workbook-into-csv-files
 # get names of the sheets in the excel working sheet in the raw folder
 sheets <- readODS::list_ods_sheets(paste0(raw.path.lit, "literature_research_functions.ods"))
@@ -635,7 +635,7 @@ filenames <- paste0(input.path, paste0(sheet_names, ".csv"))
 purrr::walk2(
   dats,            # List of tibbles
   sheet_names,     # Names of the tibbles
-  ~ write.csv(.x, file = file.path(here::here("data/input"), paste0(.y, ".csv")), row.names = FALSE)
+  ~ write.csv(.x, file = file.path(paste0(getwd(), "/data/input"), paste0(.y, ".csv")), row.names = FALSE)
 )
 
 

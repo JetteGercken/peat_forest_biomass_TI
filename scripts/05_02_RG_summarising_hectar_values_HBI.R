@@ -14,14 +14,14 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 here::here()
 getwd()
 
-out.path.BZE3 <- ("output/out_data/out_data_BZE/") 
+out.path.BZE3 <- ("/output/out_data/") 
 
 
 # ----- 0.3 data import --------------------------------------------------------
 # regeneration
 # this dataset contains the plant specific inventory data of the regenertaion inventory of the HBI (BZE2), including stand and area info,  species groups and B, C, N stocks per tree 
-RG_data <- read.delim(file = here(paste0(out.path.BZE3, "HBI_RG_update_4.csv")),sep = ",", dec = ".")
-RG_stat_2 <- read.delim(file = here(paste0(out.path.BZE3, RG_data$inv[1], "_RG_stat_2.csv")), sep = ",", dec = ".") %>% 
+RG_data <- read.delim(file = paste0(getwd(), out.path.BZE3, "HBI_RG_update_4.csv"),sep = ",", dec = ".")
+RG_stat_2 <- read.delim(file = paste0(getwd(), out.path.BZE3, RG_data$inv[1], "_RG_stat_2.csv"), sep = ",", dec = ".") %>% 
   mutate(inv = inv_name(inv_year))
 
 
@@ -147,7 +147,7 @@ if(exists('RG_stat_2') == TRUE && nrow(RG_stat_2) != 0){
                   select(plot_ID, CCS_nr) %>% 
                   distinct() %>% 
                   group_by(plot_ID) %>% 
-                  summarize(n_CCS = n()) %>% 
+                  summarise(n_CCS = n()) %>% 
                   filter(n_CCS == 4), 
                 by = "plot_ID") %>% 
       select(plot_ID, stand_plot_A_ha, inv, compartiment, B_t_ha, C_t_ha, N_t_ha) %>% 
@@ -189,7 +189,7 @@ if(exists('RG_stat_2') == TRUE && nrow(RG_stat_2) != 0){
                   select(plot_ID, CCS_nr) %>% 
                   distinct() %>% 
                   group_by(plot_ID) %>% 
-                  summarize(n_CCS = n()) %>% 
+                  summarise(n_CCS = n()) %>% 
                   filter(n_CCS == 4), 
                 by = "plot_ID") %>% 
       select(plot_ID, inv, compartiment, B_t_ha, C_t_ha, N_t_ha) %>% 
@@ -253,7 +253,7 @@ RG_summary <- plyr::rbind.fill(
 
 
 # 3. export data ----------------------------------------------------------
-write.csv(RG_summary, paste0(out.path.BZE3, paste(RG_summary$inv[1], "RG_stocks_ha_all_groups", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(RG_summary, paste0(getwd(), out.path.BZE3, paste(RG_summary$inv[1], "RG_stocks_ha_all_groups", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 
 

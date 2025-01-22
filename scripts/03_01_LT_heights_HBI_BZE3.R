@@ -13,22 +13,22 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 # ----- 0.2. working directory -------------------------------------------------
 here::here()
 
-out.path <- here("output/out_data//") 
+out.path <- paste0(getwd(), "/output/out_data/") 
 
 # ----- 0.3 data import --------------------------------------------------------
 # LIVING TREES
 # hbi BE dataset: 
   # this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
   # here we import a dataset called "HBI_LT_update_2.csv" which contains plot area and stand data additionally to the original tree data
-HBI_trees <- read.delim(file = here(out.path, "HBI_LT_update_1.csv"), sep = ",", dec = ".")
-HBI_trees_removed <- read.delim(file = here(out.path, paste0((HBI_trees$inv)[1], "_LT_removed.csv")), sep = ";", dec = ".")
+HBI_trees <- read.delim(file = paste0(out.path, "HBI_LT_update_1.csv"), sep = ",", dec = ".")
+HBI_trees_removed <- read.delim(file = paste0(out.path, (HBI_trees$inv)[1], "_LT_removed.csv"), sep = ";", dec = ".")
 
 # BZE3 BE dataset: 
 # this dataset contains the inventory data of the tree inventory accompanying the third national soil inventory
 # here we import a dataset called "BZE3_LT_update_2.csv" which contains plot area and stand data additionally to the original tree data
 try({
-  BZE3_trees <- read.delim(file = here(out.path, "BZE3_LT_update_2.csv"), sep = ",", dec = ".")
-  BZE3_trees_removed <- read.delim(file = here(out.path, paste0((BZE3_trees$inv)[1], "_LT_removed.csv")), sep = ",", dec = ".")},
+  BZE3_trees <- read.delim(file = paste0(out.path, "BZE3_LT_update_2.csv"), sep = ",", dec = ".")
+  BZE3_trees_removed <- read.delim(file = paste0(out.path, (BZE3_trees$inv)[1], "_LT_removed.csv"), sep = ",", dec = ".")},
   silent = T)
 
 
@@ -306,7 +306,7 @@ write.csv(HBI_trees_removed, paste0(out.path, paste(unique(HBI_trees_update_3$in
 
 # BZE3 dataset including estimated heights
 if(exists('BZE3_trees')){
-write.csv(BZE3_trees_update_3, paste0(out.path, "/", paste(unique(BZE3_trees_update_3$inv)[1], "LT_update_3", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(BZE3_trees_update_3, paste0(out.path, paste(unique(BZE3_trees_update_3$inv)[1], "LT_update_3", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 write.csv(BZE3_trees_removed, paste0(out.path, paste(unique(BZE3_trees_update_3$inv)[1], "LT_removed", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 }
 

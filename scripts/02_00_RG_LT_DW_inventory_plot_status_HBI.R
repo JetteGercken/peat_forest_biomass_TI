@@ -97,26 +97,26 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 # ----- 0.2. working directory -------------------------------------------------
 here::here()
 
-out.path <- here("output/out_data//") 
+out.path <- paste0(getwd(), "/output/out_data/") 
 
 # ----- 0.4 importing data -----------------------------------------------------
 # create complete list of momok plots to be able to separate them from bze ##momok
 momok_plot_ids <-  na.omit(plyr::rbind.fill(
-  read.delim(file = here("data/input/momok_be_totholz_liste.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
-  read.delim(file = here("data/input/momok_be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
-  read.delim(file = here("data/input/momok_be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
-  read.delim(file = here("data/input/momok_beab.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
-  read.delim(file = here("data/input/momok_bejb.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
-  read.delim(file = here("data/input/momok_tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
-  read.delim(file = here("data/input/momok_vm_lokation.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)) %>% 
+  read.delim(file = paste0(getwd(), "/data/input/momok_be_totholz_liste.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
+  read.delim(file = paste0(getwd(), "/data/input/momok_be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
+  read.delim(file = paste0(getwd(), "/data/input/momok_be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
+  read.delim(file = paste0(getwd(), "/data/input/momok_beab.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
+  read.delim(file = paste0(getwd(), "/data/input/momok_bejb.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
+  read.delim(file = paste0(getwd(), "/data/input/momok_tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
+  read.delim(file = paste0(getwd(), "/data/input/momok_vm_lokation.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)) %>% 
     select(bund_nr) %>% distinct())
 
 ## BZE 2
 # this dataset contains the BZE file tit_1 which displays info about the BZE inventory in general
 # so info that´s base of all sub inventories like trees, deadwood, regeneration
 
-inv_info <- plyr::rbind.fill(read.delim(file = here("data/input/tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(-c("re_form", "re_lage", "neigung", "exposition", "anmerkung")), 
-                             read.delim(file = here("data/input/momok_tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(-c("re_form", "re_lage", "neigung", "exposition", "anmerkung"))) ##momok
+inv_info <- plyr::rbind.fill(read.delim(file = paste0(getwd(), "/data/input/tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(-c("re_form", "re_lage", "neigung", "exposition", "anmerkung")), 
+                             read.delim(file = paste0(getwd(), "/data/input/momok_tit.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% select(-c("re_form", "re_lage", "neigung", "exposition", "anmerkung"))) ##momok
 
 colnames(inv_info) <- c("plot_ID", "team", "date", "plot_inv_status")
 # create column that just contains year of inventory: https://www.geeksforgeeks.org/how-to-extract-year-from-date-in-r/
@@ -128,8 +128,8 @@ inv_info <- inv_info %>% mutate(inv = ifelse(plot_ID %in% momok_plot_ids$bund_nr
 
 ## LIVING TREES
 # this dataset contains information about the inventory of the respective individual sampling circuits as well as stand realted info like stand type & - structure
-tree_inv_info <-  plyr::rbind.fill(read.delim(file = here("data/input/be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), # be
-                                   read.delim(file = here("data/input/momok_be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE))%>%    ##momok
+tree_inv_info <-  plyr::rbind.fill(read.delim(file = paste0(getwd(), "/data/input/be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), # be
+                                   read.delim(file = paste0(getwd(), "/data/input/momok_be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE))%>%    ##momok
   select(bund_nr, team,  datum,  beart, besttyp, struktur,  pk1_aufnahme,   pk2_aufnahme, pk3_aufnahme, hbi_status)
 colnames(tree_inv_info) <- c("plot_ID", "team", "date", "stand_spec", "stand_type", "structure", 
                              "CCS_5_inv_status",  "CCS_12_inv_status",  "CCS_17_inv_status" , "hbi_status")
@@ -147,8 +147,8 @@ tree_inv_info <- tree_inv_info %>% mutate(inv = ifelse(plot_ID %in% momok_plot_i
 
 
 # HBI BE dataset: this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
-trees_data <- plyr::rbind.fill(read.delim(file = here("data/input/beab.csv"), sep = ",", dec = "."),       # beab
-                               read.delim(file = here("data/input/momok_beab.csv"), sep = ",", dec = "."))  ##momok
+trees_data <- plyr::rbind.fill(read.delim(file = paste0(getwd(), "/data/input/beab.csv"), sep = ",", dec = "."),       # beab
+                               read.delim(file = paste0(getwd(), "/data/input/momok_beab.csv"), sep = ",", dec = "."))  ##momok
 # HBI trees
 colnames(trees_data) <- c("plot_ID", "tree_ID", "tree_inventory_status", "multi_stem",  "SP_code", "age", 
                           "age_meth", "D_mm", "DBH_h_cm", "H_dm", "C_h_dm", "azi_gon", "dist_cm", "Kraft",  "C_layer")
@@ -156,7 +156,7 @@ trees_data <- trees_data %>% dplyr::select(plot_ID,  tree_ID ,  tree_inventory_s
                                            age ,  age_meth ,  SP_code ,  Kraft , C_layer , H_dm ,  C_h_dm , D_mm ,   DBH_h_cm )
 
 # HBI forest edges
-forest_edges <- read.delim(file = here("data/input/be_waldraender.csv"), sep = ",", dec = ".") %>% 
+forest_edges <- read.delim(file = paste0(getwd(), "/data/input/be_waldraender.csv"), sep = ",", dec = ".") %>% 
   select(bund_nr, lfd_nr, randtyp, randform, anfang_dist, anfang_azi, end_dist, end_azi, knick_dist, knick_azi)
 colnames(forest_edges) <- c("plot_ID", "e_ID", "e_type", "e_form", "A_dist", "A_azi",  "B_dist", "B_azi", "T_dist", "T_azi") # t = turning point
 
@@ -164,14 +164,14 @@ colnames(forest_edges) <- c("plot_ID", "e_ID", "e_type", "e_form", "A_dist", "A_
 
 ## REGENERATION                                                                                                  
 # this dataset contains the inventory status, position and extend of the sampling circle satelites of the regeneration inventory of the HBI (BZE2) 
-RG_loc_info <- plyr::rbind.fill(read.delim(file = here("data/input/bej.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
-                                read.delim(file = here("data/input/momok_bej.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE))%>%  ##momok
+RG_loc_info <- plyr::rbind.fill(read.delim(file = paste0(getwd(), "/data/input/bej.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
+                                read.delim(file = paste0(getwd(), "/data/input/momok_bej.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE))%>%  ##momok
   select(bund_nr, pk_nr, pk_richtung, pk_dist, pk_aufnahme ,pk_maxdist)
 # assign column names    # bund_nr     pk_nr      pk_richtung     pk_dist     pk_aufnahme      pk_maxdist
 colnames(RG_loc_info) <- c("plot_ID", "CCS_nr", "CCS_position",  "CCS_dist", "CCS_RG_inv_status", "CCS_max_dist_cm")
 # this dataset contains the plant specific inventory data of the regenertaion inventory of the HBI (BZE2), including stand and area info
-RG_data <- plyr::rbind.fill(read.delim(file = here("data/input/bejb.csv"), sep = ",", dec = ","), 
-                            read.delim(file = here("data/input/momok_bejb.csv"), sep = ",", dec = ","))  ##momok
+RG_data <- plyr::rbind.fill(read.delim(file = paste0(getwd(), "/data/input/bejb.csv"), sep = ",", dec = ","), 
+                            read.delim(file = paste0(getwd(), "/data/input/momok_bejb.csv"), sep = ",", dec = ","))  ##momok
 #  "bund_nr"  "pk_nr"  "lfd_nr"   "bart"  "hoehe"    "grklasse"
 colnames(RG_data) <- c("plot_ID", "CCS_nr", "tree_ID", "SP_code", "H_cm", "D_class_cm")
 
@@ -179,20 +179,20 @@ colnames(RG_data) <- c("plot_ID", "CCS_nr", "tree_ID", "SP_code", "H_cm", "D_cla
 
 ##DEADWOOD
 # deadwood inventory info 
-DW_inv_info <- plyr::rbind.fill(read.delim(file = here("data/input/be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
-                                read.delim(file = here("data/input/momok_be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)) ##momok
+DW_inv_info <- plyr::rbind.fill(read.delim(file = paste0(getwd(), "/data/input/be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
+                                read.delim(file = paste0(getwd(), "/data/input/momok_be_totholz_punkt.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)) ##momok
 colnames(DW_inv_info) <- c("plot_ID", "CCS_DW_inv_status",  "dist_cm", "azi")
 # deadwood single item data
-DW_data <- plyr::rbind.fill(read.delim(file = here("data/input/be_totholz_liste.csv"), sep = ",", dec = "."), 
-                            read.delim(file = here("data/input/momok_be_totholz_liste.csv"), sep = ",", dec = ".") )%>%  ##momok
+DW_data <- plyr::rbind.fill(read.delim(file = paste0(getwd(), "/data/input/be_totholz_liste.csv"), sep = ",", dec = "."), 
+                            read.delim(file = paste0(getwd(), "/data/input/momok_be_totholz_liste.csv"), sep = ",", dec = ".") )%>%  ##momok
   select( bund_nr, lfd_nr, typ, baumgruppe, anzahl,  durchmesser, laenge, zersetzung)
 #  bund_nr lfd_nr typ      baumgruppe anzahl  durchmesser laenge zersetzung
 colnames(DW_data) <- c("plot_ID", "tree_ID", "dw_type", "dw_sp", "count", "d_cm", "l_dm", "decay")
 
 
 ##LOKATION
-geo_loc <- plyr::rbind.fill(read.delim(file = here("data/input/vm_lokation_hbi.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
-                                read.delim(file = here("data/input/momok_vm_lokation.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)) %>%  ##momok
+geo_loc <- plyr::rbind.fill(read.delim(file = paste0(getwd(), "/data/input/vm_lokation_hbi.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
+                                read.delim(file = paste0(getwd(), "/data/input/momok_vm_lokation.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)) %>%  ##momok
   left_join(., tree_inv_info %>% select(plot_ID, inv), by = c("bfhnr" = "plot_ID")) %>% 
   mutate(inv = ifelse(bfhnr %in% momok_plot_ids$bund_nr, "momok", inv))
 

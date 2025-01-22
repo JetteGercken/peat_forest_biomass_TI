@@ -21,21 +21,21 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 
 # 0.2. outpath ------------------------------------------------------------
 # from getwd() or here() onwards, this path leads to the folder where all data ist stored
-out.path <- here("output/out_data//") 
+out.path <- paste0(getwd(), "/output/out_data/") 
 
 # 0.3. import data --------------------------------------------------------
 # soil types database
-soil_types_bze2_db <-  read.delim(file = here("data/input/vm_allgemeintab_2.csv"), sep = ",", dec = ".") 
+soil_types_bze2_db <-  read.delim(file = paste0(getwd(), "/data/input/vm_allgemeintab_2.csv"), sep = ",", dec = ".") 
 # soil types 
-soil_profiles_bze2_db <- read.delim(file = here("data/input/vm_minboden_profil_2.csv"), sep = ",", dec = ".")
+soil_profiles_bze2_db <- read.delim(file = paste0(getwd(), "/data/input/vm_minboden_profil_2.csv"), sep = ",", dec = ".")
   
 # organic soil types analysis from Eric Grüneberg
-org_soils_analysis <-  read.delim(file = here("data/input/org_soil_types_BZE2.csv"), sep = ",", dec = ".")
+org_soils_analysis <-  read.delim(file = paste0(getwd(), "/data/input/org_soil_types_BZE2.csv"), sep = ",", dec = ".")
 
 # organic soil types from Carina Peatzel
-org_soils_paetzel <- read.delim(file = here("data/input/org_plots_BZE2_BZE1_Paetzel.csv"), sep = ",", dec = ".")
+org_soils_paetzel <- read.delim(file = paste0(getwd(), "/data/input/org_plots_BZE2_BZE1_Paetzel.csv"), sep = ",", dec = ".")
 
-element_bze2_db <- read.delim(file = here("data/input/vm_minboden_element_gehalte_2.csv"), sep = ",", dec = ".") 
+element_bze2_db <- read.delim(file = paste0(getwd(), "/data/input/vm_minboden_element_gehalte_2.csv"), sep = ",", dec = ".") 
 
 
 
@@ -91,7 +91,7 @@ min_org_soil_types_bze2 <-  soil_types_bze2_db %>%
 
 
 # 5. data export ----------------------------------------------------------
-write.csv(min_org_soil_types_bze2, here(out.path, "soil_types_profil_db.csv"), row.names = FALSE)
+write.csv(min_org_soil_types_bze2, paste0(out.path, "soil_types_profil_db.csv"), row.names = FALSE)
 
 
 

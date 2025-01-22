@@ -49,8 +49,8 @@ bark_div <- structure(list(Tree.species = c("Abies alba", "Acer campestre",
                                           "> 35 cm", "> 40 cm", "> 40 cm", "> 30 cm", "> 25 cm", "> 35 cm", 
                                           "omitted", "> 40 cm", "omitted", "omitted", "omitted", "> 35 cm", 
                                           "> 35 cm")), class = "data.frame", row.names = c(NA, -34L))
-write.csv(bark_div, paste0(here("data/raw"), "/", "barkdiv_FSI_storch_2018.csv"), row.names = FALSE)
-write.csv(bark_div, paste0(here("data/input"), "/", "barkdiv_FSI_storch_2018.csv"), row.names = FALSE)
+write.csv(bark_div, paste0(getwd(), "/data/raw/", "barkdiv_FSI_storch_2018.csv"), row.names = FALSE)
+write.csv(bark_div, paste0(getwd(), "/data/input/", "barkdiv_FSI_storch_2018.csv"), row.names = FALSE)
 
 ## fruit diversity for storch FSI index
 # fruit_div <- read.delim(file = here("data/input/general/fruitdiv_FSI_storch_2018.csv"),  sep = ",", dec = ".")
@@ -87,9 +87,9 @@ fruit_div <- as.data.frame(structure(list(
                  "apple fruit", "apple fruit")), class = "data.frame", row.names = c(NA, 
                                                                                      -34L)))
 # export FSI fruitdiv "raw" original dataframe by felix storch                                                                                                                                                                                                                                        -34L)))
-write.csv(fruit_div, paste0(here("data/raw"), "/", "fruitdiv_FSI_storch_2018.csv"), row.names = FALSE)
-write.csv(fruit_div, paste0(here("data/input"), "/", "fruitdiv_FSI_storch_2018.csv"), row.names = FALSE)
-SP_names <- read.delim(file = here("data/input/x_bart.csv"), sep = ",", dec = ".")
+write.csv(fruit_div, paste0(getwd(), "/data/raw/", "fruitdiv_FSI_storch_2018.csv"), row.names = FALSE)
+write.csv(fruit_div, paste0(getwd(), "/data/raw/", "fruitdiv_FSI_storch_2018.csv"), row.names = FALSE)
+SP_names <- read.delim(file = paste0(getwd(), "/data/input/", "x_bart.csv"), sep = ",", dec = ".")
 
 
 # ----- 0.3. dataprep & colnames --------------------------------------------------------------
@@ -283,8 +283,8 @@ fruit_div <-
 
 
 # 2. export data --------------------------------------------------------
-write.csv(fruit_div, paste0("data/input/", paste0("fruitdiv_FSI_modified", ".csv")), row.names = FALSE)
-write.csv(bark_div, paste0("data/input/", paste0("barkdiv_FSI_modified", ".csv")), row.names = FALSE)
+write.csv(fruit_div, paste0(getwd(), "/data/input/", "fruitdiv_FSI_modified.csv"), row.names = FALSE)
+write.csv(bark_div, paste0(getwd(),  "/data/input/", "barkdiv_FSI_modified.csv"), row.names = FALSE)
 
 
 

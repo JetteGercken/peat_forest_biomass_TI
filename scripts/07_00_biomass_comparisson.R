@@ -174,7 +174,7 @@ alnus_agb_kg_tree_df <- rbind(
   setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb") & alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl %in% c("included", "possible")]) ,]), 
   # agb calculate from compartiments based on papers that don´t have seperate agb function but also  allow to exclude leafes: so they have eg. fwb, ndl and sw but no agb compartiment in their list 
   setDT(tree_data_alnus %>% 
-       left_join(., setDT(alnus_agb_kg_tree_df)[  # this is an anti join in data.tabe 
+       left_join(., setDT(alnus_agb_kg_tree_df)[  # this is an inner join in data.tabe: https://medium.com/analytics-vidhya/r-data-table-joins-48f00b46ce29 
        setDT(bio_func_df %>% 
           filter(leafes_inkl %in% c("possible", "inlcuded")) %>%                 # agb shoul be included or possible to include
           select(paper_ID, compartiment) %>%                                     # select papaer ID and compartiments 
@@ -182,7 +182,7 @@ alnus_agb_kg_tree_df <- rbind(
           mutate(number = str_count(compartiment, "agb")) %>%                    # count the occurence of "agb" per paper and compartiment
           group_by(paper_ID) %>% summarise(mean_agb_number = mean(number)) %>%   # summarise the number of occurences of "agb" per paper 
           filter(mean_agb_number == 0)),                                          # filter those papers that allow to calculate the "true" agb with leaves but dont have a agb function and by that have to be summed up  
-      on = .(paper_ID), nomatch = NULL] %>% # close anti join data.table
+      on = .(paper_ID), nomatch = NULL] %>% # close inner join data.table
                 dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
                 dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                      # sum up compartiemtns per tree per paper
                 mutate(compartiment = "agb",                                          # name the calculates sum of compartiments agb
@@ -368,9 +368,49 @@ betula_wagb_tapes <- setDT(subset(tapes_tree_data, select = -c(B_kg_tree,   N_kg
 
 
 
-# 3. visuals --------------------------------------------------------------
-# 3.1. ALNUS visuals --------------------------------------------------------------
-# 3.1.1. ALNUS ag visuals --------------------------------------------------------------
+
+# 3. EXPORT ------------------------------------------------------------------
+# 3.1. prepare for export: bind all datasets with incdinvidual tree infos together ------------------------------------------------------------------
+trees_data_update_5 <- rbind(
+  # tapes all trees data
+  setDT(tapes_tree_data) %>% mutate(
+    paper_ID = as.numeric(max(bio_func_df$paper_ID))+1, 
+    func_ID = "tapes", 
+    country = "Germany",
+    ID = paste0(paper_ID, "_", func_ID)) ,
+  # betula
+  setDT(betula_wagb_tapes),  # betula tapes wag
+  setDT(betula_agb_kg_tree_df), # betula external biomass functions
+  # alnus
+  setDT(alnus_wagb_tapes), # alnus tapes wag 
+  setDT(alnus_agb_kg_tree_df),  # alnus external biomass functions
+  fill = T) %>%  
+  arrange(plot_ID, tree_ID, paper_ID, func_ID)
+
+
+
+# 3.2. export: all datasets with incdinvidual tree infos together ------------------------------------------------------------------
+write.csv(trees_data_update_5, paste0(getwd(), out.path, paste(trees_data_update_5$inv[1], "LT_update_5", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+stop("this is where biomass comparison singe tree script paper stops")
+
+
+# 4. visuals --------------------------------------------------------------
+# 4.1. ALNUS visuals --------------------------------------------------------------
+# 4.1.1. ALNUS ag visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 alnus_ag <-  rbind(setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "agb"]),
                    setDT((tapes_tree_data[
@@ -402,7 +442,7 @@ ggplot(data = ungroup(alnus_ag) # %>% filter(!(ID %in% c("13_1"))) # "16_4" and 
 
 
 
-# 3.1.2. ALNUS wabg visuals --------------------------------------------------------------
+# 4.1.2. ALNUS wabg visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 alnus_wag <-  rbind(setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "w_agb", ]),
                    setDT(alnus_wagb_tapes), fill = T )
@@ -432,8 +472,8 @@ ggplot(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("4_w_agb", "13_1"))) # "
 alnus_wag %>% filter(is.na())
  
 
-# 3.2. BETULA visuals --------------------------------------------------------------
-# 3.2.1. BETULA ag visuals --------------------------------------------------------------
+# 4.2. BETULA visuals --------------------------------------------------------------
+# 4.2.1. BETULA ag visuals --------------------------------------------------------------
 
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 betula_ag <- 
@@ -469,7 +509,7 @@ ggplot(data = betula_ag  %>% filter(!(ID %in% c("36_1", "34_4")))
 
 
 
-# 3.1.2. BETULA wabg visuals --------------------------------------------------------------
+# 4.1.2. BETULA wabg visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 betula_wag <-  rbind(setDT(betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment == "w_agb", ]),
                     setDT(betula_wagb_tapes), fill = T )
@@ -502,7 +542,7 @@ ggplot(data = ungroup(betula_wag) %>% filter(!(ID %in% c("34_w_agb"))) # "16_4" 
 
 
 
-# 3.3. Betula & Alnus together --------------------------------------------
+# 4.3. Betula & Alnus together --------------------------------------------
 bet_aln_ag <- dplyr::bind_rows(alnus_ag, betula_ag)
 ggplot(data = bet_aln_ag %>% filter(!(ID %in% c("16_4", "16_5")))
 )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
@@ -515,7 +555,7 @@ ggplot(data = bet_aln_ag %>% filter(!(ID %in% c("16_4", "16_5")))
 
 
 
-# 2.4. BA verteilung over all organic plots -------------------------------
+# 4.4. BA verteilung over all organic plots -------------------------------
 install.packages("forcats")
 library(forcats)
 
@@ -532,6 +572,16 @@ ggplot(data = BA_distri %>% arrange(BA_m2_ha), aes(x=fct_infreq(SP_code), y= BA_
 
 
 (group)
+
+
+
+
+
+
+
+
+
+
 
 
 # NOTES -------------------------------------------------------------------

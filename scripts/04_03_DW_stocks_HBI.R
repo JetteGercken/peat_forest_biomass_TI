@@ -10,18 +10,18 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 # ----- 0.2. working directory -------------------------------------------------
 here::here()
 
-out.path <- ("output/out_data/") 
+out.path <- paste0(getwd(), "/output/out_data/") 
 
 # ----- 0.3 data import --------------------------------------------------------
 # DEAD trees
-DW_data <-  read.delim(file =  here(paste0(out.path,"HBI_DW_update_1.csv")), sep = ",", dec = ".")
-DW_removed <-  read.delim(file =  here(paste0(out.path, unique(DW_data$inv)[1] , "_DW_removed.csv")), sep = ",", dec = ".")
+DW_data <-  read.delim(file =  paste0(out.path,"HBI_DW_update_1.csv"), sep = ",", dec = ".")
+DW_removed <-  read.delim(file =  paste0(out.path, unique(DW_data$inv)[1] , "_DW_removed.csv"), sep = ",", dec = ".")
 
 
 # HBI forest type info per plot  (Bestandestyp)
 # this i deed to later say "if the stocking species are mainly coniferous i need this secies group from tapeS
 # and if th estocking species fall in the category broadleafes the other tapes species code"
-forest_info <- read.delim(file = here("data/input", "be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)
+forest_info <- read.delim(file = paste0(getwd(), "/data/input/", "be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)
 
 
 # 0.4 dataprep  -----------------------------------------------------------
@@ -354,7 +354,7 @@ N_dw_ag_kg_df <- N_dw_ag_comps_kg_df %>%
   # select only compartitionated trees 
   filter(dw_type %in% c(2, 5, 3, 4) & compartiment != "ag" )%>% 
   group_by(plot_ID, tree_ID, inv, inv_year, dw_type) %>% 
-  summarize(N_kg_tree = sum(as.numeric(N_kg_tree))) %>% 
+  summarise(N_kg_tree = sum(as.numeric(N_kg_tree))) %>% 
   mutate(compartiment = "ag") %>% 
   select("plot_ID", "tree_ID", "inv", 
          "inv_year", "dw_type", "compartiment", "N_kg_tree")
