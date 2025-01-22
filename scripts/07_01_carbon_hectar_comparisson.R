@@ -30,13 +30,11 @@ out.path <- ("/output/out_data/")
 # tree data
 trees_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_5.csv"), sep = ",", dec = ".")
 trees_removed <- read.delim(file = paste0(getwd(), out.path, trees_data$inv[1], "_LT_removed.csv"), sep = ",", dec = ".")
-# soil data
-soil_types_db <- read.delim(file = paste0(getwd(), out.path, "soils_types_profil_db.csv"), sep = ",", dec = ".")
 
 # import stand component wise summaries:
 # these dataset contain the LT, DW and RG values summarised per ha on different levels of data grouping
 # living trees
-LT_summary <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_stocks_ha_all_groups.csv"),sep = ",", dec = ".")
+LT_summary <- read_csv("output/out_data/HBI_LT_stocks_ha_all_groups.csv") # read.delim(file = paste0(getwd(), out.path, "HBI_LT_stocks_ha_all_groups.csv"),sep = ",", dec = ".")
 
 
 # 0.4 subset data ---------------------------------------------------------
@@ -44,42 +42,67 @@ LT_summary <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_stocks_ha_all_
 # & only the alnus and betula trees 
 trees_org <- subset(trees_data, min_org == "org" & bot_genus %in% c("Betula", "Alnus"))
 
+# join bot spec and genus to LT_summary 
+LT_summary <- setDT(LT_summary)[setDT(unique(trees_data[, c("plot_ID", "inv", "min_org")])) , on = c("plot_ID", "inv") ,allow.cartesian=T]
+LT_summary <- setDT(LT_summary)[,SP_code :=(tolower(SP_code))][setDT(SP_names_com_ID_tapeS)[,char_code_ger_lowcase:=(tolower(Chr_code_ger))], on = c("SP_code" = "char_code_ger_lowcase")]
+LT_summary_org <- subset(LT_summary, min_org == "org" & bot_genus %in% c("Betula", "Alnus"))
+
+
+
+# 1. CALCULATIONS ---------------------------------------------------------
+# 1.1. BA related plot_A_ha ---------------------------------------------------------
+# add BA share to tres dataset by species, plot and inv
+trees_org <- setDT(trees_org)[setDT(unique(LT_summary_org[, c("plot_ID", "inv", "SP_code", "BA_percent")])) , on = c("plot_ID", "inv", "SP_code") ,allow.cartesian=T]
+# calculate relative plot area per species
+trees_org[, plot_A_ha_SP := (plot_A_ha*(BA_percent/100))]
+
+# 1.2. pseudo-mono-stands: stock by plot & species, using realtive plot area ---------------------------------------------------------
+pseudo_mono_P_SP <- trees_org %>% 
+  # calculate stock per CCS and then per ha 
+  group_by(plot_ID, CCS_r_m, inv, paper_ID, func_ID, country, ID, bot_genus, compartiment, plot_A_ha_SP,plot_A_ha, BA_percent) %>% 
+  # convert Biomass into tons per hectar and sum it up per sampling circuit 
+  reframe(B_CCS_t_ha = sum(ton(B_kg_tree))/plot_A_ha_SP, # plot are is the area of the respecitve samplign circuit in ha 
+          C_CCS_t_ha = sum(ton(B_kg_tree*0.5))/plot_A_ha_SP,
+          BA_CCS_m2_ha = sum(BA_m2)/plot_A_ha_SP, 
+          n_trees_CCS_ha = dplyr::n()/plot_A_ha_SP) %>% 
+  distinct()%>% 
+  # now we summarise all the t/ha values of the cirlces per plot
+  group_by(plot_ID, inv, paper_ID, func_ID, country, ID, bot_genus, compartiment) %>% 
+  summarise(B_t_ha = sum(B_CCS_t_ha), 
+            C_t_ha = sum(C_CCS_t_ha), 
+           BA_m2_ha = sum(BA_CCS_m2_ha), 
+            n_ha = sum(n_trees_CCS_ha)) 
+
+# 1.3. mean stock pseudo-mono-stands: by calculation method  ---------------------------------------------------------
+pseudo_mono_mean_func <- pseudo_mono_P_SP %>% group_by(paper_ID, func_ID, country, ID, bot_genus, compartiment) %>% 
+                                summarise(mean_B_t_ha = mean(B_t_ha), 
+                                          mean_C_t_ha = mean(C_t_ha)) %>% 
+  arrange(paper_ID,  bot_genus, func_ID, country, ID,compartiment)
+
+
+
+
+
+
+# 2. visuals --------------------------------------------------------------
+
+
+
+
+
+
+
+
+# NOTES -------------------------------------------------------------------
+
+
+# n. soiltype to lt but not needed ----------------------------------------
 # add soil type to LT_summary
 LT_summary <- setDT(LT_summary)[
   soil_types_db[, c("bfhnr_2", "min_org")],    # select only plot_ID, and site type
   on = c("plot_ID"= "bfhnr_2")]                # select only plot_ID, and site type
 
 LT_summary[, min_org := (ifelse(is.na(min_org) & plot_ID %in% c(unique(trees_data$plot_ID[trees_data$inv == "momok"])), "org", min_org) )]
-
-
-
-# 1. CALCULATIONS ---------------------------------------------------------
-
-DT[, Mean:=mean(X), by=list(Y, Z)]
-
-# calculate stock per CCS and then per ha 
-trees_data %>% 
-  group_by(plot_ID, CCS_r_m, inv, compartiment) %>% 
-  # convert Biomass into tons per hectar and sum it up per sampling circuit 
-  reframe(B_CCS_t_ha = sum(ton(B_kg_tree))/plot_A_ha, # plot are is the area of the respecitve samplign circuit in ha 
-          C_CCS_t_ha = sum(ton(C_kg_tree))/plot_A_ha,
-          N_CCS_t_ha = sum(ton(N_kg_tree))/plot_A_ha, 
-          BA_CCS_m2_ha = sum(BA_m2)/plot_A_ha, 
-          n_trees_CCS_ha = dplyr::n()/plot_A_ha) %>% 
-  distinct()%>% 
-  # now we summarise all the t/ha values of the cirlces per plot
-  group_by(plot_ID, inv, compartiment) %>% 
-  summarise(B_t_ha = sum(B_CCS_t_ha), 
-            C_t_ha = sum(C_CCS_t_ha), 
-            N_t_ha = sum(N_CCS_t_ha),
-            BA_m2_ha = sum(BA_CCS_m2_ha), 
-            n_ha = sum(n_trees_CCS_ha)) %>% 
-  mutate(stand_component = "LT", 
-         stand = "all", 
-         SP_code = "all")
-
-
-
 
 
 

@@ -617,7 +617,7 @@ LT_summary <- plyr::rbind.fill(
 
 
 # 2. data export ----------------------------------------------------------
-write.csv(LT_summary, paste0(getwd(), out.path.BZE3, paste(LT_summary$inv[1], "LT_stocks_ha_all_groups", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(LT_summary, paste0(getwd(), out.path, paste(LT_summary$inv[1], "LT_stocks_ha_all_groups", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 stop("this is where LT summary HBI ends")
 
