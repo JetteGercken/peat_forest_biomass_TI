@@ -18,7 +18,7 @@ out.path <- ("/output/out_data/")
 # hbi BE dataset: this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
 # here we should actually import a dataset called "HBI_trees_update_3.csv" which contains plot area and stand data additionally to 
 # tree data
-trees_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_3.csv"), sep = ",", dec = ".")
+trees_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_4.csv"), sep = ",", dec = ".") %>% dplyr::select(-c("compartiment","B_kg_tree", "N_kg_tree", "C_kg_tree")) %>% dplyr::distinct()
 tapes_tree_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_4.csv"), sep = ",", dec = ".")
 trees_removed <- read.delim(file =paste0(getwd(), out.path, trees_data$inv[1], "_LT_removed.csv"), sep = ",", dec = ".")
 # soil data
@@ -56,6 +56,8 @@ bio_func_df <- bio_func_df %>%
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 # add a column that combines func id and paper id
 bio_func_df$ID <- paste0(bio_func_df$paper_ID,"_", bio_func_df$func_ID)
+# exclude those functions that require age as we don´t always have it
+bio_func_df <- bio_func_df[!(str_detect(bio_func_df$variables, "age")),]
 
 
 
@@ -77,7 +79,7 @@ bio_func_df$ID <- paste0(bio_func_df$paper_ID,"_", bio_func_df$func_ID)
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
 alnus_func <- subset(bio_func_df, species %like% "Alnus" &     # select only Alnus specific species
                             !is.na(function.) &                    # select only those papers with functions
-                            compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb", "abg"))            # select only those paper which have leafes not icluded or a possible compartimentalisation
+                            compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb"))            # select only those paper which have leafes not icluded or a possible compartimentalisation
 
 # select alnus trees at organic sites
 tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",]  
@@ -172,7 +174,7 @@ alnus_agb_kg_tree_df <- rbind(
   setDT(alnus_agb_kg_tree_df[!(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb")),]),
   # agb including leaf mass from functions that have an explicit function for ag
   setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb") & alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl %in% c("included", "possible")]) ,]), 
-  # agb calculate from compartiments based on papers that don´t have seperate agb function but also  allow to exclude leafes: so they have eg. fwb, ndl and sw but no agb compartiment in their list 
+  # join in agb calculate from compartiments based on papers that don´t have seperate agb function but also  allow to exclude leafes: so they have eg. fwb, ndl and sw but no agb compartiment in their list 
   setDT(tree_data_alnus %>% 
        left_join(., setDT(alnus_agb_kg_tree_df)[  # this is an inner join in data.tabe: https://medium.com/analytics-vidhya/r-data-table-joins-48f00b46ce29 
        setDT(bio_func_df %>% 
@@ -217,14 +219,14 @@ alnus_agb_kg_tree_df <- rbind(
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
 betula_func <- subset(bio_func_df, species %like% "Betula" &     # select only Alnus specific species
                         !is.na(function.) &                    # select only those papers with functions
-                        compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb", "abg"))            # select only those paper which have leafes not icluded or a possible compartimentalisation
+                        compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb"))            # select only those paper which have leafes not icluded or a possible compartimentalisation
 
 # 1.2.1. BETULA compartiment biomass calculations -------------------------------------------------
 # select alnus trees at organic sites
 tree_data_betula <- trees_data[trees_data$bot_genus %in% c("Betula") & trees_data$min_org == "org",]  
 betula_agb_kg_tree <- vector("list", length = nrow(tree.df))
 for (i in 1:nrow(betula_func)){
-  # i = 45
+  # i = 43
   
   paper_id <- betula_func$paper_ID[i]
   func_id <- betula_func$func_ID[i]  # ID of the function in literature research csv
@@ -337,11 +339,12 @@ betula_agb_kg_tree_df <- rbind(
 
 
 # 2. tapeS wagb compartiement calculation ---------------------------------------------------------
-# 2.1. alnus tapeS wagb compartiement calculation ---------------------------------------------------------
-alnus_wagb_tapes <- setDT(subset(tapes_tree_data, select = -c(B_kg_tree,   N_kg_tree,   C_kg_tree, compartiment)))[setDT(
-  tapes_tree_data [!(tapes_tree_data$compartiment %in% c("ag", "bg", "total", "ndl")) & 
-  tapes_tree_data$bot_genus %in% c("Alnus") & 
-  tapes_tree_data$min_org == "org",] %>% 
+# caclulate the compartimetn "wag" woody aboveground biomass for trees calcualted with tapes by sumiinf up all woody compartiments per single tree 
+wagb_tapes <- unique(
+  # select remove biomass etc. from the tapes tree dataset to join the wag per single tree in
+  setDT(subset(tapes_tree_data, select = -c(B_kg_tree,   N_kg_tree,   C_kg_tree, compartiment))) [setDT( # this is a leaft join in data.table
+    # here comes the summary
+  tapes_tree_data [!(tapes_tree_data$compartiment %in% c("ag", "bg", "total", "ndl")),] %>% 
     group_by(plot_ID, tree_ID) %>% 
     summarise(B_kg_tree = sum(B_kg_tree)) %>% 
     mutate(compartiment = "w_agb",
@@ -349,21 +352,15 @@ alnus_wagb_tapes <- setDT(subset(tapes_tree_data, select = -c(B_kg_tree,   N_kg_
            func_ID = "tapes",
            ID = paste0(paper_ID, "_", func_ID), 
            country = "Germany")
-  ), on = .(plot_ID, tree_ID) ]
+), on = .(plot_ID, tree_ID) ])
+
+# 2.1. alnus tapeS wagb compartiement calculation ---------------------------------------------------------
+alnus_wagb_tapes <- wagb_tapes[wagb_tapes$bot_genus %in% c("Alnus") & 
+                                 wagb_tapes$min_org == "org", ]
 
 # 2.2. betula tapeS wagb compartiement calculation ---------------------------------------------------------
-betula_wagb_tapes <- setDT(subset(tapes_tree_data, select = -c(B_kg_tree,   N_kg_tree,   C_kg_tree, compartiment)))[setDT(
-  tapes_tree_data [!(tapes_tree_data$compartiment %in% c("ag", "bg", "total", "ndl")) & 
-                     tapes_tree_data$bot_genus %in% c("Betula") & 
-                     tapes_tree_data$min_org == "org",] %>% 
-    group_by(plot_ID, tree_ID) %>% 
-    summarise(B_kg_tree = sum(B_kg_tree)) %>% 
-    mutate(compartiment = "w_agb",
-           paper_ID = as.numeric(max(bio_func_df$paper_ID))+1, 
-           func_ID = "tapes",
-           ID = paste0(paper_ID, "_", func_ID),  
-           country = "Germany")
-), on = .(plot_ID, tree_ID) ]
+betula_wagb_tapes <- wagb_tapes[wagb_tapes$bot_genus %in% c("Betula") & 
+                                 wagb_tapes$min_org == "org", ]
 
 
 
@@ -412,17 +409,11 @@ stop("this is where biomass comparison singe tree script paper stops")
 # 4.1. ALNUS visuals --------------------------------------------------------------
 # 4.1.1. ALNUS ag visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
-alnus_ag <-  rbind(setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "agb"]),
-                   setDT((tapes_tree_data[
-                     tapes_tree_data$compartiment == "ag" & 
-                       tapes_tree_data$bot_genus %in% c("Alnus") & 
-                       tapes_tree_data$min_org == "org",]) %>% 
-                       mutate(paper_ID = "tapes", 
-                              func_ID = "tapes", 
-                              country = "Germany")), fill = T )
+alnus_ag <-  trees_data_update_5[compartiment %in% c("agb", "ag") & bot_genus %in% c("Alnus") & min_org == "org", ]
 
 alnus_ag_labels <- alnus_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
-  left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Alnus")) %>% select(paper_ID, country)) %>% distinct()%>% mutate_at("paper_ID", ~as.character(.)), by = "paper_ID" ) %>% 
+  left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Alnus")) %>% select(paper_ID, country)) %>% distinct()#%>% mutate_at("paper_ID", ~as.character(.))
+            , by = "paper_ID" ) %>% 
   mutate(country_code = ifelse(func_ID == "tapes", "GER", toupper(substr(country, start = 1, stop = 2))),
          ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
          label_name = paste0(ID, ", ",country_code))
@@ -444,8 +435,7 @@ ggplot(data = ungroup(alnus_ag) # %>% filter(!(ID %in% c("13_1"))) # "16_4" and 
 
 # 4.1.2. ALNUS wabg visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
-alnus_wag <-  rbind(setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment == "w_agb", ]),
-                   setDT(alnus_wagb_tapes), fill = T )
+alnus_wag <-  trees_data_update_5[compartiment %in% c("w_agb") & bot_genus %in% c("Alnus") & min_org == "org", ]
 
 alnus_wag_labels <- alnus_wag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
   left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Alnus")) %>% select(paper_ID, country)) %>% distinct() 

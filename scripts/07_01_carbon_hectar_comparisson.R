@@ -19,7 +19,6 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 
 
 # ----- 0.2. working directory -------------------------------------------------
-here::here()
 
 out.path <- ("/output/out_data/") 
 
@@ -34,7 +33,7 @@ trees_removed <- read.delim(file = paste0(getwd(), out.path, trees_data$inv[1], 
 # import stand component wise summaries:
 # these dataset contain the LT, DW and RG values summarised per ha on different levels of data grouping
 # living trees
-LT_summary <- read_csv("output/out_data/HBI_LT_stocks_ha_all_groups.csv") # read.delim(file = paste0(getwd(), out.path, "HBI_LT_stocks_ha_all_groups.csv"),sep = ",", dec = ".")
+LT_summary <-read.delim(file = paste0(getwd(), out.path, "HBI_LT_stocks_ha_all_groups.csv"),sep = ",", dec = ".")
 
 
 # 0.4 subset data ---------------------------------------------------------
@@ -74,10 +73,11 @@ pseudo_mono_P_SP <- trees_org %>%
             n_ha = sum(n_trees_CCS_ha)) 
 
 # 1.3. mean stock pseudo-mono-stands: by calculation method  ---------------------------------------------------------
-pseudo_mono_mean_func <- pseudo_mono_P_SP %>% group_by(paper_ID, func_ID, country, ID, bot_genus, compartiment) %>% 
+pseudo_mono_mean_func <- pseudo_mono_P_SP %>% group_by(paper_ID, inv, func_ID, country, ID, bot_genus, compartiment) %>% 
                                 summarise(mean_B_t_ha = mean(B_t_ha), 
-                                          mean_C_t_ha = mean(C_t_ha)) %>% 
-  arrange(paper_ID,  bot_genus, func_ID, country, ID,compartiment)
+                                          mean_C_t_ha = mean(C_t_ha), 
+                                          mean_n_ha = mean(n_ha)) %>% 
+  arrange(inv,  bot_genus, paper_ID,  func_ID, country, ID,compartiment)
 
 
 
@@ -85,17 +85,34 @@ pseudo_mono_mean_func <- pseudo_mono_P_SP %>% group_by(paper_ID, func_ID, countr
 
 
 # 2. visuals --------------------------------------------------------------
+# https://bwi.info/inhalt1.3.aspx?Text=3.14%20Kohlenstoff%20[kg/ha]%20nach%20Baumartengruppe%20und%20Altersklasse%20(rechnerischer%20Reinbestand)&prRolle=public&prInv=THG2017&prKapitel=3.14
+# mean c stock of "andere Laubhölzer niedlriger Lebensdauer (aLn) according to BWI: 52859 kg ha-1 
+
+# 2.1. alnus mean c t ha barplot ------------------------------------------
+values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$inv == "momok"]
+names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$inv == "momok"]
+alnus_wag <- as.data.frame(cbind(names, values))# , mean_NFI = c(ton(52859))))
+
+# plotting 
+barplot(height = as.numeric(alnus_wag$values), names=alnus_wag$names)
+abline(h=ton(52859), col = "red") # nfi mean
+abline(h=mean(as.numeric(alnus_wag$values)), col = "blue") #functions mean 
 
 
+# 2.1. betula mean c t ha barplot ------------------------------------------
+values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
+names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
+betula_wag <- as.data.frame(cbind(names, values))
 
-
-
-
+# plotting 
+barplot(height = as.numeric(betula_wag$values), names=betula_wag$names)
+abline(h=ton(52859), col = "red")
+abline(h=mean(as.numeric(na.omit(betula_wag$values))), col = "blue")
 
 
 # NOTES -------------------------------------------------------------------
 
-
+view(trees_org[trees_org$bot_genus %in% c("Betula") & trees_org$paper_ID %in% c("34", "36"),])
 # n. soiltype to lt but not needed ----------------------------------------
 # add soil type to LT_summary
 LT_summary <- setDT(LT_summary)[

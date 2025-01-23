@@ -2333,15 +2333,25 @@ write.csv(all.rem.circle.coords.df,  paste0(out.path, paste(unique(trees_update_
 
 
 stop("this is where visuals of HBI momok forest edges start")
-
+unique((trees_data %>% filter(inv == "momok" & startsWith(as.character(trees_data$plot_ID), "3401")))$plot_ID)
 # 3.4. visulaizing for all plots, edges, trees ---------------------------------------------------------------------------------------------------
+trees_data <- trees_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_4.csv"), sep = ",", dec = ".") 
+all.triangle.coords.df.nogeo <- read.delim(file = paste0(getwd(), out.path, inv_name(trees_data$inv_year[1]), "_all_edges_intersection_coords.csv"), sep = ",", dec = ".")
+triangle.e1.coords.df.nogeo <- all.triangle.coords.df.nogeo[all.triangle.coords.df.nogeo$e_form == "1",]
+triangle.e2.coords.df.nogeo <- all.triangle.coords.df.nogeo[all.triangle.coords.df.nogeo$e_form == "2",]
+
+unique(trees_data$plot_ID[trees_data$stand == "B"])
+all.trees.coords.df.nogeo <- unique(trees_data[, c( "plot_ID" , "tree_ID", "inv_year", "X_tree" , "Y_tree" , "stand")]) %>% 
+  dplyr::rename("lon" = "X_tree" ) %>% 
+  dplyr::rename("lat" = "Y_tree") %>% 
+  dplyr::rename("t_stat"= "stand")
 
 for(i in 1:(nrow(trees_data %>% select(plot_ID) %>% distinct()))){
   # https://ggplot2.tidyverse.org/reference/ggsf.html
   
-  #i = 1
-  # i = which(grepl(160036, unique(trees_data$plot_ID)))
-  my.plot.id = unique(trees_data$plot_ID)[i]
+  #i = 2
+  # i = which(grepl( 10005, unique(trees_data$plot_ID)))
+  my.plot.id =  60079       #unique(trees_data$plot_ID)[i]
   #print(my.plot.id)
   
   c.df <- as.data.frame(cbind("lon" = 0, "lat" = 0))
@@ -2350,11 +2360,26 @@ for(i in 1:(nrow(trees_data %>% select(plot_ID) %>% distinct()))){
   c.poly.12 <- sf::st_buffer(c.pt, 12.62)
   c.poly.5 <- sf::st_buffer(c.pt, 5.64)
   
+  # poly 1
+  try({triangle.e1.poly <- sfheaders::sf_polygon(obj = triangle.e1.coords.df.nogeo[triangle.e1.coords.df.nogeo$plot_ID == my.plot.id,]  
+                                                     , x = "X"
+                                                     , y = "Y"
+                                                     , polygon_id = "e_ID")
+  triangle.e1.poly.df.nogeo <- c("plot_ID" = my.plot.id,  "e_form" = triangle.e1.coords.df.nogeo$e_form[triangle.e1.coords.df.nogeo$plot_ID == my.plot.id], triangle.e1.poly)}, silent  = T)
+  # poly 2
+  try({triangle.e2.poly <- sfheaders::sf_polygon(obj = triangle.e2.coords.df.nogeo[triangle.e2.coords.df.nogeo$plot_ID == my.plot.id,]  
+                                            , x = "X"
+                                            , y = "Y"
+                                            , polygon_id = "e_ID")
+  triangle.e2.poly.df.nogeo <- c("plot_ID" = my.plot.id,  "e_form" = triangle.e2.coords.df.nogeo$e_form[triangle.e2.coords.df.nogeo$plot_ID == my.plot.id], triangle.e2.poly)}, silent  = T)
+  # trees
+  all.trees.points.df.nogeo <- sf::st_as_sf(all.trees.coords.df.nogeo[all.trees.coords.df.nogeo$plot_ID == my.plot.id,], coords = c("lon", "lat"))
+  
   all.trees.points.df.nogeo.sp <- all.trees.points.df.nogeo %>% 
     filter(plot_ID == my.plot.id) %>% 
     left_join(trees_data %>% 
                 filter(plot_ID == my.plot.id) %>%
-                select(plot_ID, tree_ID, SP_code), by = c("plot_ID", "tree_ID"),
+                select(plot_ID, tree_ID, SP_code) %>% distinct(), by = c("plot_ID", "tree_ID"),
               multiple = "all")
   
   print(ggplot() +
@@ -2362,12 +2387,12 @@ for(i in 1:(nrow(trees_data %>% select(plot_ID) %>% distinct()))){
           geom_sf(data = c.poly.17, aes(alpha = 0))+
           geom_sf(data = c.poly.12, aes(alpha = 0))+
           geom_sf(data = c.poly.5, aes(alpha = 0))+
-          geom_sf(data = triangle.e1.poly.df.nogeo$geometry[triangle.e1.poly.df.nogeo$plot_ID == my.plot.id], aes(alpha = 0))+
-          geom_sf(data = triangle.e2.poly.df.nogeo$geometry[triangle.e2.poly.df.nogeo$plot_ID == my.plot.id], aes(alpha = 0))+ 
+          geom_sf(data = triangle.e1.poly.df.nogeo$geometry[triangle.e1.poly.df.nogeo$plot_ID == my.plot.id], aes(alpha = 0.01))+
+          geom_sf(data = triangle.e2.poly.df.nogeo$geometry[triangle.e2.poly.df.nogeo$plot_ID == my.plot.id], aes(alpha = 0.01))+ 
           geom_sf(data = all.trees.points.df.nogeo.sp$geometry[all.trees.points.df.nogeo.sp$plot_ID == my.plot.id], 
-                  aes(color = all.trees.points.df.nogeo.sp$t_stat[all.trees.points.df.nogeo.sp$plot_ID == my.plot.id], 
+                  aes(color = all.trees.points.df.nogeo.sp$SP_code[all.trees.points.df.nogeo.sp$plot_ID == my.plot.id], 
                       size =  all.trees.points.df.nogeo.sp$DBH_cm[all.trees.points.df.nogeo.sp$plot_ID == my.plot.id]))+
-          guides(color=guide_legend(title="tree status"))+
+          guides(color=guide_legend(title="tree species"))+
           guides(size=guide_legend(title="DBH cm"))+
           geom_sf_text(data = all.trees.points.df.nogeo.sp$geometry[all.trees.points.df.nogeo.sp$plot_ID == my.plot.id], 
                        aes(label = all.trees.points.df.nogeo.sp$tree_ID[all.trees.points.df.nogeo.sp$plot_ID == my.plot.id]))+
@@ -2379,5 +2404,6 @@ for(i in 1:(nrow(trees_data %>% select(plot_ID) %>% distinct()))){
 }
 
 # hello this is a change just to commit it 
-
+unique(trees_data$plot_ID[trees_data$stand == "B"])
+unique(trees_data$stand[trees_data$plot_ID == 60079   ])
 # another round
