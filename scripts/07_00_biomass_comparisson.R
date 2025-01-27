@@ -459,8 +459,31 @@ ggplot(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("4_w_agb", "13_1"))) # "
   #theme(legend.position="none")+
   ggtitle("Alnus Biomass kg/tree by diameter cm")
 
-alnus_wag %>% filter(is.na())
- 
+
+
+
+
+
+# Change the margins of the plot (the fourth is the right margin)
+par(mar = c(4, 4, 2, 10), xpd=TRUE)
+
+# grid(nx = NULL, ny = NULL,
+#      lty = 2, col = "gray", lwd = 1)
+
+plot(alnus_wag$DBH_cm, alnus_wag$B_kg_tree, 
+     frame = T, 
+     pch = 19, 
+     cex = 0.5, 
+     col = factor(alnus_wag$ID), 
+     xlab = "DBH cm",
+     ylab = "Biomass kg tree-1", 
+     main = "Alnus spp. biomass kg tree-1 by diameter")
+
+# move legend to side: https://stackoverflow.com/questions/3932038/plot-a-legend-outside-of-the-plotting-area-in-base-graphics
+legend("topright", inset=c(-0.3,0), legend= alnus_wag_labels$label_name, 
+       col = factor(alnus_wag$ID), pch=19, title="Paper ID and country")
+
+on.exit(par(opar))
 
 # 4.2. BETULA visuals --------------------------------------------------------------
 # 4.2.1. BETULA ag visuals --------------------------------------------------------------
@@ -527,6 +550,26 @@ ggplot(data = ungroup(betula_wag) %>% filter(!(ID %in% c("34_w_agb"))) # "16_4" 
   ggtitle("betula Biomass kg/tree by diameter cm")
 
 
+
+
+## base r
+par(mar = c(4, 4, 2, 10), xpd=TRUE)
+
+# grid(nx = NULL, ny = NULL,
+#      lty = 2, col = "gray", lwd = 1)
+
+plot(betula_wag$DBH_cm, betula_wag$B_kg_tree, 
+     frame = T, 
+     pch = 19,
+     cex = 0.5,
+     col = factor(betula_wag$ID), 
+     xlab = "DBH cm",
+     ylab = "Biomass kg tree-1", 
+     main = "Betula spp. biomass kg tree-1 by diameter")
+
+# move legend to side: https://stackoverflow.com/questions/3932038/plot-a-legend-outside-of-the-plotting-area-in-base-graphics
+legend("topright", inset=c(-0.3,0), legend= betula_wag_labels$label_name, 
+       col = factor(betula_wag$ID), pch=19, title="Paper ID and country")
 
 
 
