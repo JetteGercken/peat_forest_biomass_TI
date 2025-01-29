@@ -53,12 +53,17 @@ LT_summary_org <- subset(LT_summary, min_org == "org" & bot_genus %in% c("Betula
 # add BA share to tres dataset by species, plot and inv
 trees_org <- setDT(trees_org)[setDT(unique(LT_summary_org[, c("plot_ID", "inv", "SP_code", "BA_percent")])) , on = c("plot_ID", "inv", "SP_code") ,allow.cartesian=T]
 # calculate relative plot area per species
-trees_org[, plot_A_ha_SP := (plot_A_ha*(BA_percent/100))]
+trees_org[, plot_A_ha_SP := (plot_A_ha*(BA_percent/100))] 
+trees_org[, paper_ID := (ifelse(trees_org$func_ID == "tapes", max(na.omit(trees_org$paper_ID))+1 , paper_ID))]
+trees_org[, ID:= (ifelse(trees_org$func_ID == "tapes", paste0(paper_ID, "_", func_ID), trees_org$ID)  )]
+# add paper id to trees_org
+
+
 
 # 1.2. pseudo-mono-stands: stock by plot & species, using realtive plot area ---------------------------------------------------------
 pseudo_mono_P_SP <- trees_org %>% 
   # calculate stock per CCS and then per ha 
-  group_by(plot_ID, CCS_r_m, inv, paper_ID, func_ID, country, ID, bot_genus, compartiment, plot_A_ha_SP,plot_A_ha, BA_percent) %>% 
+  group_by(plot_ID, CCS_r_m, paper_ID, func_ID, country, ID, bot_genus, compartiment, plot_A_ha_SP,plot_A_ha, BA_percent) %>% 
   # convert Biomass into tons per hectar and sum it up per sampling circuit 
   reframe(B_CCS_t_ha = sum(ton(B_kg_tree))/plot_A_ha_SP, # plot are is the area of the respecitve samplign circuit in ha 
           C_CCS_t_ha = sum(ton(B_kg_tree*0.5))/plot_A_ha_SP,
@@ -66,19 +71,19 @@ pseudo_mono_P_SP <- trees_org %>%
           n_trees_CCS_ha = dplyr::n()/plot_A_ha_SP) %>% 
   distinct()%>% 
   # now we summarise all the t/ha values of the cirlces per plot
-  group_by(plot_ID, inv, paper_ID, func_ID, country, ID, bot_genus, compartiment) %>% 
+  group_by(plot_ID, paper_ID, func_ID, country, ID, bot_genus, compartiment) %>% 
   summarise(B_t_ha = sum(B_CCS_t_ha), 
             C_t_ha = sum(C_CCS_t_ha), 
            BA_m2_ha = sum(BA_CCS_m2_ha), 
             n_ha = sum(n_trees_CCS_ha)) 
 
 # 1.3. mean stock pseudo-mono-stands: by calculation method  ---------------------------------------------------------
-pseudo_mono_mean_func <- pseudo_mono_P_SP %>% group_by(paper_ID, inv, func_ID, country, ID, bot_genus, compartiment) %>% 
+pseudo_mono_mean_func <- pseudo_mono_P_SP %>% group_by(paper_ID, func_ID, country, ID, bot_genus, compartiment) %>% 
                                 summarise(mean_B_t_ha = mean(B_t_ha), 
                                           mean_C_t_ha = mean(C_t_ha), 
                                           mean_n_ha = mean(n_ha)) %>% 
-  arrange(inv,  bot_genus, paper_ID,  func_ID, country, ID,compartiment)
-
+  distinct() %>% 
+  arrange(bot_genus, paper_ID,  func_ID, country, ID,compartiment)
 
 
 
@@ -89,14 +94,36 @@ pseudo_mono_mean_func <- pseudo_mono_P_SP %>% group_by(paper_ID, inv, func_ID, c
 # mean c stock of "andere Laubhölzer niedlriger Lebensdauer (aLn) according to BWI: 52859 kg ha-1 
 
 # 2.1. alnus mean c t ha barplot ------------------------------------------
-values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$inv == "momok"]
-names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$inv == "momok"]
+values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" ]
+names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" ]
 alnus_wag <- as.data.frame(cbind(names, values))# , mean_NFI = c(ton(52859))))
 
-# plotting 
-barplot(height = as.numeric(alnus_wag$values), names=alnus_wag$names)
+# plotting barplot
+barplot(height = as.numeric(alnus_wag$values), names=alnus_wag$names, 
+        xlab = "Biomass calculation method",
+        ylab = "mean C stock t ha-1", 
+        main = "Alnus spp. mean C stock t ha-1 by biomass method")
 abline(h=ton(52859), col = "red") # nfi mean
 abline(h=mean(as.numeric(alnus_wag$values)), col = "blue") #functions mean 
+
+
+# subset for boxplot
+values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb"]
+names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb"]
+alnus_wag <- as.data.frame(cbind(names, values))
+# mark only tapes plot
+my.colors <- ifelse(levels(as.factor(alnus_wag$names))== "40_tapes" , "#838B8B" , "grey90" ) 
+
+# plotting boxplot
+boxplot(as.numeric(values) ~ as.factor(names),
+        col=my.colors ,
+        xlab = "Biomass calculation method",
+        ylab = "C stock t ha-1", 
+        main = "Alnus spp. C stock t ha-1 by biomass method")
+abline(h=ton(52859), col = "red") # nfi mean
+abline(h=mean(as.numeric(na.omit(alnus_wag$values))), col = "blue") #functions mean
+legend("topleft", legend = c("tapeS","literature equations", "mean C t ha-1 NFI", "mean C t ha-1 over all equations") , 
+       col = c("#838B8B", "grey90",  "red", "blue") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(0.03, 0.1))
 
 
 # 2.1. betula mean c t ha barplot ------------------------------------------
@@ -104,13 +131,70 @@ values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in%
 names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
 betula_wag <- as.data.frame(cbind(names, values))
 
-# plotting 
-barplot(height = as.numeric(betula_wag$values), names=betula_wag$names)
+# plotting barplot
+barplot(height = as.numeric(betula_wag$values), names=betula_wag$names, 
+        xlab = "Biomass calculation method",
+        ylab = "mean C stock t ha-1", 
+        main = "Betula spp. mean C stock t ha-1 by biomass method", 
+        cex.names=0.75)
 abline(h=ton(52859), col = "red")
 abline(h=mean(as.numeric(na.omit(betula_wag$values))), col = "blue")
 
 
+
+# subset for boxplot
+values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]
+names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]
+betula_wag <- as.data.frame(cbind(names, values))
+# mark only tapes plot
+my.colors <- ifelse(levels(as.factor(betula_wag$names))== "40_tapes" , "#838B8B" , "grey90" ) 
+
+# plotting boxplot
+boxplot(as.numeric(values) ~ as.factor(names),
+        col=my.colors ,
+        xlab = "Biomass calculation method",
+        ylab = "mean C stock t ha-1", 
+        main = "Betula spp. C stock t ha-1 by biomass method")
+abline(h=ton(52859), col = "red") # nfi mean
+abline(h=mean(as.numeric(na.omit(betula_wag$values))), col = "blue") #functions mean
+legend("topright", legend = c("tapeS","literature equations", "mean C t ha-1 NFI", "mean C t ha-1 over all equations") , 
+       col = c("#838B8B", "grey90",  "red", "blue") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(-0.25, 0.1))
+
+
+
+
+
 # NOTES -------------------------------------------------------------------
+
+
+
+names <- c(rep("Maestro", 20) , rep("Presto", 20) , 
+           rep("Nerak", 20), rep("Eskimo", 20), rep("Nairobi", 20), rep("Artiko", 20))
+value <- c(  sample(3:10, 20 , replace=T) , sample(2:5, 20 , replace=T) , 
+             sample(6:10, 20 , replace=T), sample(6:10, 20 , replace=T) , 
+             sample(1:7, 20 , replace=T), sample(3:10, 20 , replace=T) )
+data <- data.frame(names,value)
+
+# Prepare a vector of colors with specific color for Nairobi and Eskimo
+myColors <- ifelse(levels(as.factor(data$names))=="Nairobi" , rgb(0.1,0.1,0.7,0.5) , 
+                   ifelse(levels(as.factor(data$names))=="Eskimo", rgb(0.8,0.1,0.3,0.6),
+                          "grey90" ) )
+
+# Build the plot
+boxplot(data$value ~ data$names , 
+        col=myColors , 
+        ylab="disease" , xlab="- variety -")
+
+
+
+
+
+
+
+
+
+
+
 
 view(trees_org[trees_org$bot_genus %in% c("Betula") & trees_org$paper_ID %in% c("34", "36"),])
 # n. soiltype to lt but not needed ----------------------------------------

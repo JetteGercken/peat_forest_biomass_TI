@@ -44,14 +44,14 @@ tapes_tree_data <- tapes_tree_data %>% mutate(H_m = as.numeric(H_m))  %>% distin
 # assign IDs to papers and functions
 bio_func_df <- bio_func_df %>% 
   dplyr::distinct() %>% 
-  dplyr::group_by(title, author, year) %>% 
+  dplyr::group_by(title, author, year, TSL) %>% 
   dplyr::mutate(func_ID = dplyr::row_number()) %>% 
   left_join(., 
             bio_func_df %>% 
-              select(title, author, year) %>% 
+              select(title, author, year, TSL) %>% 
               distinct() %>% 
               dplyr::mutate(paper_ID = dplyr::row_number()), 
-            by = c("title", "author", "year")) 
+            by = c("title", "author", "year", "TSL")) 
 # transform coefficients to numeric
 bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
 # add a column that combines func id and paper id
@@ -446,29 +446,30 @@ alnus_wag_labels <- alnus_wag %>% group_by(paper_ID, func_ID, ID) %>% summarise(
          label_name = paste0(ID, ", ",country_code)) %>% 
   distinct()
 
-ggplot(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("4_w_agb", "13_1"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+ggplot(data = ungroup(alnus_wag)# %>% filter(!(ID %in% c("4_w_agb", "13_1"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
 )+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-            data = alnus_wag_labels %>% filter(!(ID %in% c("4_w_agb", "13_1")))
+            data = alnus_wag_labels
+            #%>% filter(!(ID %in% c("4_w_agb", "13_1")))
             )+
   theme_bw()+
   #theme(legend.position="none")+
-  ggtitle("Alnus Biomass kg/tree by diameter cm")
+  ggtitle("Alnus woody aboveground biomass kg/tree by diameter cm")
 
 
 
 
-
+## plot alnus base r
 
 # Change the margins of the plot (the fourth is the right margin)
 par(mar = c(4, 4, 2, 10), xpd=TRUE)
 
-# grid(nx = NULL, ny = NULL,
-#      lty = 2, col = "gray", lwd = 1)
+ grid(nx = NULL, ny = NULL,
+      lty = 2, col = "gray", lwd = 1)
 
 plot(alnus_wag$DBH_cm, alnus_wag$B_kg_tree, 
      frame = T, 
@@ -480,7 +481,7 @@ plot(alnus_wag$DBH_cm, alnus_wag$B_kg_tree,
      main = "Alnus spp. biomass kg tree-1 by diameter")
 
 # move legend to side: https://stackoverflow.com/questions/3932038/plot-a-legend-outside-of-the-plotting-area-in-base-graphics
-legend("topright", inset=c(-0.3,0), legend= alnus_wag_labels$label_name, 
+legend("topright", inset=c(-0.15,0), legend= alnus_wag_labels$label_name, 
        col = factor(alnus_wag$ID), pch=19, title="Paper ID and country")
 
 on.exit(par(opar))
@@ -536,7 +537,7 @@ betula_wag_labels <- betula_wag %>% group_by(paper_ID, func_ID, ID) %>% summaris
          label_name = paste0(ID, ", ",country_code)) %>% 
   distinct()
 
-ggplot(data = ungroup(betula_wag) %>% filter(!(ID %in% c("34_w_agb"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+ggplot(data = ungroup(betula_wag) #%>% filter(!(ID %in% c("34_w_agb"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
 )+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
@@ -547,7 +548,7 @@ ggplot(data = ungroup(betula_wag) %>% filter(!(ID %in% c("34_w_agb"))) # "16_4" 
   )+
   theme_bw()+
   #theme(legend.position="none")+
-  ggtitle("betula Biomass kg/tree by diameter cm")
+  ggtitle("betula woody aboveground biomass kg/tree by diameter cm")
 
 
 
