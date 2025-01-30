@@ -112,7 +112,7 @@ values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & p
 names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb"]
 alnus_wag <- as.data.frame(cbind(names, values))
 # mark only tapes plot
-my.colors <- ifelse(levels(as.factor(alnus_wag$names))== "40_tapes" , "#838B8B" , "grey90" ) 
+my.colors <- ifelse(levels(as.factor(alnus_wag$names))== "42_tapes" , "#838B8B" , "grey90" ) 
 
 # plotting boxplot
 boxplot(as.numeric(values) ~ as.factor(names),
@@ -147,7 +147,7 @@ values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & 
 names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]
 betula_wag <- as.data.frame(cbind(names, values))
 # mark only tapes plot
-my.colors <- ifelse(levels(as.factor(betula_wag$names))== "40_tapes" , "#838B8B" , "grey90" ) 
+my.colors <- ifelse(levels(as.factor(betula_wag$names))== "42_tapes" , "#838B8B" , "grey90" ) 
 
 # plotting boxplot
 boxplot(as.numeric(values) ~ as.factor(names),
@@ -158,7 +158,7 @@ boxplot(as.numeric(values) ~ as.factor(names),
 abline(h=ton(52859), col = "red") # nfi mean
 abline(h=mean(as.numeric(na.omit(betula_wag$values))), col = "blue") #functions mean
 legend("topright", legend = c("tapeS","literature equations", "mean C t ha-1 NFI", "mean C t ha-1 over all equations") , 
-       col = c("#838B8B", "grey90",  "red", "blue") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(-0.25, 0.1))
+       col = c("#838B8B", "grey90",  "red", "blue") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(-0.6, 0.1))
 
 
 

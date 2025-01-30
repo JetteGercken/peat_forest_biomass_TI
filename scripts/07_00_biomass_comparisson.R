@@ -576,6 +576,9 @@ legend("topright", inset=c(-0.3,0), legend= betula_wag_labels$label_name,
 
 
 
+
+
+
 # 4.3. Betula & Alnus together --------------------------------------------
 bet_aln_ag <- dplyr::bind_rows(alnus_ag, betula_ag)
 ggplot(data = bet_aln_ag %>% filter(!(ID %in% c("16_4", "16_5")))
