@@ -463,15 +463,12 @@ alnus_wag <-
 alnus_wag %>% 
   mutate(
     farbe = ifelse(ID %like% c("tapes") , "red" , # tapes red
-                   ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "grey10",
-                          ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "grey30",
-                                 "grey" ) ))
-  )
-   # full peat dark grey
+                   ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "#53868B",
+                          ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "#7AC5CD",
+                                 "grey" ) )) )
 
 
-  
-
+# calcualte sd and mean 
 m_b_al <- alnus_wag[ID != "2_w_agb", .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
 sd_b_al <- alnus_wag[ID != "2_w_agb", .(sd_B_kg_tree =sd(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]  
 m_sd_b_al <- m_b_al[sd_b_al, on = list(plot_ID, tree_ID, compartiment, DBH_cm)]
@@ -479,8 +476,7 @@ m_sd_b_al[, up_sd_B_kg_tree := (B_kg_tree + sd_B_kg_tree)]
 m_sd_b_al[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]  
 
 
-
-
+# visualise wag 
 ggplot( # "16_4" and "16_5" are somehow weird so i kicked it out 
 )+ 
   geom_point(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("2_w_agb"))), 
@@ -516,9 +512,6 @@ ggplot( # "16_4" and "16_5" are somehow weird so i kicked it out
 
 
 # 4.1.2.2. base r ---------------------------------------------------------
-
-
-
 ## plot alnus base r
 
 # Change the margins of the plot (the fourth is the right margin)
@@ -533,7 +526,7 @@ par(mar = c(4, 4, 2, 10), xpd=TRUE)
                            ifelse(levels(as.factor(alnus_wag$ID)) %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "grey30",
                             "grey" ) )) # full peat dark grey
    
- 
+# plot 
 plot(alnus_wag$DBH_cm[alnus_wag$ID != "2_w_agb"], alnus_wag$B_kg_tree[alnus_wag$ID != "2_w_agb"], 
      frame = T, 
      pch = 19, 
@@ -557,7 +550,6 @@ on.exit(par(opar))
 
 # 4.2. BETULA visuals --------------------------------------------------------------
 # 4.2.1. BETULA ag visuals --------------------------------------------------------------
-
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 betula_ag <- 
   rbind(setDT(betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment == "agb", ]),
@@ -578,35 +570,19 @@ betula_ag_labels <- betula_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(
   distinct()
 
 
-
-
-ggplot(data = betula_ag  %>% filter(!(ID %in% c("36_1", "34_4")))
-       )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
+# plot
+ggplot(data = ungroup(betula_ag) # %>% filter(!(ID %in% c("13_1"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+)+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
-  scale_color_manual(values = betula_ag$farbe[betula_ag$ID != "2_w_agb"])+
-  geom_smooth(aes(x = DBH_cm, y = B_kg_tree), 
-              method= "loess",
-              data = m_sd_b_be, 
-              col = "black")+
-  geom_smooth(aes(x = DBH_cm, y = m_sd_b_be$low_sd_B_kg_tree), 
-              method= "loess",
-              data = m_sd_b_be, 
-              col = "black", 
-              linetype = "dashed")+
-  geom_smooth(aes(x = DBH_cm, y = m_sd_b_be$up_sd_B_kg_tree), 
-              method= "loess",
-              data = m_sd_b_be, 
-              col = "black", 
-              linetype = "dashed")+
+  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-            data = (ungroup(betula_ag_labels  %>% filter(!(ID %in% c("36_1", "34_4")))# "17_1")))#, "38_1", "38_2", "38_3", "38_4", "38_5")))  
-                            )))+
+            data = betula_ag_labels # %>% filter(!(ID %in% c("13_1")))
+  )+
   theme_bw()+
   #theme(legend.position="none")+
   ggtitle("Betula Biomass kg/tree by diameter cm")
-
 
 
 # 4.1.2. BETULA wabg visuals --------------------------------------------------------------
@@ -626,24 +602,23 @@ betula_wag <-
   betula_wag %>% 
   mutate(
     farbe = ifelse(ID %like% c("tapes") , "red" , # tapes red
-                   ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "blue",
-                          ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "lightblue",
+                   ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "#53868B",
+                          ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "#7AC5CD",
                                  "grey" ) ))
   )
 # full peat dark grey
 
 
 
-
-m_b_al <- betula_wag[ , .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
-sd_b_al <- betula_wag[ , .(sd_B_kg_tree =sd(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]  
-m_sd_b_al <- m_b_al[sd_b_al, on = list(plot_ID, tree_ID, compartiment, DBH_cm)]
-m_sd_b_al[, up_sd_B_kg_tree := (B_kg_tree + sd_B_kg_tree)]
-m_sd_b_al[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]  
-
-
+# sd mean betula 
+m_b_be <- betula_wag[ , .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
+sd_b_be <- betula_wag[ , .(sd_B_kg_tree =sd(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]  
+m_sd_b_be <- m_b_be[sd_b_be, on = list(plot_ID, tree_ID, compartiment, DBH_cm)]
+m_sd_b_be[, up_sd_B_kg_tree := (B_kg_tree + sd_B_kg_tree)]
+m_sd_b_be[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]  
 
 
+# plot 
 ggplot( )+ 
   geom_point(data = ungroup(betula_wag) # %>% filter(!(ID %in% c("2_w_agb"))), 
              , aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID), 
@@ -655,7 +630,7 @@ ggplot( )+
   scale_color_manual(values = betula_wag$farbe)+
   geom_smooth(aes(x = DBH_cm, y = B_kg_tree), 
               method= "loess",
-              data = m_sd_b_be, 
+              data = m_sd_b_be,
               col = "black")+
   geom_smooth(aes(x = DBH_cm, y = m_sd_b_be$low_sd_B_kg_tree), 
               method= "loess",
@@ -674,7 +649,7 @@ ggplot( )+
   )+
   theme_bw()+
   theme(legend.position="none")+
-  ggtitle("Alnus woody aboveground biomass kg/tree by diameter cm")
+  ggtitle("Betula woody aboveground biomass kg/tree by diameter cm")
 
 
 ## base r

@@ -112,7 +112,11 @@ values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & p
 names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb"]
 alnus_wag <- as.data.frame(cbind(names, values))
 # mark only tapes plot
-my.colors <- ifelse(levels(as.factor(alnus_wag$names))== "42_tapes" , "#838B8B" , "grey90" ) 
+my.colors <- ifelse(levels(as.factor(alnus_wag$names)) %like% c("tapes") , "red" , # tapes red
+       ifelse(levels(as.factor(alnus_wag$names)) %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "#53868B",
+              ifelse(levels(as.factor(alnus_wag$names)) %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "#7AC5CD",
+                     "grey" ) )) 
+
 
 # plotting boxplot
 boxplot(as.numeric(values) ~ as.factor(names),
@@ -120,10 +124,10 @@ boxplot(as.numeric(values) ~ as.factor(names),
         xlab = "Biomass calculation method",
         ylab = "C stock t ha-1", 
         main = "Alnus spp. C stock t ha-1 by biomass method")
-abline(h=ton(52859), col = "red") # nfi mean
-abline(h=mean(as.numeric(na.omit(alnus_wag$values))), col = "blue") #functions mean
-legend("topleft", legend = c("tapeS","literature equations", "mean C t ha-1 NFI", "mean C t ha-1 over all equations") , 
-       col = c("#838B8B", "grey90",  "red", "blue") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(0.03, 0.1))
+abline(h=ton(52859), col = "blue") # nfi mean
+abline(h=mean(as.numeric(na.omit(alnus_wag$values))), col = "black") #functions mean
+legend("topright", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", "mean C t ha-1 NFI", "mean C t ha-1 over all equations") , 
+       col = c("red", "#53868B", "#7AC5CD", "grey",  "blue", "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(-1.3, 0.1))
 
 
 # 2.1. betula mean c t ha barplot ------------------------------------------
@@ -147,7 +151,10 @@ values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & 
 names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]
 betula_wag <- as.data.frame(cbind(names, values))
 # mark only tapes plot
-my.colors <- ifelse(levels(as.factor(betula_wag$names))== "42_tapes" , "#838B8B" , "grey90" ) 
+my.colors <-my.colors <- ifelse(levels(as.factor(betula_wag$names)) %like% c("tapes") , "red" , # tapes red
+                                ifelse(levels(as.factor(betula_wag$names)) %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "#53868B",
+                                       ifelse(levels(as.factor(betula_wag$names)) %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "#7AC5CD",
+                                              "grey" ) )) 
 
 # plotting boxplot
 boxplot(as.numeric(values) ~ as.factor(names),
@@ -155,10 +162,10 @@ boxplot(as.numeric(values) ~ as.factor(names),
         xlab = "Biomass calculation method",
         ylab = "mean C stock t ha-1", 
         main = "Betula spp. C stock t ha-1 by biomass method")
-abline(h=ton(52859), col = "red") # nfi mean
-abline(h=mean(as.numeric(na.omit(betula_wag$values))), col = "blue") #functions mean
-legend("topright", legend = c("tapeS","literature equations", "mean C t ha-1 NFI", "mean C t ha-1 over all equations") , 
-       col = c("#838B8B", "grey90",  "red", "blue") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(-0.6, 0.1))
+abline(h=ton(52859), col = "blue") # nfi mean
+abline(h=mean(as.numeric(na.omit(betula_wag$values))), col = "black") #functions mean
+legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", "mean C t ha-1 NFI", "mean C t ha-1 over all equations") , 
+       col = c("red", "#53868B", "#7AC5CD", "grey",  "blue", "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(1.0 , 0.1))
 
 
 
