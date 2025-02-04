@@ -446,6 +446,8 @@ ggplot(data = ungroup(alnus_ag) # %>% filter(!(ID %in% c("13_1"))) # "16_4" and 
 
 # 4.1.2. ALNUS wabg visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
+
+# 4.1.2.1. ggplot ---------------------------------------------------------
 alnus_wag <-  trees_data_update_5[compartiment %in% c("w_agb") & bot_genus %in% c("Alnus") & min_org == "org", ]
 
 alnus_wag_labels <- alnus_wag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
@@ -457,20 +459,63 @@ alnus_wag_labels <- alnus_wag %>% group_by(paper_ID, func_ID, ID) %>% summarise(
          label_name = paste0(ID, ", ",country_code)) %>% 
   distinct()
 
-ggplot(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("2_w_agb"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+alnus_wag <- 
+alnus_wag %>% 
+  mutate(
+    farbe = ifelse(ID %like% c("tapes") , "red" , # tapes red
+                   ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "grey10",
+                          ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "grey30",
+                                 "grey" ) ))
+  )
+   # full peat dark grey
+
+
+  
+
+m_b_al <- alnus_wag[ID != "2_w_agb", .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
+sd_b_al <- alnus_wag[ID != "2_w_agb", .(sd_B_kg_tree =sd(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]  
+m_sd_b_al <- m_b_al[sd_b_al, on = list(plot_ID, tree_ID, compartiment, DBH_cm)]
+m_sd_b_al[, up_sd_B_kg_tree := (B_kg_tree + sd_B_kg_tree)]
+m_sd_b_al[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]  
+
+
+
+
+ggplot( # "16_4" and "16_5" are somehow weird so i kicked it out 
 )+ 
-  geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
-  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
-  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
+  geom_point(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("2_w_agb"))), 
+             aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID), 
+             )+
+  geom_smooth(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("2_w_agb"))), 
+              method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID) 
+              )+
+  scale_color_manual(values = alnus_wag$farbe[alnus_wag$ID != "2_w_agb"])+
+  geom_smooth(aes(x = DBH_cm, y = B_kg_tree), 
+              method= "loess",
+            data = m_sd_b_al, 
+            col = "black")+
+  geom_smooth(aes(x = DBH_cm, y = m_sd_b_al$low_sd_B_kg_tree), 
+            method= "loess",
+            data = m_sd_b_al, 
+            col = "black", 
+            linetype = "dashed")+
+  geom_smooth(aes(x = DBH_cm, y = m_sd_b_al$up_sd_B_kg_tree), 
+              method= "loess",
+              data = m_sd_b_al, 
+              col = "black", 
+              linetype = "dashed")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
-  geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
+  geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name), 
             data = alnus_wag_labels
             %>% filter(!(ID %in% c("2_w_agb")))
             )+
   theme_bw()+
-  #theme(legend.position="none")+
+  theme(legend.position="none")+
   ggtitle("Alnus woody aboveground biomass kg/tree by diameter cm")
 
+
+
+# 4.1.2.2. base r ---------------------------------------------------------
 
 
 
@@ -482,6 +527,13 @@ par(mar = c(4, 4, 2, 10), xpd=TRUE)
  grid(nx = NULL, ny = NULL,
       lty = 2, col = "gray", lwd = 1)
 
+ # mark only tapes plot
+ my.colors <- ifelse(levels(as.factor(alnus_wag$ID)) %like% "tapes" , "red" , # tapes red
+                     ifelse(levels(as.factor(alnus_wag$ID)) %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "grey10",
+                           ifelse(levels(as.factor(alnus_wag$ID)) %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "grey30",
+                            "grey" ) )) # full peat dark grey
+   
+ 
 plot(alnus_wag$DBH_cm[alnus_wag$ID != "2_w_agb"], alnus_wag$B_kg_tree[alnus_wag$ID != "2_w_agb"], 
      frame = T, 
      pch = 19, 
@@ -497,22 +549,8 @@ legend("topright", inset=c(-0.2,0), legend= alnus_wag_labels$label_name,
 
 on.exit(par(opar))
 
-#make the main plot
-plot(alnus_wag$DBH_cm[alnus_wag$ID != "2_w_agb"], alnus_wag$B_kg_tree[alnus_wag$ID != "2_w_agb"], 
-     frame = T, 
-     pch = 19, 
-     cex = 0.5, 
-     col = factor(alnus_wag$ID[alnus_wag$ID != "2_w_agb"]), 
-     xlab = "DBH cm",
-     ylab = "Biomass kg tree-1", 
-     main = "Alnus spp. biomass kg tree-1 by diameter"))
 
-#add linear trend
-lines(predict(lm(alnus_wag$B_kg_tree[alnus_wag$ID != "2_w_agb"] ~ alnus_wag$DBH_cm[alnus_wag$ID != "2_w_agb"])),
-      col = factor(alnus_wag$ID[alnus_wag$ID != "2_w_agb"]))
 
-#one more trend
-lines(predict(lm(myds~log(x))),col='red')][1]][1]
 
 
 
@@ -539,11 +577,28 @@ betula_ag_labels <- betula_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(
          label_name = paste0(ID, ", ",country_code)) %>% 
   distinct()
 
+
+
+
 ggplot(data = betula_ag  %>% filter(!(ID %in% c("36_1", "34_4")))
        )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
-  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
+  scale_color_manual(values = betula_ag$farbe[betula_ag$ID != "2_w_agb"])+
+  geom_smooth(aes(x = DBH_cm, y = B_kg_tree), 
+              method= "loess",
+              data = m_sd_b_be, 
+              col = "black")+
+  geom_smooth(aes(x = DBH_cm, y = m_sd_b_be$low_sd_B_kg_tree), 
+              method= "loess",
+              data = m_sd_b_be, 
+              col = "black", 
+              linetype = "dashed")+
+  geom_smooth(aes(x = DBH_cm, y = m_sd_b_be$up_sd_B_kg_tree), 
+              method= "loess",
+              data = m_sd_b_be, 
+              col = "black", 
+              linetype = "dashed")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
             data = (ungroup(betula_ag_labels  %>% filter(!(ID %in% c("36_1", "34_4")))# "17_1")))#, "38_1", "38_2", "38_3", "38_4", "38_5")))  
@@ -556,8 +611,7 @@ ggplot(data = betula_ag  %>% filter(!(ID %in% c("36_1", "34_4")))
 
 # 4.1.2. BETULA wabg visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
-betula_wag <-  rbind(setDT(betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment == "w_agb", ]),
-                    setDT(betula_wagb_tapes), fill = T )
+betula_wag <-  trees_data_update_5[compartiment %in% c("w_agb") & bot_genus %in% c("Betula") & min_org == "org", ]
 
 betula_wag_labels <- betula_wag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
   left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Betula")) %>% select(paper_ID, country)) %>% distinct() 
@@ -568,20 +622,59 @@ betula_wag_labels <- betula_wag %>% group_by(paper_ID, func_ID, ID) %>% summaris
          label_name = paste0(ID, ", ",country_code)) %>% 
   distinct()
 
-ggplot(data = ungroup(betula_wag) #%>% filter(!(ID %in% c("34_w_agb"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
-)+ 
-  geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
-  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
-  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
+betula_wag <- 
+  betula_wag %>% 
+  mutate(
+    farbe = ifelse(ID %like% c("tapes") , "red" , # tapes red
+                   ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "blue",
+                          ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "lightblue",
+                                 "grey" ) ))
+  )
+# full peat dark grey
+
+
+
+
+m_b_al <- betula_wag[ , .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
+sd_b_al <- betula_wag[ , .(sd_B_kg_tree =sd(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]  
+m_sd_b_al <- m_b_al[sd_b_al, on = list(plot_ID, tree_ID, compartiment, DBH_cm)]
+m_sd_b_al[, up_sd_B_kg_tree := (B_kg_tree + sd_B_kg_tree)]
+m_sd_b_al[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]  
+
+
+
+
+ggplot( )+ 
+  geom_point(data = ungroup(betula_wag) # %>% filter(!(ID %in% c("2_w_agb"))), 
+             , aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID), 
+  )+
+  geom_smooth(data = ungroup(betula_wag) #%>% filter(!(ID %in% c("2_w_agb")))
+              , method= "loess"
+              , aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID) 
+  )+
+  scale_color_manual(values = betula_wag$farbe)+
+  geom_smooth(aes(x = DBH_cm, y = B_kg_tree), 
+              method= "loess",
+              data = m_sd_b_be, 
+              col = "black")+
+  geom_smooth(aes(x = DBH_cm, y = m_sd_b_be$low_sd_B_kg_tree), 
+              method= "loess",
+              data = m_sd_b_be, 
+              col = "black", 
+              linetype = "dashed")+
+  geom_smooth(aes(x = DBH_cm, y = m_sd_b_be$up_sd_B_kg_tree), 
+              method= "loess",
+              data = m_sd_b_be, 
+              col = "black", 
+              linetype = "dashed")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
-  geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-            data = betula_wag_labels %>% filter(!(ID %in% c("34_w_agb")))
+  geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name), 
+            data = betula_wag_labels
+            %>% filter(!(ID %in% c("2_w_agb")))
   )+
   theme_bw()+
-  #theme(legend.position="none")+
-  ggtitle("betula woody aboveground biomass kg/tree by diameter cm")
-
-
+  theme(legend.position="none")+
+  ggtitle("Alnus woody aboveground biomass kg/tree by diameter cm")
 
 
 ## base r
