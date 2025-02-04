@@ -18,13 +18,13 @@ out.path <- ("/output/out_data/")
 # hbi BE dataset: this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
 # here we should actually import a dataset called "HBI_trees_update_3.csv" which contains plot area and stand data additionally to 
 # tree data
-trees_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_4.csv"), sep = ",", dec = ".") %>% dplyr::select(-c("compartiment","B_kg_tree", "N_kg_tree", "C_kg_tree")) %>% dplyr::distinct()
 tapes_tree_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_4.csv"), sep = ",", dec = ".")
+trees_data <-tapes_tree_data %>% dplyr::select(-c("compartiment","B_kg_tree", "N_kg_tree", "C_kg_tree")) %>% dplyr::distinct()
 trees_removed <- read.delim(file =paste0(getwd(), out.path, trees_data$inv[1], "_LT_removed.csv"), sep = ",", dec = ".")
 # soil data
 soil_types_db <- read.delim(file = paste0(getwd(), out.path, "soils_types_profil_db.csv"), sep = ",", dec = ".")
 # importa data from literature research
-bio_func_df <- read.delim(file = paste0(getwd(), "/data/input/", "B_lit_functions.csv"), sep = ",", dec = ".") %>% select(-c(func_ID, paper_ID))
+bio_func_df <- read.delim(file = paste0(getwd(), "/data/input/", "B_lit_functions.csv"), sep = ",", dec = ".")
 # summaries
 all_summary <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_RG_DW_stocks_ha_all_groups.csv"), sep = ",", dec = ".")
 LT_summary <- all_summary %>% filter(stand_component == "LT") %>% select(-c(dw_sp, dw_type, decay, inv_year, ST_LY_type, mean_d_cm, sd_d_cm, mean_l_m, sd_l_m, n_dec, n_dw_TY))
@@ -53,7 +53,7 @@ bio_func_df <- bio_func_df %>%
               dplyr::mutate(paper_ID = dplyr::row_number()), 
             by = c("title", "author", "year", "TSL")) 
 # transform coefficients to numeric
-bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
+bio_func_df[,13:28] <- lapply(bio_func_df[,13:28], as.numeric)
 # add a column that combines func id and paper id
 bio_func_df$ID <- paste0(bio_func_df$paper_ID,"_", bio_func_df$func_ID)
 # exclude those functions that require age as we don´t always have it
@@ -77,15 +77,24 @@ bio_func_df <- bio_func_df[!(str_detect(bio_func_df$variables, "age")),]
 # 1.1. ALNUS Biomass calculations -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
-alnus_func <- subset(bio_func_df, species %like% "Alnus" &     # select only Alnus specific species
-                            !is.na(function.) &                    # select only those papers with functions
-                            compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb"))            # select only those paper which have leafes not icluded or a possible compartimentalisation
+alnus_func <-subset(bio_func_df, species %like% "Alnus glutinosa" &     # select only Alnus specific species
+                      !is.na(function.) &                    # select only those papers with functions
+                      compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb") | 
+                      species %like% "Alnus Glutinosa" &     # select only Alnus specific species
+                      !is.na(function.) &                    # select only those papers with functions
+                      compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb") | 
+                      species %like% "Alnus spp." &     # select only Alnus specific species
+                      !is.na(function.) &                    # select only those papers with functions
+                      compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb")) 
+  
+  
+  
 
 # select alnus trees at organic sites
 tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",]  
 alnus_agb_kg_tree <- vector("list", length = nrow(tree_data_alnus))
 for (i in 1:nrow(alnus_func)){
- # i = 1
+ # i = 23
   
   paper_id <- alnus_func$paper_ID[i]# ID of the paper in literature research csv
   func_id <- alnus_func$func_ID[i]  # ID of the function in literature research csv
@@ -199,7 +208,8 @@ alnus_agb_kg_tree_df <- rbind(
   setDT(tree_data_alnus %>% 
           # join the tree info with the agb compartiment per tree
           left_join(., (alnus_agb_kg_tree_df[!(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl")) &            # select seperate compartiments that are not ag or leafes 
-                                               alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl == "possible"]), ]) %>%   # of papers which have "possible"
+                                               alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl == "possible"],
+                                                                              alnus_func$ID[alnus_func$leafes_inkl == "not included"]), ]) %>%   # of papers which have "possible"
                       dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
                       dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
                       mutate(compartiment = "w_agb",
@@ -325,7 +335,8 @@ betula_agb_kg_tree_df <- rbind(
   setDT(tree_data_betula %>% 
           # join the tree info with the agb compartiment per tree
           left_join(., (betula_agb_kg_tree_df[!(betula_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl")) &            # select seperate compartiments that are not ag or leafes 
-                                               betula_agb_kg_tree_df$ID %in% c(betula_func$ID[betula_func$leafes_inkl == "possible"]), ]) %>%   # of papers which have "possible"
+                                               betula_agb_kg_tree_df$ID %in% c(betula_func$ID[betula_func$leafes_inkl == "possible"],
+                                                                               betula_func$ID[betula_func$leafes_inkl == "not included"]), ]) %>%   # of papers which have "possible"
                       dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
                       dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
                       mutate(compartiment = "w_agb",
@@ -622,6 +633,20 @@ ggplot(data = BA_distri %>% arrange(BA_m2_ha), aes(x=fct_infreq(SP_code), y= BA_
 
 
 # NOTES -------------------------------------------------------------------
+# n. old way to filter glutinosa func -------------------------------------
+
+subset(bio_func_df, species %like% "Alnus" &     # select only Alnus specific species
+         !is.na(function.) &                    # select only those papers with functions
+         compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb"))            # select only those paper which have leafes not icluded or a possible compartimentalisation
+# n. old way to filter betula func -------------------------------------
+betula_func <- subset(bio_func_df, species %like% "Betula" &     # select only Alnus specific species
+                        !is.na(function.) &                    # select only those papers with functions
+                        compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb"))            # select only those paper which have leafes not icluded or a possible compartimentalisation
+
+
+
+
+
 
 # select input for function: https://stackoverflow.com/questions/30474729/string-split-into-list-r
 tree.df[,match(as.list(strsplit(args, '\\, ')[[1]]), names(tree.df))]
@@ -685,6 +710,9 @@ scatterplot3d(alnus_ag[,c("DBH_cm", "H_m", "B_kg_tree")],
               zlab = "Biomass (kg tree-1)", 
               color =  rainbow(length(unique(alnus_ag$ID)))[as.factor(alnus_ag$ID)])
 demo("regression")
+
+
+
 
 
 
