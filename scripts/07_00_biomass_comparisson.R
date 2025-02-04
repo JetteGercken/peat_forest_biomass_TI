@@ -227,7 +227,7 @@ alnus_agb_kg_tree_df <- rbind(
 # 1.2. BETULA  -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
 # select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
-betula_func <- subset(bio_func_df, species %like% "Betula" &     # select only Alnus specific species
+betula_func <- subset(bio_func_df, species %like% "Betula pubescens" &     # select only Alnus specific species
                         !is.na(function.) &                    # select only those papers with functions
                         compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb"))            # select only those paper which have leafes not icluded or a possible compartimentalisation
 
@@ -457,7 +457,7 @@ alnus_wag_labels <- alnus_wag %>% group_by(paper_ID, func_ID, ID) %>% summarise(
          label_name = paste0(ID, ", ",country_code)) %>% 
   distinct()
 
-ggplot(data = ungroup(alnus_wag)# %>% filter(!(ID %in% c("4_w_agb", "13_1"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+ggplot(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("2_w_agb"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
 )+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
@@ -465,7 +465,7 @@ ggplot(data = ungroup(alnus_wag)# %>% filter(!(ID %in% c("4_w_agb", "13_1"))) # 
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
             data = alnus_wag_labels
-            #%>% filter(!(ID %in% c("4_w_agb", "13_1")))
+            %>% filter(!(ID %in% c("2_w_agb")))
             )+
   theme_bw()+
   #theme(legend.position="none")+
@@ -482,20 +482,40 @@ par(mar = c(4, 4, 2, 10), xpd=TRUE)
  grid(nx = NULL, ny = NULL,
       lty = 2, col = "gray", lwd = 1)
 
-plot(alnus_wag$DBH_cm, alnus_wag$B_kg_tree, 
+plot(alnus_wag$DBH_cm[alnus_wag$ID != "2_w_agb"], alnus_wag$B_kg_tree[alnus_wag$ID != "2_w_agb"], 
      frame = T, 
      pch = 19, 
      cex = 0.5, 
-     col = factor(alnus_wag$ID), 
+     col = factor(alnus_wag$ID[alnus_wag$ID != "2_w_agb"]), 
      xlab = "DBH cm",
      ylab = "Biomass kg tree-1", 
      main = "Alnus spp. biomass kg tree-1 by diameter")
 
 # move legend to side: https://stackoverflow.com/questions/3932038/plot-a-legend-outside-of-the-plotting-area-in-base-graphics
-legend("topright", inset=c(-0.15,0), legend= alnus_wag_labels$label_name, 
+legend("topright", inset=c(-0.2,0), legend= alnus_wag_labels$label_name, 
        col = factor(alnus_wag$ID), pch=19, title="Paper ID and country")
 
 on.exit(par(opar))
+
+#make the main plot
+plot(alnus_wag$DBH_cm[alnus_wag$ID != "2_w_agb"], alnus_wag$B_kg_tree[alnus_wag$ID != "2_w_agb"], 
+     frame = T, 
+     pch = 19, 
+     cex = 0.5, 
+     col = factor(alnus_wag$ID[alnus_wag$ID != "2_w_agb"]), 
+     xlab = "DBH cm",
+     ylab = "Biomass kg tree-1", 
+     main = "Alnus spp. biomass kg tree-1 by diameter"))
+
+#add linear trend
+lines(predict(lm(alnus_wag$B_kg_tree[alnus_wag$ID != "2_w_agb"] ~ alnus_wag$DBH_cm[alnus_wag$ID != "2_w_agb"])),
+      col = factor(alnus_wag$ID[alnus_wag$ID != "2_w_agb"]))
+
+#one more trend
+lines(predict(lm(myds~log(x))),col='red')][1]][1]
+
+
+
 
 # 4.2. BETULA visuals --------------------------------------------------------------
 # 4.2.1. BETULA ag visuals --------------------------------------------------------------
