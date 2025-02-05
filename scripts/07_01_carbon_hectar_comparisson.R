@@ -108,8 +108,8 @@ abline(h=mean(as.numeric(alnus_wag$values)), col = "blue") #functions mean
 
 
 # subset for boxplot
-values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb"]
-names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb"]
+values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$ID != "2_w_agb"]
+names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$ID != "2_w_agb"]
 alnus_wag <- as.data.frame(cbind(names, values))
 # mark only tapes plot
 my.colors <- ifelse(levels(as.factor(alnus_wag$names)) %like% c("tapes") , "red" , # tapes red
@@ -127,7 +127,7 @@ boxplot(as.numeric(values) ~ as.factor(names),
 abline(h=ton(52859), col = "blue") # nfi mean
 abline(h=mean(as.numeric(na.omit(alnus_wag$values))), col = "black") #functions mean
 legend("topright", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", "mean C t ha-1 NFI", "mean C t ha-1 over all equations") , 
-       col = c("red", "#53868B", "#7AC5CD", "grey",  "blue", "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(-1.3, 0.1))
+       col = c("red", "#53868B", "#7AC5CD", "grey",  "blue", "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(-1.2, 0.1))
 
 
 # 2.1. betula mean c t ha barplot ------------------------------------------
