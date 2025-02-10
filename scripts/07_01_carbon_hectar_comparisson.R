@@ -63,7 +63,7 @@ trees_org[, ID:= (ifelse(trees_org$func_ID == "tapes", paste0(paper_ID, "_", fun
 # 1.2. pseudo-mono-stands: stock by plot & species, using realtive plot area ---------------------------------------------------------
 pseudo_mono_P_SP <- trees_org %>% 
   # calculate stock per CCS and then per ha 
-  group_by(plot_ID, CCS_r_m, paper_ID, func_ID, country, ID, bot_genus, compartiment, plot_A_ha_SP,plot_A_ha, BA_percent) %>% 
+  group_by(plot_ID, CCS_r_m, paper_ID, func_ID, peat,  country, ID, bot_genus, compartiment, plot_A_ha_SP,plot_A_ha, BA_percent) %>% 
   # convert Biomass into tons per hectar and sum it up per sampling circuit 
   reframe(B_CCS_t_ha = sum(ton(B_kg_tree))/plot_A_ha_SP, # plot are is the area of the respecitve samplign circuit in ha 
           C_CCS_t_ha = sum(ton(B_kg_tree*0.5))/plot_A_ha_SP,
@@ -71,14 +71,14 @@ pseudo_mono_P_SP <- trees_org %>%
           n_trees_CCS_ha = dplyr::n()/plot_A_ha_SP) %>% 
   distinct()%>% 
   # now we summarise all the t/ha values of the cirlces per plot
-  group_by(plot_ID, paper_ID, func_ID, country, ID, bot_genus, compartiment) %>% 
+  group_by(plot_ID, paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
   summarise(B_t_ha = sum(B_CCS_t_ha), 
             C_t_ha = sum(C_CCS_t_ha), 
            BA_m2_ha = sum(BA_CCS_m2_ha), 
             n_ha = sum(n_trees_CCS_ha)) 
 
 # 1.3. mean stock pseudo-mono-stands: by calculation method  ---------------------------------------------------------
-pseudo_mono_mean_func <- pseudo_mono_P_SP %>% group_by(paper_ID, func_ID, country, ID, bot_genus, compartiment) %>% 
+pseudo_mono_mean_func <- pseudo_mono_P_SP %>% group_by(paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
                                 summarise(mean_B_t_ha = mean(B_t_ha), 
                                           mean_C_t_ha = mean(C_t_ha), 
                                           mean_n_ha = mean(n_ha)) %>% 
@@ -113,9 +113,10 @@ names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo
 alnus_wag <- as.data.frame(cbind(names, values))
 # mark only tapes plot
 my.colors <- ifelse(levels(as.factor(alnus_wag$names)) %like% c("tapes") , "red" , # tapes red
-       ifelse(levels(as.factor(alnus_wag$names)) %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "#53868B",
-              ifelse(levels(as.factor(alnus_wag$names)) %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "#7AC5CD",
+       ifelse(levels(as.factor(alnus_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "yes"]), "#53868B",
+              ifelse(levels(as.factor(alnus_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "partly"]), "#7AC5CD",
                      "grey" ) )) 
+
 
 
 # plotting boxplot
@@ -123,9 +124,17 @@ boxplot(as.numeric(values) ~ as.factor(names),
         col=my.colors ,
         xlab = "Biomass calculation method",
         ylab = "C stock t ha-1", 
-        main = "Alnus spp. C stock t ha-1 by biomass method")
-abline(h=ton(52859), col = "blue") # nfi mean
-abline(h=mean(as.numeric(na.omit(alnus_wag$values))), col = "black") #functions mean
+        main = "Alnus spp. C stock t ha-1 by biomass method", 
+        ylim = c(0,275.1831))
+# add nfi mean
+segments(x0 = 0.5, 
+         x1 = length(unique(names)) + 0.5,
+         y0 = ton(52859), y1 = ton(52859), col = "blue", lwd = 2) 
+# add line for dataset mean
+segments(x0 = 0.5, 
+         x1 = length(unique(names)) + 0.5, 
+         y0 = mean(as.numeric(na.omit(alnus_wag$values))), 
+         y1 = mean(as.numeric(na.omit(alnus_wag$values))), col = "black", lwd = 2) #functions mean
 legend("topright", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", "mean C t ha-1 NFI", "mean C t ha-1 over all equations") , 
        col = c("red", "#53868B", "#7AC5CD", "grey",  "blue", "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(-1.2, 0.1))
 
@@ -146,14 +155,15 @@ abline(h=mean(as.numeric(na.omit(betula_wag$values))), col = "blue")
 
 
 
+
 # subset for boxplot
 values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]
 names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]
 betula_wag <- as.data.frame(cbind(names, values))
 # mark only tapes plot
 my.colors <-my.colors <- ifelse(levels(as.factor(betula_wag$names)) %like% c("tapes") , "red" , # tapes red
-                                ifelse(levels(as.factor(betula_wag$names)) %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "#53868B",
-                                       ifelse(levels(as.factor(betula_wag$names)) %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "#7AC5CD",
+                                ifelse(levels(as.factor(betula_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "yes"]), "#53868B",
+                                       ifelse(levels(as.factor(betula_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "partly"]), "#7AC5CD",
                                               "grey" ) )) 
 
 # plotting boxplot
@@ -161,9 +171,17 @@ boxplot(as.numeric(values) ~ as.factor(names),
         col=my.colors ,
         xlab = "Biomass calculation method",
         ylab = "mean C stock t ha-1", 
-        main = "Betula spp. C stock t ha-1 by biomass method")
-abline(h=ton(52859), col = "blue") # nfi mean
-abline(h=mean(as.numeric(na.omit(betula_wag$values))), col = "black") #functions mean
+        main = "Betula spp. C stock t ha-1 by biomass method", 
+        ylim = c(0, max(as.numeric(values), na.rm = TRUE) * 1.1))
+# add nfi mean
+segments(x0 = 0.5, 
+         x1 = length(unique(names))- 0.5 ,
+         y0 = ton(52859), y1 = ton(52859), col = "blue", lwd = 2) 
+# add line for dataset mean
+segments(x0 = 0.5, 
+         x1 = length(unique(names) )- 0.5 , 
+         y0 = mean(as.numeric(na.omit(betula_wag$values))), 
+         y1 = mean(as.numeric(na.omit(betula_wag$values))), col = "black", lwd = 2) #functions mean
 legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", "mean C t ha-1 NFI", "mean C t ha-1 over all equations") , 
        col = c("red", "#53868B", "#7AC5CD", "grey",  "blue", "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(1.0 , 0.1))
 
