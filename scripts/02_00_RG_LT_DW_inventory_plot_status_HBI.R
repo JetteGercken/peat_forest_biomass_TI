@@ -308,8 +308,13 @@ forest_edges <- forest_edges %>%
 
 # 1.3. REGENRATION --------------------------------------------------------
 RG_data <- RG_data %>%
-  # join  in inventory info
-  left_join(., tree_inv_info %>% select(plot_ID, inv_year, inv) %>% distinct(), by = "plot_ID") %>% 
+  mutate(SP_code = tolower(SP_code)) %>%  ##momok : apperently the species names in momom are not in lower case but caps which is why we have to harmonise this first 
+  # join in inventory info 
+  left_join(., tree_inv_info %>% dplyr::select("plot_ID", "inv_year", "inv"), by = "plot_ID")  %>% 
+  # join in the species names from x_bart to ensure the Dahm DBH correction function
+  left_join(., SP_names_com_ID_tapeS %>% 
+              mutate(char_code_ger_lowcase = tolower(Chr_code_ger)), 
+            by = c("SP_code" = "char_code_ger_lowcase")) %>% 
   arrange(plot_ID, CCS_nr, tree_ID) %>% 
 # if the CCR no is not a an integer but a character, we have to change that 
   mutate(across(c("CCS_nr", "tree_ID"), as.integer))

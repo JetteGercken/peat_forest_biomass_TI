@@ -182,6 +182,8 @@ Hg_Dg_trees_total.df <-
 
 # 2.3. height calculation -------------------------------------------------
 # 2.3.1. height calculation HBI -------------------------------------------------
+# 2.3.1.1. normal height calculation HBI -------------------------------------------------
+
 HBI_trees_update_3 <-     # this should actually be the BZE3 Datset 
   trees_total %>% 
   filter(inv %in% c("HBI", "momok"))%>% ##change: we have to adjust this to select momok trees as well
@@ -222,7 +224,50 @@ tidyr::unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE) %>%           
                               TRUE ~ H_method),
          H_m = case_when(DBH_h_m > H_m & !is.na(H_g) ~ ehk_sloboda(H_SP_group, DBH_cm*10, mean_DBH_mm, D_g*10, H_g*10),
                          DBH_h_m > H_m & is.na(H_g) ~  h_curtis(H_SP_group, DBH_cm*10), 
-                         TRUE ~ H_m)) %>% 
+                         TRUE ~ H_m)) 
+
+# 2.3.1.1. just DBH based height calculation HBI -------------------------------------------------
+
+  ### H only estimated via DBH
+
+  # we need a HG calculated only from DBH too
+  # or we only use our models no matter what 
+# lets look at a height without dnh
+
+
+  
+  # When h_m is na but there is a plot and species wise model with R2 above 0.7, use the model to predict the height
+  HBI_trees_update_3 %>%  mutate(H_meth_est = case_when( !is.na(R2.x) & R2.x > 0.70 |  R2.x > R2.y & R2.x > 0.70 ~ "coeff_SP_P", 
+                              is.na(R2.x) & R2.y > 0.70|  R2.x < R2.y & R2.y > 0.70 ~ "coeff_sp",
+                              is.na(R2_comb) & !is.na(H_g)|  R2_comb < 0.70 & !is.na(H_g) ~ "ehk_sloboda",
+                               is.na(R2_comb) & is.na(H_g)|  R2_comb < 0.70 & is.na(H_g) ~ "h_curtis", 
+                              TRUE ~ NA), 
+         H_m_est = as.numeric(case_when(!is.na(R2.x) & R2.x > 0.70 | is.na(H_m) & R2.x > R2.y & R2.x > 0.70 ~ h_nls_SP_P(SP_P_ID, DBH_cm),
+                                        # if H_m is na and there is an R2 from coeff_SP_P thats bigger then 0.75 or of theres no R2 from 
+                                        # coeff_SP_plot that´s bigger then R2 of coeff_SP_P while the given R2 from coeff_SP_P is above 
+                                        # 0.75 then use the SP_P models
+                                        is.na(R2.x) & R2.y > 0.70 | is.na(H_m) & R2.x < R2.y & R2.y > 0.70 ~ h_nls_SP(SP_code, DBH_cm),
+                                        # when there´s still no model per species or plot, or the R2 of both self-made models is below 0.7 
+                                        # and hm is na but there is a h_g and d_G
+                                        is.na(R2_comb) & !is.na(H_g)| is.na(H_m) & R2_comb < 0.70 & !is.na(H_g) ~ ehk_sloboda(H_SP_group, DBH_cm*10, mean_DBH_mm, D_g*10, H_g*10),
+                                        # when there´s still no model per species or plot, or the R2 of both self-made models is below 0.7 
+                                        # and hm is na and the Slobody function cannot eb applied because there is no h_g calculatable use the curtis function
+                                        is.na(R2_comb) & is.na(H_g)| is.na(H_m) & R2_comb < 0.70 & is.na(H_g) ~ h_curtis(H_SP_group, DBH_cm*10), 
+                                        TRUE ~ H_m))) %>% 
+  # as there were some trees that had an estimated height which was lower then the DBH measuring height. this is not only implausible but also won´t work for TapeS 
+  # thus we correct these heights afterwards by estimating their height from the relation between the dg and hg and dg and the trees DBH (dreisatz, h_proportional function)
+  mutate(H_meth_est = case_when(DBH_h_m > H_m_est & !is.na(H_g) ~ "ehk_sloboda_2",
+                                DBH_h_m > H_m_est & is.na(H_g) ~ "curtis_2", 
+                                TRUE ~ H_meth_est),
+         H_m_est = case_when(DBH_h_m > H_m_est & !is.na(H_g) ~ ehk_sloboda(H_SP_group, DBH_cm*10, mean_DBH_mm, D_g*10, H_g*10),
+                             DBH_h_m > H_m_est & is.na(H_g) ~  h_curtis(H_SP_group, DBH_cm*10), 
+                             TRUE ~ H_m_est)) %>%
+  # select columns that should enter the next step of data processing
+  # select(plot_ID, inv, inv_year, stand, tree_ID,  tree_inventory_status,  multi_stem, dist_cm,  azi_gon, age, age_meth,  
+  #        SP_code, Chr_code_ger, bot_name, tpS_ID, LH_NH, H_SP_group, BWI_SP_group, Bio_SP_group, N_SP_group, N_bg_SP_group, N_f_SP_group_MoMoK,
+  #        DBH_class,  Kraft, C_layer, H_dm, H_m, H_method, C_h_dm, D_mm,   DBH_h_cm,  DBH_cm, BA_m2,
+  #        CCS_r_m, stand, stand_plot_A_ha, plot_A_ha) %>% 
+  filter(!is.na(H_m))
   # select columns that should enter the next step of data processing
   # select(plot_ID, inv, inv_year, stand, tree_ID,  tree_inventory_status,  multi_stem, dist_cm,  azi_gon, age, age_meth,  
   #        SP_code, Chr_code_ger, bot_name, tpS_ID, LH_NH, H_SP_group, BWI_SP_group, Bio_SP_group, N_SP_group, N_bg_SP_group, N_f_SP_group_MoMoK,
@@ -274,6 +319,32 @@ BZE3_trees_update_3 <-  trees_total %>%
          H_m = case_when(DBH_h_m > H_m & !is.na(H_g) ~ ehk_sloboda(H_SP_group, DBH_cm*10, mean_DBH_mm, D_g*10, H_g*10),
                          DBH_h_m > H_m & is.na(H_g) ~  h_curtis(H_SP_group, DBH_cm*10), 
                          TRUE ~ H_m)) %>% 
+  mutate(H_meth_est = case_when(is.na(H_m) & !is.na(R2.x) & R2.x > 0.70 | is.na(H_m) & R2.x > R2.y & R2.x > 0.70 ~ "coeff_SP_P", 
+                       is.na(H_m) & is.na(R2.x) & R2.y > 0.70| is.na(H_m) & R2.x < R2.y & R2.y > 0.70 ~ "coeff_sp",
+                       is.na(H_m) & is.na(R2_comb) & !is.na(H_g)| is.na(H_m) & R2_comb < 0.70 & !is.na(H_g) ~ "ehk_sloboda",
+                       is.na(H_m) & is.na(R2_comb) & is.na(H_g)| is.na(H_m) & R2_comb < 0.70 & is.na(H_g) ~ "h_curtis", 
+                       TRUE ~ "sampled")) %>% 
+  # When h_m is na but there is a plot and species wise model with R2 above 0.7, use the model to predict the height
+  mutate(H_m_est = as.numeric(case_when(!is.na(R2.x) & R2.x > 0.70 | is.na(H_m) & R2.x > R2.y & R2.x > 0.70 ~ h_nls_SP_P(SP_P_ID, DBH_cm),
+                                    # if H_m is na and there is an R2 from coeff_SP_P thats bigger then 0.75 or of theres no R2 from 
+                                    # coeff_SP_plot that´s bigger then R2 of coeff_SP_P while the given R2 from coeff_SP_P is above 
+                                    # 0.75 then use the SP_P models
+                                    is.na(R2.x) & R2.y > 0.70 | is.na(H_m) & R2.x < R2.y & R2.y > 0.70 ~ h_nls_SP(SP_code, DBH_cm),
+                                    # when there´s still no model per species or plot, or the R2 of both self-made models is below 0.7 
+                                    # and hm is na but there is a h_g and d_G
+                                    is.na(R2_comb) & !is.na(H_g)| is.na(H_m) & R2_comb < 0.70 & !is.na(H_g) ~ ehk_sloboda(H_SP_group, DBH_cm*10, mean_DBH_mm, D_g*10, H_g*10),
+                                    # when there´s still no model per species or plot, or the R2 of both self-made models is below 0.7 
+                                    # and hm is na and the Slobody function cannot eb applied because there is no h_g calculatable use the curtis function
+                                    is.na(R2_comb) & is.na(H_g)| is.na(H_m) & R2_comb < 0.70 & is.na(H_g) ~ h_curtis(H_SP_group, DBH_cm*10), 
+                                    TRUE ~ H_m))) %>% 
+  # as there were some trees that had an estimated height which was lower then the DBH measuring height. this is not only implausible but also won´t work for TapeS 
+  # thus we correct these heights afterwards by estimating their height from the relation between the dg and hg and dg and the trees DBH (dreisatz, h_proportional function)
+  mutate(H_meth_est = case_when(DBH_h_m > H_m_est & !is.na(H_g) ~ "ehk_sloboda_2",
+                              DBH_h_m > H_m_est & is.na(H_g) ~ "curtis_2", 
+                              TRUE ~ H_method),
+         H_m_est = case_when(DBH_h_m > H_m_est & !is.na(H_g) ~ ehk_sloboda(H_SP_group, DBH_cm*10, mean_DBH_mm, D_g*10, H_g*10),
+                         DBH_h_m > H_m_est & is.na(H_g) ~  h_curtis(H_SP_group, DBH_cm*10), 
+                         TRUE ~ H_m_est)) %>%
   # select columns that should enter the next step of data processing
   # select(plot_ID, inv, inv_year, stand, tree_ID,  tree_inventory_status,  multi_stem, dist_cm,  azi_gon, age, age_meth,  
   #        SP_code, Chr_code_ger, bot_name, tpS_ID, LH_NH, H_SP_group, BWI_SP_group, Bio_SP_group, N_SP_group, N_bg_SP_group, N_f_SP_group_MoMoK,

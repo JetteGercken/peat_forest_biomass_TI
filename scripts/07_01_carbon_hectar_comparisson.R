@@ -89,6 +89,43 @@ pseudo_mono_mean_func <- pseudo_mono_P_SP %>% group_by(paper_ID, func_ID, peat, 
 
 
 
+
+# 1.4. Differences ---------------------------------------------------------------
+# ((endwert-anfangswert)/ anfangswert)*100
+
+# 1.4.1. differences TapeS NFI -----------------------------------------------
+#mean NFI: 52859 kg/ha
+m_nfi_aLHn <- ton(52859)
+# 1.4.1.1. Alnus differences TapeS NFI -----------------------------------------------
+m_all_func_alnus <- mean(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" ])
+
+# percent difference: 73.66395
+((m_all_func_alnus - m_nfi_aLHn)/m_nfi_aLHn)*100 
+
+# 1.4.1.2. Betula differences TapeS NFI -----------------------------------------------
+m_all_func_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb" ]))
+
+# percent difference: 
+((m_all_func_betula - m_nfi_aLHn)/m_nfi_aLHn)*100 
+
+
+
+# 1.4.2. differences TapeS and overall mean -----------------------------------------------
+# 1.4.2.1. Alnus differences TapeS and overall mean -----------------------------------------------
+m_tapes_alnus <- mean(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$func_ID == "tapes"])
+
+# percent difference: - 14.93
+((m_tapes_alnus - m_all_func_alnus)/m_all_func_alnus)*100 
+
+# 1.4.2.2. Betula differences TapeS and overall mean -----------------------------------------------
+m_tapes_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$func_ID == "tapes"]))
+
+# percent difference
+((m_tapes_betula - m_all_func_betula)/m_all_func_betula)*100 
+
+
+
+
 # 2. visuals --------------------------------------------------------------
 # https://bwi.info/inhalt1.3.aspx?Text=3.14%20Kohlenstoff%20[kg/ha]%20nach%20Baumartengruppe%20und%20Altersklasse%20(rechnerischer%20Reinbestand)&prRolle=public&prInv=THG2017&prKapitel=3.14
 # mean c stock of "andere Laubhölzer niedlriger Lebensdauer (aLn) according to BWI: 52859 kg ha-1 

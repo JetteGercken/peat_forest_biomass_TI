@@ -30,6 +30,8 @@ all_summary <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_RG_DW_stocks_
 LT_summary <- all_summary %>% filter(stand_component == "LT") %>% select(-c(dw_sp, dw_type, decay, inv_year, ST_LY_type, mean_d_cm, sd_d_cm, mean_l_m, sd_l_m, n_dec, n_dw_TY))
 
 
+bio_func_df %>% filter(country == "USA" & species %like% "Alnus")
+
 # 0.4 data preparation ---------------------------------------------------------
 trees_data <- trees_data %>% mutate(H_m = as.numeric(H_m))  %>% distinct() %>% 
   # join in soil data
