@@ -1208,7 +1208,7 @@ h_nls_SP <- function(spec, d){
   b0 <- dplyr::pull(coeff_H_SP, b0, SP_code);
   b1 <- dplyr::pull(coeff_H_SP, b1, SP_code);
   b2 <- dplyr::pull(coeff_H_SP, b2, SP_code);
-  return(b0[spec] * (1 - exp( -b1[spec] * d))^b2[spec])
+  return(as.numeric(b0[spec]) * (1 - exp( - as.numeric(b1[spec]) * d))^ as.numeric(b2[spec]))
 }
 
 # ---- 1.9.3.2. species-wise self-fitted nls models ------------------------------------------------------
@@ -1218,7 +1218,7 @@ h_nls_SP_P <- function(plot_spec, d) {
   b0 <- coeff_H_SP_P %>% unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE) %>% dplyr::pull(b0, SP_P_ID);
   b1 <- coeff_H_SP_P %>% unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE) %>% dplyr::pull(b1, SP_P_ID);
   b2 <- coeff_H_SP_P %>% unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE) %>% dplyr::pull(b2, SP_P_ID);
-  return(b0[plot_spec] * (1 - exp( -b1[plot_spec] * d))^b2[plot_spec])
+  return(as.numeric(b0[plot_spec]) * (1 - exp( - as.numeric(b1[plot_spec]) * d))^ as.numeric(b2[plot_spec]))
 }
 
 

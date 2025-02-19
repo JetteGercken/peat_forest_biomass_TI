@@ -227,12 +227,57 @@ tidyr::unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE) %>%           
                          TRUE ~ H_m)) 
 
 # 2.3.1.1. just DBH based height calculation HBI -------------------------------------------------
+### H only estimated via DBH
+# we need a HG calculated only from DBH too
+# or we only use our models no matter what 
+# lets look at a sloboda height without hg from h 
 
-  ### H only estimated via DBH
+## make datatables  
+trees_trial <- data.table(trees_total)
+coeff_H_SP_P <- data.table(coeff_H_SP_P)
+coeff_H_SP <- data.table(coeff_H_SP)
 
-  # we need a HG calculated only from DBH too
-  # or we only use our models no matter what 
-# lets look at a height without dnh
+## data prep for join
+trees_trial[, ':='(SP_P_ID = paste0(plot_ID, SP_code))]  # unite SP and plot_ID for nls coeficcients 
+coeff_H_SP_P[,':='(SP_P_ID = paste0(plot_ID, SP_code)  )]                     # unite SP and plot_ID for nls coeficcients 
+#coeff_H_SP[,':='(R2_SP = R2)]    # rename r2 in SP  specific nls to r2y
+
+##  add coeficccients to dataset
+# species and plot specific nls
+trees_trial <- 
+  trees_trial %>% 
+  left_join(., coeff_H_SP_P[, c("plot_ID", "SP_code", "R2", "SP_P_ID")],  by = c("plot_ID", "SP_code", "SP_P_ID")) %>% 
+  # species specific nls
+  left_join(., coeff_H_SP[, c("SP_code", "R2")], by = c("SP_code")) %>% 
+  ##  height method 
+  mutate(H_m_nls_meth = ifelse(!is.na("R2.x") & "R2.x" > 0.70 |  "R2.x" > "R2.y" & "R2.x" > 0.70, "h_nls_SP_P",
+                                                            # if H_m is na and there is an R2 from coeff_SP_P thats bigger then 0.75 or of theres no R2 from 
+                                                            # coeff_SP_plot that´s bigger then R2 of coeff_SP_P while the given R2 from coeff_SP_P is above 
+                                                            # 0.75 then use the SP_P models
+                                                            ifelse(is.na("R2.x") & "R2.y" > 0.70 | "R2.x" < "R2.y" & "R2.y" > 0.70, "h_nls_SP", NA))) %>% 
+  ## calculate height
+  mutate(H_m_nls = (ifelse(!is.na(R2.x) & R2.x > 0.70 |  R2.x > R2.y & R2.x > 0.70, as.numeric(h_nls_SP_P(SP_P_ID, as.numeric(DBH_cm))),
+                                                # if H_m is na and there is an R2 from coeff_SP_P thats bigger then 0.75 or of theres no R2 from 
+                                                # coeff_SP_plot that´s bigger then R2 of coeff_SP_P while the given R2 from coeff_SP_P is above 
+                                                # 0.75 then use the SP_P models
+                                         ifelse(is.na(R2.x) & R2.y > 0.70 | R2.x < R2.y & R2.y > 0.70, as.numeric(h_nls_SP(SP_code, as.numeric(DBH_cm))), NA))))
+
+
+trees_trial[, by = c("inv", "plot_ID", "stand", "C_layer", "SP_code"),
+   .(mean_DBH_mm = mean(na.omit(as.numeric("DBH_cm")))*10)]
+
+
+  
+trees_trial %>% 
+  group_by(inv, plot_ID, stand, C_layer, SP_code) %>% 
+  summarise(mean_DBH_mm = mean(DBH_cm)*10 ,
+            D_g = sqrt(mean(BA_m2[!is.na(H_dm)])*4/pi)*100, # dg in cm --> that´s why the *100 --> m in cm
+            H_g = sum((H_dm[!is.na(H_dm)]/10)*BA_m2[!is.na(H_dm)])/sum(BA_m2[!is.na(H_dm)]))  # hg in m --> because BA is in m2 and we divided H_dm by 10 to have H_m
+
+
+
+
+
 
 
   
