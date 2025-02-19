@@ -129,6 +129,16 @@ purrr::walk2(
 
 
 
+momok_plot_ids_raw <-  na.omit(plyr::rbind.fill(
+  read.delim(file = paste0(getwd(), "/data/input/info_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
+  read.delim(file = paste0(getwd(), "/data/input/lokation_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
+  read.delim(file = paste0(getwd(), "/data/input/LT_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
+  read.delim(file = paste0(getwd(), "/data/input/RG_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
+  read.delim(file = paste0(getwd(), "/data/input/DW_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)) %>% 
+    select(MoMoK_Nr) %>% distinct())
+
+
+
 # 0.3.1.2. data wrangling momok ----------------------------------------------------
 # tables we need to construct: 
 # "tit", "be", "beab", "be_waldraender", "bej", "bejb", "be_totholz_punkt", "be_totholz_liste", vm_lokation_hbi
