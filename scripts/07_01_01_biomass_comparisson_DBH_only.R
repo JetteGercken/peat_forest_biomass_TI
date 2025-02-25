@@ -18,7 +18,7 @@ out.path <- ("/output/out_data/")
 # hbi BE dataset: this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
 # here we should actually import a dataset called "HBI_trees_update_3.csv" which contains plot area and stand data additionally to 
 # tree data
-tapes_tree_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_4.csv"), sep = ",", dec = ".")
+tapes_tree_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_5.csv"), sep = ",", dec = ".")
 trees_data <-tapes_tree_data %>% dplyr::select(-c("compartiment","B_kg_tree", "N_kg_tree", "C_kg_tree")) %>% dplyr::distinct()
 trees_removed <- read.delim(file =paste0(getwd(), out.path, trees_data$inv[1], "_LT_removed.csv"), sep = ",", dec = ".")
 # soil data
@@ -30,15 +30,21 @@ all_summary <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_RG_DW_stocks_
 LT_summary <- all_summary %>% filter(stand_component == "LT") %>% select(-c(dw_sp, dw_type, decay, inv_year, ST_LY_type, mean_d_cm, sd_d_cm, mean_l_m, sd_l_m, n_dec, n_dw_TY))
 
 
-bio_func_df %>% filter(country == "USA" & species %like% "Alnus")
+
 
 # 0.4 data preparation ---------------------------------------------------------
-trees_data <- trees_data %>% mutate(H_m = as.numeric(H_m))  %>% distinct() %>% 
+trees_data <- trees_data %>% 
+  rename("H_m_old" = "H_m") %>% # change name of H_m which includes sampled and not sampled hieghts that are estimated with DBH and HG
+  mutate(H_m = as.numeric(H_m_nls))  %>% # change HM to H_nls which is only SBH based heights
+  distinct() %>% 
   # join in soil data
   left_join(soil_types_db %>% select(bfhnr_2, min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
   mutate(min_org = ifelse(inv == "momok", "org", min_org))
 
-tapes_tree_data <- tapes_tree_data %>% mutate(H_m = as.numeric(H_m))  %>% distinct() %>% 
+tapes_tree_data <- tapes_tree_data %>% 
+  rename("H_m_old" = "H_m") %>% # change name of H_m which includes sampled and not sampled hieghts that are estimated with DBH and HG
+  mutate(H_m = as.numeric(H_m_nls))  %>% # change HM to H_nls which is only SBH based heights
+  distinct() %>% 
   # join in soil data
   left_join(soil_types_db %>% select(bfhnr_2, min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
   mutate(min_org = ifelse(inv == "momok", "org", min_org))
@@ -426,7 +432,7 @@ trees_data_update_5 <- rbind(
 
 
 # 3.2. export: all datasets with incdinvidual tree infos together ------------------------------------------------------------------
-write.csv(trees_data_update_5, paste0(getwd(), out.path, paste(trees_data_update_5$inv[1], "LT_update_5", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(trees_data_update_5, paste0(getwd(), out.path, paste(trees_data_update_5$inv[1], "LT_update_6_1", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 
 

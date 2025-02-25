@@ -261,6 +261,13 @@ trees_trial <-
                              # when there´s still no model per species or plot, or the R2 of both self-made models is below 0.7 
                              # and hm is na but there is a h_g and d_G
                             TRUE ~ NA)) %>% 
+  # if the height is still NA
+  mutate(H_m_nls_meth = case_when( is.na(H_m_nls)& !is.na(R2.x) & R2.x > R2.y  ~ "coeff_SP_P", 
+                                   is.na(H_m_nls)& !is.na(R2.y) & R2.y > R2.x  ~ "coeff_sp",
+                                   TRUE ~ NA)) %>%
+  mutate(H_m_nls_meth = case_when( is.na(H_m_nls)& !is.na(R2.x) & R2.x > R2.y  ~ as.numeric(h_nls_SP_P(SP_P_ID, DBH_cm)), 
+                                   is.na(H_m_nls)& !is.na(R2.y) & R2.y > R2.x  ~ as.numeric(h_nls_SP(SP_code, DBH_cm)),
+                                   TRUE ~ NA)) %>% 
   mutate(H_dm_nls = H_m_nls*10)
 
 # calcualte bg when itas only based on DBH estiamted heights
@@ -301,13 +308,12 @@ trees_trial %>%
                                 TRUE ~ H_m_nls_meth),
          H_m_nls = case_when(DBH_h_m > H_m_nls & !is.na(H_g_nls) ~ ehk_sloboda(H_SP_group, DBH_cm*10, mean_DBH_mm, D_g_nls*10, H_g_nls*10),
                              DBH_h_m > H_m_nls & is.na(H_g_nls) ~  h_curtis(H_SP_group, DBH_cm*10), 
-                             TRUE ~ H_m_nls)) %>% 
-  filter(!is.na(H_m))
+                             TRUE ~ H_m_nls))
   
 
 
 # add "purelry" DBH based heights to trees HBI update
-HBI_trees_update_3 %>% 
+HBI_trees_update_3 <- HBI_trees_update_3 %>% 
   left_join(trees_only_DBH_height[, c("plot_ID", "tree_ID",  "H_m_nls_meth",   "H_m_nls",  "H_dm_nls", "D_g_nls",  "H_g_nls", "H_nls_mean")], 
             by = c("plot_ID", "tree_ID")) %>% 
   distinct()

@@ -27,7 +27,7 @@ out.path <- ("/output/out_data/")
 # hbi BE dataset: this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
 # here we should actually import a dataset called "HBI_trees_update_3.csv" which contains plot area and stand data additionally to 
 # tree data
-trees_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_5.csv"), sep = ",", dec = ".")
+trees_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_6_2.csv"), sep = ",", dec = ".")
 trees_removed <- read.delim(file = paste0(getwd(), out.path, trees_data$inv[1], "_LT_removed.csv"), sep = ",", dec = ".")
 
 # import stand component wise summaries:
@@ -74,14 +74,14 @@ pseudo_mono_P_SP <- trees_org %>%
   group_by(plot_ID, paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
   summarise(B_t_ha = sum(B_CCS_t_ha), 
             C_t_ha = sum(C_CCS_t_ha), 
-           BA_m2_ha = sum(BA_CCS_m2_ha), 
+            BA_m2_ha = sum(BA_CCS_m2_ha), 
             n_ha = sum(n_trees_CCS_ha)) 
 
 # 1.3. mean stock pseudo-mono-stands: by calculation method  ---------------------------------------------------------
 pseudo_mono_mean_func <- pseudo_mono_P_SP %>% group_by(paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
-                                summarise(mean_B_t_ha = mean(B_t_ha), 
-                                          mean_C_t_ha = mean(C_t_ha), 
-                                          mean_n_ha = mean(n_ha)) %>% 
+  summarise(mean_B_t_ha = mean(B_t_ha), 
+            mean_C_t_ha = mean(C_t_ha), 
+            mean_n_ha = mean(n_ha)) %>% 
   distinct() %>% 
   arrange(bot_genus, paper_ID,  func_ID, country, ID,compartiment)
 
@@ -150,9 +150,9 @@ names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo
 alnus_wag <- as.data.frame(cbind(names, values))
 # mark only tapes plot
 my.colors <- ifelse(levels(as.factor(alnus_wag$names)) %like% c("tapes") , "red" , # tapes red
-       ifelse(levels(as.factor(alnus_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "yes"]), "#53868B",
-              ifelse(levels(as.factor(alnus_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "partly"]), "#7AC5CD",
-                     "grey" ) )) 
+                    ifelse(levels(as.factor(alnus_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "yes"]), "#53868B",
+                           ifelse(levels(as.factor(alnus_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "partly"]), "#7AC5CD",
+                                  "grey" ) )) 
 
 
 

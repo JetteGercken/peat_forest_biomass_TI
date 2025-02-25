@@ -1579,7 +1579,7 @@ V_DW_whole <- function(spec_tpS, d, dh, l){          # I don´t know if this can
 }
 
 # ---- 1.11.4.2. Biomass Deadwood according to BWI ----------------------------------------------------------
-B_DW <- function(V.m3, dec.type, SP){     # dec_SP = a column that holds the degree of decay and the species type has to be created (united)
+B_DW <- function(V.m3, dec.type, SP, stand.TY){     # dec_SP = a column that holds the degree of decay and the species type has to be created (united)
   # *1000 to transform density in g/cm3 into kg/m3: https://www.translatorscafe.com/unit-converter/de-DE/density/4-1/Gramm/Kubikzentimeter-Kilogramm/Kubikmeter/
   # spec_ 
   # 2_ = coniferous tree
@@ -1589,6 +1589,9 @@ B_DW <- function(V.m3, dec.type, SP){     # dec_SP = a column that holds the deg
   # l.m is length in meter
   # dec.type is the state of decay
   # sp is the species
+  
+  # correcting SP when SP == 4, meaning "unknown": if the stand_type species is NH we change the SP to 2 = coniferous, if its LH we change it to 1 = broadleafed
+  SP <- ifelse(SP == 4 & stand.TY == "LB", 1, ifelse(SP == 4 & stand.TY == "NB", 2, SP))
   
   # calculate volume
   # create combination of decay and species to select correct BEF 
@@ -1606,10 +1609,13 @@ B_DW <- function(V.m3, dec.type, SP){     # dec_SP = a column that holds the deg
 # relative density for tapeS deadwood compartiments
 # Biomasse unzersetzt * (100% - relative Veränderung der Dichte) = 
 # B * (1-(D1 - D2/ D1))
-rdB_DW <- function(B, dec.type, SP){     # a column that holds the degree of decay and the species type has to be created (united)
+rdB_DW <- function(B, dec.type, SP, stand.TY){     # a column that holds the degree of decay and the species type has to be created (united)
   # b = Biomass
   # dec.type = decay type according to BWI classification
   # SP = number code for deadwood species group
+  
+  # correcting SP when SP == 4, meaning "unknown": if the stand_type species is NH we change the SP to 2 = coniferous, if its LH we change it to 1 = broadleafed
+  SP <- ifelse(SP == 4 & stand.TY == "LB", 1, ifelse(SP == 4 & stand.TY == "NB", 2, SP))
   
   # create combination of decay and species to select correct BEF 
   SP_dec <- paste0(SP, "_", dec.type)
