@@ -130,12 +130,12 @@ purrr::walk2(
 
 
 momok_plot_ids_raw <-  na.omit(plyr::rbind.fill(
-  read.delim(file = paste0(getwd(), "/data/input/info_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
-  read.delim(file = paste0(getwd(), "/data/input/lokation_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
-  read.delim(file = paste0(getwd(), "/data/input/LT_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE), 
-  read.delim(file = paste0(getwd(), "/data/input/RG_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE),
-  read.delim(file = paste0(getwd(), "/data/input/DW_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)) %>% 
-    select(MoMoK_Nr) %>% distinct())
+  read.delim(file = paste0(getwd(), "/data/input/info_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% mutate(df= "info"), 
+  read.delim(file = paste0(getwd(), "/data/input/lokation_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% mutate(df= "lokation"),
+  read.delim(file = paste0(getwd(), "/data/input/LT_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE) %>% mutate(df= "LT"), 
+  read.delim(file = paste0(getwd(), "/data/input/RG_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)%>% mutate(df= "RG"),
+  read.delim(file = paste0(getwd(), "/data/input/DW_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)%>% mutate(df= "DW")) %>% 
+    select(MoMoK_Nr, df) %>% distinct())
 
 
 
@@ -420,6 +420,7 @@ write.csv(beab_momok, paste0(input.path, "momok_beab.csv"), row.names = FALSE)
 
 
 
+
 # 0.3.1.2.5 TITLE momok tit csv ----------------------------------------------------     
 # tit includes followong columns:
 # "bund_nr"    "team"       "datum"      "status"     "re_form"    "re_lage"    "neigung"    "exposition" "anmerkung"
@@ -499,6 +500,7 @@ bej_momok <- RG_momok %>%
   group_by(MoMoK_Nr) %>% arrange(MoMoK_Nr , Lage  , pk_maxdist..cm.) %>% mutate(Nr_VJ_PK = row_number() ) 
 # assign new colnames
 colnames(bej_momok) <- c("bund_nr",  "pk_nr",  "pk_richtung",  "pk_dist", "pk_maxdist" ,    "pk_aufnahme",  "pk_anmerkung")
+# export
 write.csv(bej_momok, paste0(input.path, "momok_bej.csv"), row.names = FALSE)
 
 
@@ -588,7 +590,9 @@ be_totholz_liste_momok <- DW_momok %>%
   group_by(MoMoK_Nr) %>% 
   mutate(Nr = row_number())
 
+# rename
 colnames(be_totholz_liste_momok) <- c("bund_nr","lfd_nr","typ" ,"baumgruppe" ,"durchmesser" ,"laenge" ,"zersetzung",  "anzahl")
+# export
 write.csv(be_totholz_liste_momok, paste0(input.path, "momok_be_totholz_liste.csv"), row.names = FALSE)
 
 

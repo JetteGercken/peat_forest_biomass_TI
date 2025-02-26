@@ -268,7 +268,28 @@ LT_summary <- setDT(LT_summary)[
 LT_summary[, min_org := (ifelse(is.na(min_org) & plot_ID %in% c(unique(trees_data$plot_ID[trees_data$inv == "momok"])), "org", min_org) )]
 
 
+# tapes test
+SP_names_com_ID_tapeS %>% filter(bot_name %in% c("Betula pubescens", "Alnus glutinosa"))
+TapeS::tprSpeciesCode() %>% filter(ID %in% c(28, 26))
+#TapeS::tprTrees(spp = 26, )
+obj <- tprTrees(
+  spp = 35,
+  Dm = list(c(30)),
+  Hm = list(c(1.3)),
+  Ht = 30,
+  inv = NULL
+)
+
+TapeS::tprBiomass(obj)
+getSpeciesCode(inSp = NULL, outSp = NULL)
+
+bdat_sp <- as.data.frame(cbind(Bdat_BA = c(1:36), 
+                               biomass_BA = c(1,1,2,2,4,4,4,3,5,5,5,1,1,1,6,9,7,7,17,17,8,10,10,11,10,15,12,16,6,14,13,6,6,18,6,6)))
+sp_list_Bdat <- as.data.frame(getSpeciesCode(inSp = NULL, outSp = NULL))
+sp_list_Bdat <- setDT(bdat_sp)[setDT(sp_list_Bdat), on = c("Bdat_BA" = "ID")]
+
+sp_list_Bdat["long" %like% c("Birch", "Alder") , ]
+getSpeciesCode(inSp = NULL, outSp = NULL)
 
 
-
-
+sp_list_Bdat %>% arrange(biomass_BA)
