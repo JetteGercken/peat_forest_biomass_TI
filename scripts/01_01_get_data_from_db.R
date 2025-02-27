@@ -143,7 +143,14 @@ momok_plot_ids_raw <-  na.omit(plyr::rbind.fill(
 # tables we need to construct: 
 # "tit", "be", "beab", "be_waldraender", "bej", "bejb", "be_totholz_punkt", "be_totholz_liste", vm_lokation_hbi
 
-
+# we have to identfy the status of the sampling circles
+# LT
+plots_with_LT <- unique(setDT(momok_plot_ids_raw)[df == "LT", MoMoK_Nr])
+# DW
+plots_with_DW <- unique(setDT(momok_plot_ids_raw)[df == "DW", MoMoK_Nr])
+# RG
+plots_CCS_with_RG <-  unique(read.delim(file = paste0(getwd(), "/data/input/RG_momok.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)[, c("MoMoK_Nr", "Nr_VJ_PK")]) 
+ 
 # 0.3.1.2.2. deal with double plots ----------------------------------------------------     
 # tit includes followong columns:
 # "bund_nr"    "team"       "datum"      "status"     "re_form"    "re_lage"    "neigung"    "exposition" "anmerkung"
@@ -323,8 +330,11 @@ write.csv(vm_lokation_momok, paste0(input.path, "momok_vm_lokation", ".csv"), ro
 # [1] "bund_nr"                "team"                   "datum"                  "hbi_status"             "beart"                  "besttyp"                "struktur"              
 # [8] "schlussgrad_schi1"      "schlussgrad_schi2"      "mischung"               "pk1_aufnahme"           "pk2_aufnahme"           "pk3_aufnahme"           "geraet"                
 # [15] "beschreibungbestockung" "anmerkung" 
-
+# 0.3.1.2.4.1.1. set up be momok ----------------------------------------------------
+# import
 be_momok <- read.delim(file = paste0(input.path, "info_momok.csv"), sep = ",", dec = ".")
+
+
 be_momok <- be_momok %>%  
   select("MoMoK_Nr",                  # "bund_nr"    
          "Datum_Aufnahme",            #"datum"  
@@ -339,7 +349,8 @@ be_momok <- be_momok %>%
   mutate(team = -9, 
          hbi_status = -9, # i set this to -9 so it fits the structure of bze (nsi) 
          pk1_aufnahme = 3, # for pk1 and pk2 (concentric cirlce sampling cirlce 1 and 2 ) we put stus 1 as the circle for momok was 12m ans all trees were assessed within these 12m 
-         pk2_aufnahme = 1, # 1 Aufnahme wurde erfolgreich durchgeführt
+         # this gives those plots with an occurence in the beab dataset a plot status of 1 while others have status 2, it works for the double plot too because the double plot is only assigned later
+         pk2_aufnahme = ifelse(MoMoK_Nr %in% plots_with_LT,  1, 2), # 1 Aufnahme wurde erfolgreich durchgeführt,
          pk3_aufnahme = 3, 
          geraet = -9,
          beschreibungbestockung = -9,
@@ -349,6 +360,30 @@ colnames(be_momok) <- c("bund_nr","datum" ,"beart" ,"besttyp","struktur" ,"schlu
                         # not in momok be yet
                         "team", "hbi_status", "pk1_aufnahme","pk2_aufnahme","pk3_aufnahme", "geraet", "beschreibungbestockung", "anmerkung")
 
+
+
+# 0.3.1.2.4.1.2. deal with missing plots ------------------------------------
+# identfy missing plots by anti join: plots that are not in the info set but do occure in the LT dataset 
+missing_plots <- as.data.frame(momok_plot_ids_raw) %>% select(MoMoK_Nr) %>% distinct() %>% 
+  anti_join(., be_momok %>% select(bund_nr) 
+            ,  by = c("MoMoK_Nr" = "bund_nr"))
+
+
+# create dataset which contains the info of the plot that is present in lokation but not in inventory info
+missing_plots_df <- setDT(as.data.frame(cbind("bund_nr" = c(paste0(missing_plots$MoMoK_Nr)),                   # "bund_nr"
+                                              "datum" = rep("2023-01-01", n= length(missing_plots$MoMoK_Nr) )     #"datum"
+                                              , "hbi_status" = -9
+                                              , "pk1_aufnahme" = 3
+                                              ,"pk2_aufnahme" = ifelse(missing_plots$MoMoK_Nr %in% plots_with_LT,  1, 2) # make sure the status is fine
+                                              ,"pk3_aufnahme" = 3
+)))    
+# add missing plot to be dataset
+be_momok <- rbind(setDT(be_momok), 
+                  setDT(missing_plots_df)
+                  , fill=TRUE)
+
+
+# 0.3.1.2.4.1.3. deal with double LT plots ------------------------------------
 if(isTRUE(nrow(double_plots_momok) != 0) == T){
   be_momok_double_plots_list <- vector("list", length = nrow(double_plots_momok))
   for (i in 1:nrow(double_plots_momok)) {
@@ -370,6 +405,11 @@ if(isTRUE(nrow(double_plots_momok) != 0) == T){
   # bind doublicated rows into be_momok if they excist 
   be_momok <- rbind(be_momok, be_momok_double_plots) %>% arrange(bund_nr)
 }
+
+
+
+
+# export 
 write.csv(be_momok, paste0(input.path, "momok_be.csv"), row.names = FALSE)
 
        
@@ -386,6 +426,7 @@ colnames(beab_momok)
 # [1] "MoMoK_Nr"          "Name"              "Bundeland"         "Datum_Aufnahme"    "Nr_PK"             "BNr"               "ZW"                "St"                "Baumart..Code."   
 # [10] "Baumart"           "Schi"              "Kraft"             "Alt"               "Alt.Meth"          "BHD..mm."          "BHD.Hoehe..cm."    "Permanent.Maßband" "Punktdendrometer" 
 # [19] "BHD.Stufen"        "Hoehe..dm."        "Kronenansatz..dm." "Distanz..cm."      "Azimut..Gon."      "Azimut...."        "Bemerkung"   
+
 beab_momok <- beab_momok %>%
   mutate(MoMoK_Nr = ifelse(
     # idenfity plots with more then one center that have a number in their sampling circuit number, 
@@ -450,10 +491,79 @@ colnames(tit_momok) <- c("bund_nr", "anmerkung", "datum",
                          "team" ,  "status",     "re_form",    "re_lage",    "neigung" ,   "exposition")
 write.csv(tit_momok, paste0(input.path, "momok_tit.csv"), row.names = FALSE)
 
+
+
+
 # 0.3.1.2.6. REGENERATION momok ----------------------------------------------------     
 RG_momok <- read.delim(file = paste0(input.path, "bej_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
 
-## alter plot_ID of double inventories plots
+# 0.3.1.2.6.1.  deal with missing CCS for RG_momok ----------------------------------------------------     
+# we are talking about plots athat are in all plot IDs but do not have RG data or 
+# plots that have RG data but not for all circles
+
+## case 1: plot are in all IDs but not in RG: create collection of 4 empty circles
+RG_plots_missing <- momok_plot_ids_raw %>% select(MoMoK_Nr) %>% distinct() %>% 
+  anti_join(., RG_momok %>% select(MoMoK_Nr) %>% distinct(), by = "MoMoK_Nr")
+
+# create 4 empty circles for RG plots that are entirly missing
+RG_plots_missing_df <- (cbind(
+  (as.data.frame(cbind(
+  "MoMoK_Nr" =  (rep(c(RG_plots_missing$MoMoK_Nr), times = 4)))) %>% 
+  arrange(MoMoK_Nr))  
+  ,"Nr_VJ_PK" = c("N", "O", "S", "W")      
+  ,"Lage" = c("Nord", "Ost", "Süd", "West")
+))  %>% 
+  # join in date
+  mutate(MoMoK_Nr = as.character(MoMoK_Nr)) %>% 
+  left_join(., tit_momok[, c("bund_nr", "datum")], by = c("MoMoK_Nr"= "bund_nr")) %>% 
+  rename("Datum" = "datum") %>% 
+  mutate(Datum = ifelse(is.na(Datum), "2023-01-01", Datum) 
+         ,  pk_aufnahme = 2)
+
+
+## case 2: only some ccs are missing
+RG_with_circles_missing <-  RG_momok%>% 
+  select("MoMoK_Nr", "Lage", "pk_maxdist..cm.") %>% 
+  distinct() %>% 
+  group_by(MoMoK_Nr) %>%
+    # count number of cirlce by RG plot
+  summarise(n = dplyr::n()) %>% 
+    # only take those that have less then 4
+    filter(n <4) %>% 
+  select(MoMoK_Nr)
+
+# filter RG dataset for the circles that are missing
+RG_circles_missing <- 
+  # create dataset that holds all 4 possible cirlces for each plot with RG CCS missing
+  (cbind(
+  (as.data.frame(cbind(
+    "MoMoK_Nr" =  (rep(c(RG_with_circles_missing$MoMoK_Nr), times = 4)))) %>% 
+     arrange(MoMoK_Nr))  
+  ,"Lage" = c("Nord", "Ost", "Süd", "West")
+  ))  %>% 
+  # keep only those cirlces in here that are not represented in the actual RG dataset 
+  anti_join(., RG_momok, by = c("MoMoK_Nr", "Lage")) %>%
+  # join in date
+  mutate(MoMoK_Nr = as.character(MoMoK_Nr)) %>% 
+  left_join(., tit_momok[, c("bund_nr", "datum")], by = c("MoMoK_Nr"= "bund_nr")) %>% 
+  rename("Datum" = "datum") %>% 
+  mutate(Datum = ifelse(is.na(Datum), "2023-01-01", Datum), 
+         Nr_VJ_PK = case_when(Lage == "Nord" ~ "N", 
+                              Lage == "Ost" ~ "O",
+                              Lage == "Süd" ~ "S",
+                              Lage == "West" ~ "W",
+                              TRUE ~ NA), 
+         pk_aufnahme = 2) 
+
+
+## bind missing plots in 
+RG_momok <- rbind(
+  setDT(RG_circles_missing),
+  setDT(RG_plots_missing), 
+  setDT(RG_momok),
+      fill = T)
+
+# 0.3.1.2.6.2. alter plot_ID of double inventories plots-------------------------------------------------------------------------
 # we have to notice here that we can separate the sampling circuits per plot 
 # so we can assign north 1 and north 2 of plot 34010 but we cannot actually say which 
 # of the two sampling centres of 34010 they belong to. that selection remains random
@@ -475,7 +585,8 @@ RG_momok <- RG_momok %>%
     as.character(MoMoK_Nr))) %>% 
   select(-c(pk_nr_double_plots))
 
-
+# here adding missing plots works a bit differently
+# first we have to identify those 
 
 # 0.3.1.2.6.1. bej momok ----------------------------------------------------     
 # bej hbi includes followong columns:
@@ -488,18 +599,21 @@ colnames(RG_momok)
 bej_momok <- RG_momok %>%
   select("MoMoK_Nr"                # "bund_nr"    
          ,"Nr_VJ_PK"               #pk_nr
-         # "pk_aufnahme" missing
+        , "pk_aufnahme" 
          , "Lage"                   # "pk_richtung"
          , "Distanz.MB..cm."        # "pk_dist" 
          , "pk_maxdist..cm."        # "pk_maxdist"
   )  %>% 
-  mutate(pk_aufnahme = 1, # regenation assesment was successfully completed (as we dont have any other info)
+  # if the plot or CCS has a CCS status of 2 it was assigned earlier, if however, it doesnt have a status assigned yet, we change it to 1 assuming it was a successfull assessment
+  mutate(pk_aufnahme = ifelse(is.na(pk_aufnahme), 1, pk_aufnahme), # regenation assesment was successfully completed (as we dont have any other info)
          pk_anmerkung = NA) %>% 
   distinct() %>% 
   # assign consequitve number to sampling circuits
   group_by(MoMoK_Nr) %>% arrange(MoMoK_Nr , Lage  , pk_maxdist..cm.) %>% mutate(Nr_VJ_PK = row_number() ) 
+
 # assign new colnames
-colnames(bej_momok) <- c("bund_nr",  "pk_nr",  "pk_richtung",  "pk_dist", "pk_maxdist" ,    "pk_aufnahme",  "pk_anmerkung")
+colnames(bej_momok) <- c("bund_nr",  "pk_nr",  "pk_aufnahme", "pk_richtung",  "pk_dist", "pk_maxdist" ,      "pk_anmerkung")
+
 # export
 write.csv(bej_momok, paste0(input.path, "momok_bej.csv"), row.names = FALSE)
 
@@ -513,6 +627,11 @@ colnames(RG_momok)
 # [11] "Baumart"         "Hoehe..cm."      "grklasse" 
 
 bejb_momok <- RG_momok %>%
+  # filter out empty circles 
+  anti_join(., rbind(
+    setDT(RG_circles_missing),
+    setDT(RG_plots_missing), 
+    fill = T), by = c("MoMoK_Nr" , "Lage" , "Nr_VJ_PK")) %>% 
   select("MoMoK_Nr"                # "bund_nr"
          , "Lage"
          ,"Nr_VJ_PK"               #pk_nr
@@ -543,10 +662,21 @@ colnames(DW_momok)
 # [1] "MoMoK_Nr"          "Name"              "Bundesland"        "Datum"             "Nr_PK"             "Nr"                "Baumartengruppe"   "TYP"               "Hoehe.Laenge..dm."
 # [10] "Durchmesser..cm."  "Zersetzungsgrad"
 
+# 0.3.1.2.7.2. deal with empty be_totholz_punkt CCS ----------------------------------------------------     
+DW_plots_missing <- momok_plot_ids_raw %>% 
+  anti_join(., DW_momok, by = "MoMoK_Nr") %>% 
+  select(MoMoK_Nr) %>% 
+  mutate(status = 2)
+
+
 # 0.3.1.2.7.1. be_totholz_punkt momok ----------------------------------------------------     
 # be_totholz_punkt hbi includes followong columns:
 # "bund_nr" "status"  "pk_dist" "pk_azi"
-be_totholz_punkt_momok <- DW_momok %>%
+be_totholz_punkt_momok <- rbind(
+  setDT(DW_momok), 
+  # bind in empty momok plots
+  setDT(DW_plots_missing), 
+  fill = T)%>%
   # adjust Momok nr. if the plot is doublicated
   mutate(MoMoK_Nr = ifelse(
     # idenfity plots with more then one center that have a number in their sampling circuit number, 
@@ -556,12 +686,14 @@ be_totholz_punkt_momok <- DW_momok %>%
     # otherwise leave old plot number
     MoMoK_Nr)) %>% 
   select("MoMoK_Nr"                # "bund_nr"    
-         ) %>% 
-  mutate(status = 1, 
+         , "status") %>%           #  "status"
+  mutate(status = ifelse(is.na(status), 1, status), # if the status wasnt set to 2 by the missing plot stuff, we assume everything went fine and its stat = 1 
          pk_dist = -9, 
          pk_azi = -9) %>% 
   rename("bund_nr" = "MoMoK_Nr") %>% 
   distinct()
+
+# export
 write.csv(be_totholz_punkt_momok, paste0(input.path, "momok_be_totholz_punkt.csv"), row.names = FALSE)
 
 
