@@ -20,11 +20,11 @@ out.path <- paste0(getwd(), "/output/out_data/")
 # after they have been sorted into stands according to the forest edge data in script "01_forest_edges_HBI.R" or "01_forest_edges_BZE3.R" and 
 # have been filtered for the plot inventory status in "01_00_RG_LT_DW_inventory_plot_status_HBI"
 HBI_trees <- read.delim(file = paste0(out.path,"HBI_LT_update_1.csv"), sep = ",", dec = ".")
-HBI_trees_removed <- read.delim(file = paste0(out.path, paste0((HBI_trees$inv)[1], "_LT_removed.csv")), sep = ";", dec = ".")
+HBI_trees_removed <- read.delim(file = paste0(out.path, paste0((HBI_trees$inv)[1], "_LT_removed.csv")), sep = ",", dec = ".")
 
 try({
   BZE3_trees <- read.delim(file = paste0(out.path,"BZE3_LT_update_1.csv"), sep = ",", dec = ".")
-  BZE3_trees_removed <- read.delim(file = paste0(out.path, paste0((BZE3_trees$inv)[1], "_LT_removed.csv")), sep = ";", dec = ".")}, 
+  BZE3_trees_removed <- read.delim(file = paste0(out.path, paste0((BZE3_trees$inv)[1], "_LT_removed.csv")), sep = ",", dec = ".")}, 
   silent = T)
 
 # ----- 0.6 harmonising column names & structure  -----------------------------------------------------------------

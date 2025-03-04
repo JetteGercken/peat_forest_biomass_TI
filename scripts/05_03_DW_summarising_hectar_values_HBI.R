@@ -21,7 +21,7 @@ out.path.BZE3 <- paste0(getwd(), "/output/out_data/")
 # this dataset contains the data of the deadwood inventory of the HBI (BZE2), including info about species groups and B, C, N stocks per tree 
 DW_data <- read.delim(file = paste0(out.path.BZE3, "HBI_DW_update_4.csv"), sep = ",", dec = ".")
 DW_stat_2 <- read.delim(file = paste0(out.path.BZE3, DW_data$inv[1], "_DW_stat_2.csv"), sep = ",", dec = ".") %>% 
-  mutate(inv = inv_name(inv_year))
+  mutate(inv = ifelse(is.na(inv), inv_name(inv_year), inv))
 
 
 
@@ -179,7 +179,10 @@ DW_summary <-
                 by = c("plot_ID", "inv")) %>% 
       mutate(decay = "all", 
              dw_type = "all", 
-             dw_sp = "all") 
+             dw_sp = "all",
+             # add species code == "all" and stand == "all" to make plotwise filter in summary easier
+             SP_code = "all", 
+             stand = "all") 
   ) %>%  # close rbind
   # add stand component for those datasets where it´s not included yet
   mutate(stand_component = "DW") %>% 

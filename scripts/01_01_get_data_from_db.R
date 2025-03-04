@@ -436,7 +436,8 @@ beab_momok <- beab_momok %>%
     # otherwise leave old plot number
     MoMoK_Nr)) %>% 
    mutate(across(c("BHD..mm.", "Distanz..cm.",      "Azimut..Gon.",      "Azimut...."), as.numeric)) %>% 
-  mutate(Azimut..Gon. = ifelse(is.na(Azimut..Gon.), (Azimut..../360)*400 , Azimut..Gon.)) %>% 
+  mutate(Azimut..Gon. = ifelse(is.na(Azimut..Gon.), (Azimut..../360)*400 , Azimut..Gon.), 
+         baumkennzahl = -9) %>% 
   select("MoMoK_Nr"                # "bund_nr"    
          ,"BNr"                     #lfd_nr
          ,  "ZW"                   # "zwiesel"
@@ -451,11 +452,12 @@ beab_momok <- beab_momok %>%
          , "Distanz..cm."          # hori
          , "Kraft"                # kraft
          , "Schi"                 # schi
+         , "baumkennzahl"         # baumkennzahl
          )  %>% distinct() %>% 
   # there were different trees with the same tree id so we have to reassing the three IDs this cannot happen in BZE data since we have a plausi check for them
   group_by(MoMoK_Nr) %>% mutate(BNr = row_number() )
 # assign new colnames corresponding with bze
-colnames(beab_momok) <- c("bund_nr", "lfd_nr", "zwiesel","bart", "alter", "alter_methode", "d_mess",  "bhd_hoehe" , "hoehe", "kransatz",  "azi", "hori", "kraft", "schi")
+colnames(beab_momok) <- c("bund_nr", "lfd_nr", "zwiesel","bart", "alter", "alter_methode", "d_mess",  "bhd_hoehe" , "hoehe", "kransatz",  "azi", "hori", "kraft", "schi", "baumkennzahl")
   # export 
 write.csv(beab_momok, paste0(input.path, "momok_beab.csv"), row.names = FALSE)                         
 
