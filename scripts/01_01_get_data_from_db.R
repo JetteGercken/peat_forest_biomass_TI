@@ -420,8 +420,8 @@ write.csv(be_momok, paste0(input.path, "momok_be.csv"), row.names = FALSE)
 # beab hbi includes followong columns:
 # [1] "bund_nr"       "lfd_nr"        "baumkennzahl"  "zwiesel"       "bart"          "alter"         "alter_methode" "d_mess"        "bhd_hoehe"     "hoehe"         "kransatz"      "azi"          
 # [13] "hori"          "kraft"         "schi"  
-LT_momok <-  read.delim(file = paste0(input.path, "beab_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
-beab_momok <- read.delim(file = paste0(input.path, "beab_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
+LT_momok <-  read.delim(file = paste0(input.path, "LT_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
+beab_momok <- read.delim(file = paste0(input.path, "LT_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
 colnames(beab_momok)
 # [1] "MoMoK_Nr"          "Name"              "Bundeland"         "Datum_Aufnahme"    "Nr_PK"             "BNr"               "ZW"                "St"                "Baumart..Code."   
 # [10] "Baumart"           "Schi"              "Kraft"             "Alt"               "Alt.Meth"          "BHD..mm."          "BHD.Hoehe..cm."    "Permanent.Maßband" "Punktdendrometer" 
@@ -497,7 +497,7 @@ write.csv(tit_momok, paste0(input.path, "momok_tit.csv"), row.names = FALSE)
 
 
 # 0.3.1.2.6. REGENERATION momok ----------------------------------------------------     
-RG_momok <- read.delim(file = paste0(input.path, "bej_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
+RG_momok <- read.delim(file = paste0(input.path, "RG_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
 
 # 0.3.1.2.6.1.  deal with missing CCS for RG_momok ----------------------------------------------------     
 # we are talking about plots athat are in all plot IDs but do not have RG data or 
@@ -659,7 +659,7 @@ write.csv(bejb_momok, paste0(input.path, "momok_bejb.csv"), row.names = FALSE)
 
 
 # 0.3.1.2.7.DEADWOOD MOMOK ----------------------------------------------------   
-DW_momok <- read.delim(file = paste0(input.path, "be_totholz_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
+DW_momok <- read.delim(file = paste0(input.path, "DW_momok.csv"), sep = ",", dec = ".") %>% filter(!(is.na(MoMoK_Nr)))
 colnames(DW_momok)
 # [1] "MoMoK_Nr"          "Name"              "Bundesland"        "Datum"             "Nr_PK"             "Nr"                "Baumartengruppe"   "TYP"               "Hoehe.Laenge..dm."
 # [10] "Durchmesser..cm."  "Zersetzungsgrad"
