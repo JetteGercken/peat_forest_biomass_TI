@@ -13,17 +13,17 @@ source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 # ----- 0.2. working directory -------------------------------------------------
 here::here()
 
-out.path <- here("output/out_data/") 
+out.path <- paste0(getwd(), "/output/out_data/") 
 
 # ----- 0.3 data import --------------------------------------------------------
 # LIVING TREES
 # hbi BE dataset: 
 # this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
 # here we import a dataset called "HBI_LT_update_2.csv" which contains plot area and stand data additionally to the original tree data
-trees_data <- read.delim(file = here(out.path, "HBI_LT_update_3.csv"), sep = ",", dec = ".")
-soil_types_db <- read.delim(file = here(out.path, "soils_types_profil_db.csv"), sep = ",", dec = ".")
+trees_data <- read.delim(file = paste0(out.path, "HBI_LT_update_3.csv"), sep = ",", dec = ".")
+soil_types_db <- read.delim(file = paste0(out.path, "soils_types_profil_db.csv"), sep = ",", dec = ".")
 
-coef_H_com <- read.delim(file = here(out.path, "coef_H_HBI_NA.csv"), sep = ",", dec = ".")
+coef_H_com <- read.delim(file = paste0(out.path, "coef_H_HBI_NA.csv"), sep = ",", dec = ".")
 coeff_H_SP_P <- coef_H_com %>% filter(plot_ID != "all")
 coeff_H_SP  <- coef_H_com %>% filter(plot_ID == "all")
 coeff_H_SP_P$plot_ID <- as.integer(coeff_H_SP_P$plot_ID)
@@ -146,7 +146,7 @@ ggplot(data = LT_avg_SP_ST_P %>%
          filter(startsWith(bot_name, "Betula")| startsWith(bot_name, "Alnus")))+
   geom_jitter(aes(x = Dg_cm , y = Ho_m, colour = as.factor(min_org)))+ 
   geom_smooth(aes(x = Dg_cm , y = Ho_m, colour = as.factor(min_org)))+
-  facet_wrap(~bot_name)
+  facet_wrap(~bot_genus)
 
 ## top 20% 
 # heighst of top strongest trees per stand and canopy layer by dbh of falnus and betula species separated by species 
@@ -277,7 +277,10 @@ trees_data_h_nls <-
 
 # height mod min soil
 model_min <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3, 
-                 data = trees_data %>% left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% filter(H_method == "sampled" & compartiment == "ag" & min_org == "min")  , 
+                 data = trees_data %>% 
+                #   left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
+                   filter(H_method == "sampled" #& compartiment == "ag" 
+                          & min_org == "min")  , 
                  start = list(a = 1, b = 1))  # Initial guesses for a and b
 
 # Step 4: View the results
@@ -285,7 +288,11 @@ summary(model_min)
 
 # height mod org soil
 model_org <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3, 
-                 data = trees_data %>% left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% filter(H_method == "sampled" & compartiment == "ag" & min_org == "org")  , 
+                 data = trees_data %>%
+                   #left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>%
+                   filter(H_method == "sampled"
+                          # & compartiment == "ag" 
+                          & min_org == "org")  , 
                  start = list(a = 1, b = 1))  # Initial guesses for a and b
 
 # Step 4: View the results
@@ -294,17 +301,27 @@ summary(model_org)
 h_DBH_all_SP <- ggplot() +
   geom_point(data = (trees_data %>%
                        filter(H_method == "sampled" 
-                              # & BWI_SP_group %in% c("aLh", "aLn")
+                            #    & BWI_SP_group %in% c("aLh", "aLn")
+                            & bot_name %in% c("Betula pubescens", "Alnus glutinosa")
                        ) %>% 
                        #left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
                        mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
              aes(x = DBH_cm, y = H_m, color = min_org), alpha = 0.08)+
   geom_smooth(data = trees_data_h_nls %>% 
                 filter(H_method == "sampled" 
-                       # & BWI_SP_group %in% c("aLh", "aLn")
+                        # & BWI_SP_group %in% c("aLh", "aLn")
+                      # & bot_genus %in% c("Betula", "Alnus")
+                      & bot_name %in% c("Betula pubescens", "Alnus glutinosa")
                 ),# %>%  
               #  mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
-              aes(x = DBH_cm, y = H_m_nls, color = min_org))
+              aes(x = DBH_cm, y = H_m_nls, color = min_org))+ 
+  theme_bw()+ 
+  facet_wrap(~bot_name)
+
+HD_box <- ggplot()+ 
+  geom_boxplot(data = setDT(trees_data)[(H_method == "sampled" & , ':=' (HD = H_m/ DBH_cm)])
+
+
 tikz(here("output/out_graphs/h_DBH_all_SP.jpg"),
      width = 7,
      height = 7)

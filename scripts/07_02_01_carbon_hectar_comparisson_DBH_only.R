@@ -164,16 +164,20 @@ boxplot(as.numeric(values) ~ as.factor(names),
         main = "Alnus spp. C stock t ha-1 by biomass method", 
         ylim = c(0,275.1831))
 # add nfi mean
-segments(x0 = 0.5, 
-         x1 = length(unique(names)) + 0.5,
-         y0 = ton(52859), y1 = ton(52859), col = "blue", lwd = 2) 
+# segments(x0 = 0.5, 
+#          x1 = length(unique(names)) + 0.5,
+#          y0 = ton(52859), y1 = ton(52859), col = "blue", lwd = 2) 
 # add line for dataset mean
 segments(x0 = 0.5, 
          x1 = length(unique(names)) + 0.5, 
          y0 = mean(as.numeric(na.omit(alnus_wag$values))), 
          y1 = mean(as.numeric(na.omit(alnus_wag$values))), col = "black", lwd = 2) #functions mean
-legend("none", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", "mean C t ha-1 NFI", "mean C t ha-1 over all equations") , 
-       col = c("red", "#53868B", "#7AC5CD", "grey",  "blue", "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(-1.2, 0.1))
+legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", 
+                             #"mean C t ha-1 NFI", 
+                             "mean C t ha-1 over all equations") , 
+       col = c("red", "#53868B", "#7AC5CD", "grey", # "blue", 
+               "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(1.0 , 0.1))
+
 
 
 # 2.1. betula mean c t ha barplot ------------------------------------------
@@ -211,16 +215,19 @@ boxplot(as.numeric(values) ~ as.factor(names),
         main = "Betula spp. C stock t ha-1 by biomass method", 
         ylim = c(0, max(as.numeric(values), na.rm = TRUE) * 1.1))
 # add nfi mean
-segments(x0 = 0.5, 
-         x1 = length(unique(names))- 0.5 ,
-         y0 = ton(52859), y1 = ton(52859), col = "blue", lwd = 2) 
+# segments(x0 = 0.5, 
+#          x1 = length(unique(names))- 0.5 ,
+#          y0 = ton(52859), y1 = ton(52859), col = "blue", lwd = 2) 
 # add line for dataset mean
 segments(x0 = 0.5, 
          x1 = length(unique(names) )- 0.5 , 
          y0 = mean(as.numeric(na.omit(betula_wag$values))), 
          y1 = mean(as.numeric(na.omit(betula_wag$values))), col = "black", lwd = 2) #functions mean
-legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", "mean C t ha-1 NFI", "mean C t ha-1 over all equations") , 
-       col = c("red", "#53868B", "#7AC5CD", "grey",  "blue", "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(1.0 , 0.1))
+legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", 
+                             #"mean C t ha-1 NFI", 
+                             "mean C t ha-1 over all equations") , 
+       col = c("red", "#53868B", "#7AC5CD", "grey", # "blue", 
+               "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(1.0 , 0.1))
 
 
 

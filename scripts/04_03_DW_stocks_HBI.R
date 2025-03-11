@@ -21,7 +21,7 @@ DW_removed <-  read.delim(file =  paste0(out.path, unique(DW_data$inv)[1] , "_DW
 # HBI forest type info per plot  (Bestandestyp)
 # this i deed to later say "if the stocking species are mainly coniferous i need this secies group from tapeS
 # and if th estocking species fall in the category broadleafes the other tapes species code"
-forest_info <- read.delim(file = paste0(getwd(), "/data/input/", "be.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)
+forest_info <- read.delim(file = paste0(out.path, "HBI_LT_inv_update_1.csv"), sep = ",", dec = ".", stringsAsFactors=FALSE)
 
 
 # 0.4 dataprep  -----------------------------------------------------------
@@ -37,11 +37,12 @@ DW_data <- DW_data %>%
   left_join(., 
             forest_info %>% 
               # assign forest types into coniferus vs broadleaved categories based on x_forest code table
-              mutate(LH_NH_stand = case_when(besttyp %in% c(4, 5, 7, 8, 10, 91 ) ~ "LB",
-                                             besttyp %in% c(92, 1, 2, 3, 6, 9 ) ~ "NB", 
+              mutate(LH_NH_stand = case_when(stand_type  %in% c(4, 5, 7, 8, 10, 91 ) ~ "LB",
+                                             stand_type  %in% c(92, 1, 2, 3, 6, 9 ) ~ "NB", 
                                              TRUE ~ NA)) %>% 
-              select(bund_nr, LH_NH_stand), 
-            by = c("plot_ID" = "bund_nr")) %>% 
+              select(plot_ID, LH_NH_stand) %>% 
+              distinct(), 
+            by = "plot_ID") %>% 
   mutate(SP_code =  case_when(dw_sp == 1 | (dw_sp == 4 & LH_NH_stand == "NB") ~ "gfi",  # Fi
                               dw_sp == 2 | (dw_sp == 4 & LH_NH_stand == "LB") ~ "rbu", # BU
                               dw_sp == 3 ~ "sei",                                   # EI   
