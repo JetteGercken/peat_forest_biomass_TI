@@ -18,7 +18,7 @@ out.path <- ("/output/out_data/")
 # hbi BE dataset: this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
 # here we should actually import a dataset called "HBI_trees_update_3.csv" which contains plot area and stand data additionally to 
 # tree data
-tapes_tree_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_4.csv"), sep = ",", dec = ".")
+tapes_tree_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_5.csv"), sep = ",", dec = ".")
 trees_data <-tapes_tree_data %>% dplyr::select(-c("compartiment","B_kg_tree", "N_kg_tree", "C_kg_tree")) %>% dplyr::distinct()
 trees_removed <- read.delim(file =paste0(getwd(), out.path, trees_data$inv[1], "_LT_removed.csv"), sep = ",", dec = ".")
 # soil data
@@ -30,13 +30,21 @@ all_summary <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_RG_DW_stocks_
 LT_summary <- all_summary %>% filter(stand_component == "LT") %>% select(-c(dw_sp, dw_type, decay, inv_year, ST_LY_type, mean_d_cm, sd_d_cm, mean_l_m, sd_l_m, n_dec, n_dw_TY))
 
 
+
+
 # 0.4 data preparation ---------------------------------------------------------
-trees_data <- trees_data %>% mutate(H_m = as.numeric(H_m))  %>% distinct() %>% 
+trees_data <- trees_data %>% 
+  rename("H_m_old" = "H_m") %>% # change name of H_m which includes sampled and not sampled hieghts that are estimated with DBH and HG
+  mutate(H_m = as.numeric(H_m_nls))  %>% # change HM to H_nls which is only SBH based heights
+  distinct() %>% 
   # join in soil data
   left_join(soil_types_db %>% select(bfhnr_2, min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
   mutate(min_org = ifelse(inv == "momok", "org", min_org))
 
-tapes_tree_data <- tapes_tree_data %>% mutate(H_m = as.numeric(H_m))  %>% distinct() %>% 
+tapes_tree_data <- tapes_tree_data %>% 
+  rename("H_m_old" = "H_m") %>% # change name of H_m which includes sampled and not sampled hieghts that are estimated with DBH and HG
+  mutate(H_m = as.numeric(H_m_nls))  %>% # change HM to H_nls which is only SBH based heights
+  distinct() %>% 
   # join in soil data
   left_join(soil_types_db %>% select(bfhnr_2, min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
   mutate(min_org = ifelse(inv == "momok", "org", min_org))
@@ -100,6 +108,8 @@ for (i in 1:nrow(alnus_func)){
   func_id <- alnus_func$func_ID[i]  # ID of the function in literature research csv
   id <- alnus_func$ID[i]            # combination of func and paper id 
   func <- alnus_func$function.[i]   # biomass function taken from respective reference 
+  peat_stat <-  alnus_func$peat[i]
+  my.country <-  alnus_func$country[i]
   unit <- alnus_func$unit_B[i]      # unit of biomass returned, when g then /1000 for kg
   comp <- alnus_func$compartiment[i] 
   ln_stat <- alnus_func$logarithm_B[i]
@@ -145,7 +155,16 @@ for (i in 1:nrow(alnus_func)){
   
   # convert results to a numeric vector if needed
   
-  tree.df <- as.data.frame(cbind(tree_data_alnus, "B_kg_tree" = c(bio_tree), "paper_ID" = c(paper_id), "func_ID" = c(func_id), "ID" = c(id), "unit_B" = c(unit), "logarithm_B" = c(ln_stat), "compartiment" = c(comp))) # 
+  tree.df <- as.data.frame(cbind(tree_data_alnus
+                                 , "B_kg_tree" = c(bio_tree)
+                                 , "paper_ID" = c(paper_id)
+                                 , "func_ID" = c(func_id)
+                                 , "ID" = c(id)
+                                 , "unit_B" = c(unit)
+                                 , "logarithm_B" = c(ln_stat)
+                                 , "compartiment" = c(comp)
+                                 , "peat" = c(peat_stat)
+                                 , "country" =c(my.country))) # 
   tree.df <- tree.df %>% mutate(  B_kg_tree = dplyr::case_when(!is.na(logarithm_B) & logarithm_B == "ln" ~ as.numeric(exp(B_kg_tree)), 
                                                         !is.na(logarithm_B) & logarithm_B == "log10" ~ as.numeric(10^(B_kg_tree)), 
                                                         TRUE ~ as.numeric(B_kg_tree))) %>%  # backtransform  the ln 
@@ -194,7 +213,7 @@ alnus_agb_kg_tree_df <- rbind(
           group_by(paper_ID) %>% summarise(mean_agb_number = mean(number)) %>%   # summarise the number of occurences of "agb" per paper 
           filter(mean_agb_number == 0)),                                          # filter those papers that allow to calculate the "true" agb with leaves but dont have a agb function and by that have to be summed up  
       on = .(paper_ID), nomatch = NULL] %>% # close inner join data.table
-                dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+                dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
                 dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                      # sum up compartiemtns per tree per paper
                 mutate(compartiment = "agb",                                          # name the calculates sum of compartiments agb
                        func_ID = "agb", 
@@ -210,7 +229,7 @@ alnus_agb_kg_tree_df <- rbind(
           left_join(., (alnus_agb_kg_tree_df[!(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl")) &            # select seperate compartiments that are not ag or leafes 
                                                alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl == "possible"],
                                                                               alnus_func$ID[alnus_func$leafes_inkl == "not included"]), ]) %>%   # of papers which have "possible"
-                      dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+                      dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
                       dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
                       mutate(compartiment = "w_agb",
                              func_ID = "w_agb", 
@@ -242,6 +261,8 @@ for (i in 1:nrow(betula_func)){
   func_id <- betula_func$func_ID[i]  # ID of the function in literature research csv
   func <- betula_func$function.[i]   # biomass function taken from respective reference 
   id <- betula_func$ID[i]            # combination of func and paper id 
+  peat_stat <- betula_func$peat[i]  
+  my.country <- betula_func$country[i]  
   unit <- betula_func$unit_B[i]      # unit of biomass returned, when g then /1000 for kg
   comp <- betula_func$compartiment[i] 
   ln_stat <- betula_func$logarithm_B[i]
@@ -287,7 +308,16 @@ for (i in 1:nrow(betula_func)){
   
   # convert results to a numeric vector if needed
   
-  tree.df <- as.data.frame(cbind(tree_data_betula, "B_kg_tree" = c(bio_tree), "paper_ID" = c(paper_id), "func_ID" = c(func_id), "ID" = c(id), "unit_B" = c(unit), "logarithm_B" = c(ln_stat), "compartiment" = c(comp)))
+  tree.df <- as.data.frame(cbind(tree_data_betula
+                                 , "B_kg_tree" = c(bio_tree)
+                                 , "paper_ID" = c(paper_id)
+                                 , "func_ID" = c(func_id)
+                                 , "ID" = c(id)
+                                 , "unit_B" = c(unit)
+                                 , "logarithm_B" = c(ln_stat)
+                                 , "compartiment" = c(comp)
+                                 , "peat" = c(peat_stat)
+                                 , "country" =c(my.country)))
   tree.df <- tree.df %>% mutate(  B_kg_tree = dplyr::case_when(!is.na(logarithm_B) & logarithm_B == "ln" ~ as.numeric(exp(B_kg_tree)), 
                                                                                  !is.na(logarithm_B) & logarithm_B == "log10" ~ as.numeric(10^(B_kg_tree)), 
                                                                                  TRUE ~ as.numeric(B_kg_tree))) %>%  # backtransform  the ln 
@@ -307,9 +337,9 @@ betula_agb_kg_tree_df <- as.data.frame(rbindlist(betula_agb_kg_tree)) %>% arrang
 # had to replace rbind.fill: https://stackoverflow.com/questions/18003717/efficient-way-to-rbind-data-frames-with-different-columns, https://stackoverflow.com/questions/44464441/r-is-there-a-good-replacement-for-plyrrbind-fill-in-dplyr 
 betula_agb_kg_tree_df <- rbind(
   # seperate tree compartiments without ag 
-  setDT(betula_agb_kg_tree_df[!(betula_agb_kg_tree_df$compartiment %in% c("abg", "agb")),]),
+  setDT(betula_agb_kg_tree_df[!(betula_agb_kg_tree_df$compartiment %in% c("agb")),]),
   # agb including leaf mass from functions that have an explicit function for ag
-  setDT(betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment %in% c("abg", "agb") & betula_agb_kg_tree_df$ID %in% c(betula_func$ID[betula_func$leafes_inkl %in% c("included", "possible")]) ,]), 
+  setDT(betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment %in% c("agb") & betula_agb_kg_tree_df$ID %in% c(betula_func$ID[betula_func$leafes_inkl %in% c("included", "possible")]) ,]), 
   # agb calculate from compartiments based on papers that don´t have seperate agb function but also  allow to exclude leafes: so they have eg. fwb, ndl and sw but no agb compartiment in their list 
   setDT(tree_data_betula %>% 
           left_join(., setDT(betula_agb_kg_tree_df)[  # this is an anti join in data.tabe 
@@ -320,8 +350,9 @@ betula_agb_kg_tree_df <- rbind(
                     mutate(number = str_count(compartiment, "agb")) %>%                    # count the occurence of "agb" per paper and compartiment
                     group_by(paper_ID) %>% summarise(mean_agb_number = mean(number)) %>%   # summarise the number of occurences of "agb" per paper 
                     filter(mean_agb_number == 0)),                                          # filter those papers that allow to calculate the "true" agb with leaves but dont have a agb function and by that have to be summed up  
-            on = .(paper_ID), nomatch = NULL] %>% # close anti join data.table
-              dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+            on = .(paper_ID), 
+            nomatch = NULL] %>% # close anti join data.table
+              dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
               dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                      # sum up compartiemtns per tree per paper
               mutate(compartiment = "agb",                                          # name the calculates sum of compartiments agb
                      func_ID = "agb", 
@@ -337,7 +368,7 @@ betula_agb_kg_tree_df <- rbind(
           left_join(., (betula_agb_kg_tree_df[!(betula_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl")) &            # select seperate compartiments that are not ag or leafes 
                                                betula_agb_kg_tree_df$ID %in% c(betula_func$ID[betula_func$leafes_inkl == "possible"],
                                                                                betula_func$ID[betula_func$leafes_inkl == "not included"]), ]) %>%   # of papers which have "possible"
-                      dplyr::group_by(plot_ID, tree_ID, paper_ID, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+                      dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
                       dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
                       mutate(compartiment = "w_agb",
                              func_ID = "w_agb", 
@@ -359,10 +390,11 @@ wagb_tapes <- unique(
     group_by(plot_ID, tree_ID) %>% 
     summarise(B_kg_tree = sum(B_kg_tree)) %>% 
     mutate(compartiment = "w_agb",
-           paper_ID = as.numeric(max(bio_func_df$paper_ID))+1, 
+           paper_ID = max(na.omit(as.numeric(bio_func_df$paper_ID)))+1, 
            func_ID = "tapes",
            ID = paste0(paper_ID, "_", func_ID), 
-           country = "Germany")
+           country = "Germany", 
+           peat = "no")
 ), on = .(plot_ID, tree_ID) ])
 
 # 2.1. alnus tapeS wagb compartiement calculation ---------------------------------------------------------
@@ -370,7 +402,8 @@ alnus_wagb_tapes <- wagb_tapes[wagb_tapes$bot_genus %in% c("Alnus") &
                                  wagb_tapes$min_org == "org", ]
 
 # 2.2. betula tapeS wagb compartiement calculation ---------------------------------------------------------
-betula_wagb_tapes <- wagb_tapes[wagb_tapes$bot_genus %in% c("Betula") & 
+betula_wagb_tapes <- wagb_tapes[wagb_tapes$bot_genus %in% c("Betula") &
+                                # wagb_tapes$bot_species %in% c("pubescens", "spp.") &
                                  wagb_tapes$min_org == "org", ]
 
 
@@ -382,9 +415,10 @@ betula_wagb_tapes <- wagb_tapes[wagb_tapes$bot_genus %in% c("Betula") &
 trees_data_update_5 <- rbind(
   # tapes all trees data
   setDT(tapes_tree_data) %>% mutate(
-    paper_ID = as.numeric(max(bio_func_df$paper_ID))+1, 
+    paper_ID = max(na.omit(as.numeric(bio_func_df$paper_ID)))+1, 
     func_ID = "tapes", 
     country = "Germany",
+    peat = "no",
     ID = paste0(paper_ID, "_", func_ID)) ,
   # betula
   setDT(betula_wagb_tapes),  # betula tapes wag
@@ -398,7 +432,7 @@ trees_data_update_5 <- rbind(
 
 
 # 3.2. export: all datasets with incdinvidual tree infos together ------------------------------------------------------------------
-write.csv(trees_data_update_5, paste0(getwd(), out.path, paste(trees_data_update_5$inv[1], "LT_update_5", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(trees_data_update_5, paste0(getwd(), out.path, paste(trees_data_update_5$inv[1], "LT_update_6_1", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 
 
@@ -450,65 +484,67 @@ ggplot(data = ungroup(alnus_ag) # %>% filter(!(ID %in% c("13_1"))) # "16_4" and 
 # 4.1.2.1. ggplot ---------------------------------------------------------
 alnus_wag <-  trees_data_update_5[compartiment %in% c("w_agb") & bot_genus %in% c("Alnus") & min_org == "org", ]
 
-alnus_wag_labels <- alnus_wag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
-  left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Alnus")) %>% select(paper_ID, country)) %>% distinct() 
-             # mutate_at("paper_ID", ~as.character(.))
-            , by = "paper_ID" ) %>% 
-  mutate(country_code = ifelse(func_ID == "tapes", "GER", toupper(substr(country, start = 1, stop = 2))),
+alnus_wag_labels <- alnus_wag %>% group_by(paper_ID, func_ID, ID, country, peat) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
+  mutate(country_code =  toupper(substr(country, start = 1, stop = 2)),
          ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
          label_name = paste0(ID, ", ",country_code)) %>% 
   distinct()
 
 alnus_wag <- 
-alnus_wag %>% 
+  alnus_wag %>% 
   mutate(
     farbe = ifelse(ID %like% c("tapes") , "red" , # tapes red
-                   ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "grey10",
-                          ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "grey30",
+                   ifelse(peat == "yes", "#53868B",
+                          ifelse(peat == "partly", "#7AC5CD",
                                  "grey" ) ))
   )
-   # full peat dark grey
+color_map <- setNames(alnus_wag$farbe, alnus_wag$ID)
 
 
-  
-
-m_b_al <- alnus_wag[ID != "2_w_agb", .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
-sd_b_al <- alnus_wag[ID != "2_w_agb", .(sd_B_kg_tree =sd(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]  
+# sd mean betula 
+m_b_al <- alnus_wag[alnus_wag$ID != "2_w_agb", .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
+m_b_al <- alnus_wag[alnus_wag$ID != "2_w_agb", .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
+sd_b_al <- alnus_wag[alnus_wag$ID != "2_w_agb", .(sd_B_kg_tree =sd(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]  
 m_sd_b_al <- m_b_al[sd_b_al, on = list(plot_ID, tree_ID, compartiment, DBH_cm)]
 m_sd_b_al[, up_sd_B_kg_tree := (B_kg_tree + sd_B_kg_tree)]
 m_sd_b_al[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]  
 
 
 
-
-ggplot( # "16_4" and "16_5" are somehow weird so i kicked it out 
-)+ 
-  geom_point(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("2_w_agb"))), 
-             aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID), 
-             )+
-  geom_smooth(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("2_w_agb"))), 
-              method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID) 
-              )+
-  scale_color_manual(values = alnus_wag$farbe[alnus_wag$ID != "2_w_agb"])+
+# plot 
+ggplot( )+ 
+  geom_point(data = ungroup(alnus_wag)  %>% filter(!(ID %in% c("2_w_agb"))) 
+             , aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID), 
+  )+
+  geom_smooth(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("2_w_agb")))
+              , method= "loess"
+              , aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID) 
+              , se = F 
+  )+
+  scale_color_manual(values = color_map)+
   geom_smooth(aes(x = DBH_cm, y = B_kg_tree), 
               method= "loess",
-            data = m_sd_b_al, 
-            col = "black")+
+              data = m_sd_b_al,
+              col = "black")+
   geom_smooth(aes(x = DBH_cm, y = m_sd_b_al$low_sd_B_kg_tree), 
-            method= "loess",
-            data = m_sd_b_al, 
-            col = "black", 
-            linetype = "dashed")+
+              method= "loess",
+              data = m_sd_b_al, 
+              col = "black", 
+              se = F , 
+              linetype = "dashed")+
   geom_smooth(aes(x = DBH_cm, y = m_sd_b_al$up_sd_B_kg_tree), 
               method= "loess",
               data = m_sd_b_al, 
               col = "black", 
+              se = F , 
               linetype = "dashed")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name), 
             data = alnus_wag_labels
             %>% filter(!(ID %in% c("2_w_agb")))
-            )+
+  )+
+  ylim(0, 2700)+
+  xlim(0, 64)+
   theme_bw()+
   theme(legend.position="none")+
   ggtitle("Alnus woody aboveground biomass kg/tree by diameter cm")
@@ -516,9 +552,6 @@ ggplot( # "16_4" and "16_5" are somehow weird so i kicked it out
 
 
 # 4.1.2.2. base r ---------------------------------------------------------
-
-
-
 ## plot alnus base r
 
 # Change the margins of the plot (the fourth is the right margin)
@@ -533,7 +566,7 @@ par(mar = c(4, 4, 2, 10), xpd=TRUE)
                            ifelse(levels(as.factor(alnus_wag$ID)) %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "grey30",
                             "grey" ) )) # full peat dark grey
    
- 
+# plot 
 plot(alnus_wag$DBH_cm[alnus_wag$ID != "2_w_agb"], alnus_wag$B_kg_tree[alnus_wag$ID != "2_w_agb"], 
      frame = T, 
      pch = 19, 
@@ -557,7 +590,6 @@ on.exit(par(opar))
 
 # 4.2. BETULA visuals --------------------------------------------------------------
 # 4.2.1. BETULA ag visuals --------------------------------------------------------------
-
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 betula_ag <- 
   rbind(setDT(betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment == "agb", ]),
@@ -578,46 +610,27 @@ betula_ag_labels <- betula_ag %>% group_by(paper_ID, func_ID, ID) %>% summarise(
   distinct()
 
 
-
-
-ggplot(data = betula_ag  %>% filter(!(ID %in% c("36_1", "34_4")))
-       )+ # "16_4" and "16_5" are somehow weird so i kicked it out 
+# plot
+ggplot(data = ungroup(betula_ag) # %>% filter(!(ID %in% c("13_1"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
+)+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
-  scale_color_manual(values = betula_ag$farbe[betula_ag$ID != "2_w_agb"])+
-  geom_smooth(aes(x = DBH_cm, y = B_kg_tree), 
-              method= "loess",
-              data = m_sd_b_be, 
-              col = "black")+
-  geom_smooth(aes(x = DBH_cm, y = m_sd_b_be$low_sd_B_kg_tree), 
-              method= "loess",
-              data = m_sd_b_be, 
-              col = "black", 
-              linetype = "dashed")+
-  geom_smooth(aes(x = DBH_cm, y = m_sd_b_be$up_sd_B_kg_tree), 
-              method= "loess",
-              data = m_sd_b_be, 
-              col = "black", 
-              linetype = "dashed")+
+  geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-            data = (ungroup(betula_ag_labels  %>% filter(!(ID %in% c("36_1", "34_4")))# "17_1")))#, "38_1", "38_2", "38_3", "38_4", "38_5")))  
-                            )))+
+            data = betula_ag_labels # %>% filter(!(ID %in% c("13_1")))
+  )+
   theme_bw()+
   #theme(legend.position="none")+
   ggtitle("Betula Biomass kg/tree by diameter cm")
-
 
 
 # 4.1.2. BETULA wabg visuals --------------------------------------------------------------
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 betula_wag <-  trees_data_update_5[compartiment %in% c("w_agb") & bot_genus %in% c("Betula") & min_org == "org", ]
 
-betula_wag_labels <- betula_wag %>% group_by(paper_ID, func_ID, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
-  left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Betula")) %>% select(paper_ID, country)) %>% distinct() 
-            # mutate_at("paper_ID", ~as.character(.))
-            , by = "paper_ID" ) %>% 
-  mutate(country_code = ifelse(func_ID == "tapes", "GER", toupper(substr(country, start = 1, stop = 2))),
+betula_wag_labels <- betula_wag %>% group_by(paper_ID, func_ID, peat, country, ID) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
+  mutate(country_code =toupper(substr(country, start = 1, stop = 2)),
          ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
          label_name = paste0(ID, ", ",country_code)) %>% 
   distinct()
@@ -626,24 +639,21 @@ betula_wag <-
   betula_wag %>% 
   mutate(
     farbe = ifelse(ID %like% c("tapes") , "red" , # tapes red
-                   ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "blue",
-                          ifelse(ID %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "lightblue",
+                   ifelse(peat == "yes", "#53868B",
+                          ifelse(peat == "partly", "#7AC5CD",
                                  "grey" ) ))
   )
-# full peat dark grey
+color_map <- setNames(betula_wag$farbe, betula_wag$ID)
+
+# sd mean betula 
+m_b_be <- betula_wag[ , .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
+sd_b_be <- betula_wag[ , .(sd_B_kg_tree =sd(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]  
+m_sd_b_be <- m_b_be[sd_b_be, on = list(plot_ID, tree_ID, compartiment, DBH_cm)]
+m_sd_b_be[, up_sd_B_kg_tree := (B_kg_tree + sd_B_kg_tree)]
+m_sd_b_be[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]  
 
 
-
-
-m_b_al <- betula_wag[ , .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
-sd_b_al <- betula_wag[ , .(sd_B_kg_tree =sd(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]  
-m_sd_b_al <- m_b_al[sd_b_al, on = list(plot_ID, tree_ID, compartiment, DBH_cm)]
-m_sd_b_al[, up_sd_B_kg_tree := (B_kg_tree + sd_B_kg_tree)]
-m_sd_b_al[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]  
-
-
-
-
+# plot 
 ggplot( )+ 
   geom_point(data = ungroup(betula_wag) # %>% filter(!(ID %in% c("2_w_agb"))), 
              , aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID), 
@@ -651,30 +661,35 @@ ggplot( )+
   geom_smooth(data = ungroup(betula_wag) #%>% filter(!(ID %in% c("2_w_agb")))
               , method= "loess"
               , aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID) 
+              , se = F 
   )+
-  scale_color_manual(values = betula_wag$farbe)+
-  geom_smooth(aes(x = DBH_cm, y = B_kg_tree), 
-              method= "loess",
-              data = m_sd_b_be, 
-              col = "black")+
+  scale_color_manual(values = color_map)+
+   geom_smooth(aes(x = DBH_cm, y = B_kg_tree), 
+               method= "loess",
+               data = m_sd_b_be,
+               col = "black")+
   geom_smooth(aes(x = DBH_cm, y = m_sd_b_be$low_sd_B_kg_tree), 
               method= "loess",
               data = m_sd_b_be, 
               col = "black", 
+              se = F , 
               linetype = "dashed")+
   geom_smooth(aes(x = DBH_cm, y = m_sd_b_be$up_sd_B_kg_tree), 
               method= "loess",
               data = m_sd_b_be, 
               col = "black", 
+              se = F , 
               linetype = "dashed")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name), 
             data = betula_wag_labels
             %>% filter(!(ID %in% c("2_w_agb")))
   )+
+  ylim(0, 2700)+
+  xlim(0, 64)+
   theme_bw()+
   theme(legend.position="none")+
-  ggtitle("Alnus woody aboveground biomass kg/tree by diameter cm")
+  ggtitle("Betula woody aboveground biomass kg/tree by diameter cm")
 
 
 ## base r

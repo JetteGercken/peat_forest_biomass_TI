@@ -308,8 +308,13 @@ forest_edges <- forest_edges %>%
 
 # 1.3. REGENRATION --------------------------------------------------------
 RG_data <- RG_data %>%
-  # join  in inventory info
-  left_join(., tree_inv_info %>% select(plot_ID, inv_year, inv) %>% distinct(), by = "plot_ID") %>% 
+  mutate(SP_code = tolower(SP_code)) %>%  ##momok : apperently the species names in momom are not in lower case but caps which is why we have to harmonise this first 
+  # join in inventory info 
+  left_join(., tree_inv_info %>% dplyr::select("plot_ID", "inv_year", "inv"), by = "plot_ID")  %>% 
+  # join in the species names from x_bart to ensure the Dahm DBH correction function
+  left_join(., SP_names_com_ID_tapeS %>% 
+              mutate(char_code_ger_lowcase = tolower(Chr_code_ger)), 
+            by = c("SP_code" = "char_code_ger_lowcase")) %>% 
   arrange(plot_ID, CCS_nr, tree_ID) %>% 
 # if the CCR no is not a an integer but a character, we have to change that 
   mutate(across(c("CCS_nr", "tree_ID"), as.integer))
@@ -393,6 +398,7 @@ for (i in 1:nrow(trees_stat_2)) {
   my.ccs.r <- trees_stat_2[, "CCS_r_m"][i]
   my.plot.area <- c_A(my.ccs.r)/10000
   my.inv.year <- trees_stat_2[, "inv_year"][i]
+  my.inv <- trees_stat_2[, "inv"][i]
   
   if(nrow(trees_stat_2) != 0){
     LT.staus.2.df <- as.data.frame(cbind(
@@ -400,6 +406,7 @@ for (i in 1:nrow(trees_stat_2)) {
       CCS_r_m = c(my.ccs.r),
       plot_A_ha = c(my.plot.area), 
       inv_year = c(my.inv.year),
+      inv = c(my.inv),
       compartiment = c("ag", "bg", "total"),
       B_CCS_t_ha = c(0, 0, 0), 
       C_CCS_t_ha = c(0, 0, 0), 
@@ -411,6 +418,7 @@ for (i in 1:nrow(trees_stat_2)) {
           CCS_r_m = NA,
           plot_A_ha = NA, 
           inv_year = NA,
+          inv = NA,
           compartiment = NA,
           B_CCS_t_ha = NA, 
           C_CCS_t_ha = NA, 
@@ -522,6 +530,7 @@ for (i in 1:nrow(RG_stat_2)) {
   my.ccs.no <- RG_stat_2[, "CCS_nr"][i]
   my.plot.area <- (c_A(as.numeric(RG_stat_2[, "CCS_max_dist_cm"][i])/100))/10000 # plot are in hectar 
   my.inv.year <- RG_stat_2[, "inv_year"][i]
+  my.inv <-  RG_stat_2[, "inv"][i]
   
   if(nrow(RG_stat_2) != 0){
     RG.status.2.df <- as.data.frame(cbind(
@@ -529,6 +538,7 @@ for (i in 1:nrow(RG_stat_2)) {
       CCS_nr = c(my.ccs.no),
       plot_A_ha = c(my.plot.area), 
       inv_year = c(my.inv.year),
+      inv = c(my.inv),
       compartiment = c("ag", "bg", "total"),
       B_t_ha = c(0, 0, 0), 
       C_t_ha = c(0, 0, 0), 
@@ -539,6 +549,7 @@ for (i in 1:nrow(RG_stat_2)) {
       CCS_nr = NA,
       plot_A_ha = NA, 
       inv_year = NA,
+      inv = NA,
       compartiment = NA,
       B_t_ha = NA, 
       C_t_ha = NA, 
@@ -616,13 +627,14 @@ for (i in 1:nrow(DW_stat_2)) {
   my.plot.id <- DW_stat_2[, "plot_ID"][i]
   my.plot.area <- DW_stat_2[, "plot_A_ha"][i]
   my.inv.year <- DW_stat_2[, "inv_year"][i]
-  
+  my.inv <- DW_stat_2[, "inv"][i]
   
   if(nrow(DW_stat_2) != 0){
     DW.status.2.df <- as.data.frame(cbind(
       plot_ID = c(my.plot.id),
       plot_A_ha = c(my.plot.area), 
       inv_year = c(my.inv.year),
+      inv = c(my.inv),
       compartiment = c("ag", "bg", "total"),
       B_t_ha = c(0, 0, 0), 
       C_t_ha = c(0, 0, 0), 
@@ -632,6 +644,7 @@ for (i in 1:nrow(DW_stat_2)) {
       plot_ID = NA,
       plot_A_ha = NA, 
       inv_year = NA,
+      inv = NA,
       compartiment = NA,
       B_t_ha = NA, 
       C_t_ha = NA, 

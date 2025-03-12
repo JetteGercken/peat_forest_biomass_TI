@@ -86,12 +86,15 @@ if(exists('trees_stat_2') == TRUE && nrow(trees_stat_2)!= 0){
                                      filter(!is.na(plot_ID)) %>% 
                                      semi_join(., 
                                                trees_stat_2 %>% 
+                                                 filter(inv != "momok") %>% 
                                                  select(plot_ID, CCS_r_m) %>% 
                                                  distinct() %>% 
                                                  group_by(plot_ID) %>% 
                                                  summarise(n_CCS = dplyr::n()) %>% 
                                                  filter(n_CCS == 3), 
-                                               by = "plot_ID")) %>%  
+                                               by = "plot_ID"),
+                                   # add momok plots with status too because they never have 3 empty CCS and are removed by the previous filter 
+                                   trees_stat_2[trees_stat_2$inv == "momok", ]) %>%  ## momok
     # now we summarise all the t/ha values of the cirlces per plot
     group_by(plot_ID, inv, compartiment) %>% 
     summarise(B_t_ha = sum(B_CCS_t_ha), 
@@ -135,18 +138,20 @@ if(exists('trees_stat_2') == TRUE && nrow(trees_stat_2)!= 0){
                                                 BA_CCS_m2_ha = sum(BA_m2)/stand_plot_A_ha, 
                                                 n_trees_CCS_ha = dplyr::n()/stand_plot_A_ha) %>% 
                                         distinct(),
-                                      # add status 2 plots if all circles are existing but empty 
                                       trees_stat_2 %>% 
                                         # this is in case in 01_00_RG_LT_DW_plot_inv_status_sorting there were stat_2 datasets produced that do not hold any data but only NAs
                                         filter(!is.na(plot_ID)) %>% 
                                         semi_join(., 
                                                   trees_stat_2 %>% 
+                                                    filter(inv != "momok") %>% 
                                                     select(plot_ID, CCS_r_m) %>% 
                                                     distinct() %>% 
                                                     group_by(plot_ID) %>% 
                                                     summarise(n_CCS = dplyr::n()) %>% 
                                                     filter(n_CCS == 3), 
-                                                  by = "plot_ID")) %>%  
+                                                  by = "plot_ID"),
+                                      # add momok plots with status too because they never have 3 empty CCS and are removed by the previous filter 
+                                      trees_stat_2[trees_stat_2$inv == "momok", ]) %>%  ## momok
     # now we summarise all the t/ha values of the cirlces per plot
     group_by(plot_ID, inv, stand, compartiment) %>% 
     summarise(B_t_ha = sum(B_CCS_t_ha), 
@@ -209,12 +214,15 @@ if(exists('trees_stat_2') == TRUE && nrow(trees_stat_2)!= 0){
       # this filters only those plotIDs of plots that have 3empty but inventorable CCS (stat 2 CCS)
       semi_join(., 
                 trees_stat_2 %>% 
+                  filter(inv != "momok") %>% 
                   select(plot_ID, CCS_r_m) %>% 
                   distinct() %>% 
                   group_by(plot_ID) %>% 
                   summarise(n_CCS = dplyr::n()) %>% 
                   filter(n_CCS == 3), 
-                by = "plot_ID")
+                by = "plot_ID"), 
+    # add momok plots with status too because they never have 3 empty CCS and are removed by the previous filter 
+    trees_stat_2[trees_stat_2$inv == "momok", ]  ## momok
   ) %>% 
     # now we summarise all the t/ha values of the cirlces per plot
     group_by(plot_ID, inv, stand, SP_code, compartiment) %>% 
@@ -278,12 +286,15 @@ if(exists('trees_stat_2') == TRUE && nrow(trees_stat_2)!= 0){
       # this filters only those plotIDs of plots that have 3empty but inventorable CCS (stat 2 CCS)
       semi_join(., 
                 trees_stat_2 %>% 
+                  filter( inv != "momok") %>% 
                   select(plot_ID, CCS_r_m) %>% 
                   distinct() %>% 
                   group_by(plot_ID) %>% 
                   summarise(n_CCS = dplyr::n()) %>% 
                   filter(n_CCS == 3), 
-                by = "plot_ID")
+                by = "plot_ID"), 
+    # add momok plots with status too because they never have 3 empty CCS and are removed by the previous filter 
+    trees_stat_2[trees_stat_2$inv == "momok", ]  ## momok
   ) %>% 
     # now we summarise all the t/ha values of the cirlces per plot
     group_by(plot_ID, inv, SP_code, compartiment) %>% 

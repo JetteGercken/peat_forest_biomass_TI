@@ -23,10 +23,8 @@ RG_loc <- read.delim(file = paste0(out.path, "HBI_RG_loc_update_1.csv"), sep = "
 RG_data <- read.delim(file =  paste0(out.path, inv_name((RG_loc$inv_year)[1]), "_RG_update_1.csv"), sep = ",", dec = ".")
 
 # this dataset contains the BZE3 forest edges info
-forest_edges <- read.delim(file = paste0(getwd(), "/data/input/be_waldraender.csv"), sep = ",", dec = ".") 
-colnames(forest_edges) <- c("plot_ID", "e_ID", "e_type", "e_form", 
-                            "A_dist", "A_azi",  "B_dist", "B_azi", 
-                            "T_dist", "T_azi") # t = turning point 
+forest_edges <- read.delim(file = paste0(out.path, trees_data$inv[1], "_forest_edges_update_1.csv"), sep = ",", dec = ".") 
+
 # HBI BE locations dataset: this dataset contains the coordinates of the center point of the tree inventory accompanying the second national soil inventory
 HBI_loc <- read.delim(file = paste0(getwd(), "/data/input/vm_lokation_",  tolower(inv_name((RG_loc$inv_year)[1])), ".csv"), sep = ",", dec = ".")
 # HBI locations

@@ -79,6 +79,25 @@ source(paste0(getwd(), "/scripts/06_00_biodiversity_index_HBI.R"))
 
 
 
+#### analysis -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #comparing heights
 source(paste0(getwd(), "/scripts/03_02_comparing_height_org_min.R"))
+
+
+## DBH based masses only 
+# calculate single tree biomass based on DBH only
+source(paste0(getwd(), "/scripts/07_00_LT_stock_DBH_based.R"))
+# single tree biomass comparisson based on DBH only
+source(paste0(getwd(), "/scripts/07_01_01_biomass_comparisson_DBH_only.R"))
+# carbon stock comparisson based on DBH only
+source(paste0(getwd(), "/scripts/07_02_01_carbon_hectar_comparisson_DBH_only.R"))
+
+
+
+
+
+
+
+
+

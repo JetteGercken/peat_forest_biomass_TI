@@ -31,11 +31,7 @@ RG_removed <- read.delim(file = paste0(out.path, unique(RG_data$inv)[1], "_RG_re
 RG_data <- RG_data %>% 
   mutate(
     D_cm = sizeclass_to_d(D_class_cm), 
-    H_m = H_cm/100) %>% 
-  # join in species names and codes from x_bart
-  left_join(., SP_names_com_ID_tapeS %>% 
-              mutate(char_code_ger_lowcase = tolower(Chr_code_ger)), 
-            by = c("SP_code" = "char_code_ger_lowcase"))
+    H_m = H_cm/100) 
 
 
 
