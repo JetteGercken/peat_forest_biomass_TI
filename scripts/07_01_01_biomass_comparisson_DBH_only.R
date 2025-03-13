@@ -482,7 +482,7 @@ ggplot(data = ungroup(alnus_ag) # %>% filter(!(ID %in% c("13_1"))) # "16_4" and 
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 
 # 4.1.2.1. ggplot ---------------------------------------------------------
-alnus_wag <-  trees_data_update_5[compartiment %in% c("w_agb") & bot_genus %in% c("Alnus") & min_org == "org", ]
+alnus_wag <-  trees_data_update_5[compartiment %in% c("w_agb") & bot_genus %in% c("Alnus") & min_org == "org" & paper_ID != 41, ]
 
 alnus_wag_labels <- alnus_wag %>% group_by(paper_ID, func_ID, ID, country, peat) %>% summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
   mutate(country_code =  toupper(substr(country, start = 1, stop = 2)),

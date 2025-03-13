@@ -131,8 +131,8 @@ m_tapes_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mea
 # mean c stock of "andere Laubhölzer niedlriger Lebensdauer (aLn) according to BWI: 52859 kg ha-1 
 
 # 2.1. alnus mean c t ha barplot ------------------------------------------
-values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" ]
-names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" ]
+values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$paper_ID != 41]
+names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$paper_ID != 41]
 alnus_wag <- as.data.frame(cbind(names, values))# , mean_NFI = c(ton(52859))))
 
 # plotting barplot
@@ -145,8 +145,12 @@ abline(h=mean(as.numeric(alnus_wag$values)), col = "blue") #functions mean
 
 
 # subset for boxplot
-values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$ID != "2_w_agb"]
-names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$ID != "2_w_agb"]
+values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb"
+                                  #& pseudo_mono_P_SP$ID != "2_w_agb" 
+                                  & pseudo_mono_P_SP$paper_ID != 41]
+names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb" 
+                            # & pseudo_mono_P_SP$ID != "2_w_agb" 
+                             & pseudo_mono_P_SP$paper_ID != 41]
 alnus_wag <- as.data.frame(cbind(names, values))
 # mark only tapes plot
 my.colors <- ifelse(levels(as.factor(alnus_wag$names)) %like% c("tapes") , "red" , # tapes red
