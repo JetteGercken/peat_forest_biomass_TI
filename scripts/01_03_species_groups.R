@@ -112,7 +112,7 @@ SP_names_com_ID_tapeS <- left_join(rbind(
                                        bot_name == '-2' ~ "missing", 
                                        # everything else belongs to other broadleafed trees
                                        TRUE ~ "Magnoliopsida trees"))), 
-  SP_TapeS_test %>% select(scientific, ID) %>% rename(tpS_ID = ID), 
+  SP_TapeS_test %>% select(scientific, ID) %>% dplyr::rename(tpS_ID = ID), 
   by = c("tpS_SP_com_name" = "scientific")) %>% 
   # height species groups to assing correct parameters for height functions according to species
   # create species groups, BWI uses for their volume calculations to use curtis & sloboda functions

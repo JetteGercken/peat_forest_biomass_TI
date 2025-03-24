@@ -60,8 +60,8 @@ org_horizonts <- c("Aa", "H")
 org_soils_types_db <- soil_types_bze2_db %>%
   filter(grepl(paste(org_soil_types, collapse = "|"), bodentyp_2, text, ignore.case = F) & erhebjahr_2 > 2000) %>% 
   select(bfhnr_2, bodentyp_2) %>% 
-  rename(., bfhnr = bfhnr_2) %>% 
-  rename(., plot_bodtyp = bodentyp_2) %>% 
+  dplyr::rename(., bfhnr = bfhnr_2) %>% 
+  dplyr::rename(., plot_bodtyp = bodentyp_2) %>% 
   distinct()
 
 org_plots_according_to_soiltype <- org_soils_types_db
@@ -76,8 +76,8 @@ org_plots_according_to_soiltype <- org_soils_types_db
 org_soils_types_db <- soil_types_bze2_db %>%
   filter(grepl(paste(org_soil_types, collapse = "|"), bodentyp_2, text, ignore.case = F) ) %>%  # & erhebjahr_2 > 2000
   select(bfhnr_2, bodentyp_2) %>% 
-  rename(., bfhnr = bfhnr_2) %>% 
-  rename(., plot_bodtyp = bodentyp_2) %>% 
+  dplyr::rename(., bfhnr = bfhnr_2) %>% 
+  dplyr::rename(., plot_bodtyp = bodentyp_2) %>% 
   distinct()
 
 # add category "organic" minearal" to soil profile dataset
@@ -362,8 +362,8 @@ hori_with_partial_depth_classes <-
               mutate(TF_depth_class = depth_class(ut), # assign depth class factor/ name per depth class 
                      depth_TF = ut- ot) %>% # calculate depth of depth class
               # adjust names of deoth class boarder for join 
-              rename("ut_TF" = "ut") %>%  
-              rename("ot_TF" = "ot") %>% 
+              dplyr::rename("ut_TF" = "ut") %>%  
+              dplyr::rename("ot_TF" = "ot") %>% 
               select(bfhnr, inventur, TF_depth_class, depth_TF,  ot_TF, ut_TF), 
             by = c("bfhnr", "inventur", "hori_depth_class" = "TF_depth_class")) %>% 
   # calcualte how much of the depth class is occubied by the horizont 
@@ -425,8 +425,8 @@ mean_SOC_horizont_2 <-
               mutate(SOC_TF =( m_ea_corg2/1000), # change unit of SOC content from g/kg to percent by divinding by 1000
                      hori_depth_class = depth_class(ut)) %>%  
               # adjust names of deoth class boarder for join 
-              rename("ut_TF" = "ut") %>%  
-              rename("ot_TF" = "ot") %>% 
+              dplyr::rename("ut_TF" = "ut") %>%  
+              dplyr::rename("ot_TF" = "ot") %>% 
               select(bfhnr, inventur, hori_depth_class, SOC_TF, m_trd_fbv2, ot_TF, ut_TF),
             by = c("bfhnr", "inventur", "hori_depth_class")) %>% 
   # all NAs for the column with the proportion of the depth step occupied by the

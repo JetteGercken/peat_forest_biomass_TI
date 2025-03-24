@@ -172,7 +172,7 @@ double_plots_momok <- lokation_momok %>%
   select(MoMoK_Nr, Skizzenpunkt) %>% distinct() %>%
   # count number of center points registered for that plot
   group_by(MoMoK_Nr)%>% 
-  summarise(n_centres = n()) %>% 
+  dplyr::summarise(n_centres = dplyr::n()) %>% 
   filter(n_centres > 1)
 
 
@@ -187,7 +187,7 @@ double_plots_momok <- lokation_momok %>%
 # these coordinates can only be calculated AFTER the ref-point(center)-to-direkt-ref-point-dependent-points is calcualted
 # thus we will repeat the process as often as the max number of ref points (center) per plot, 
 # which is: 6
-max(lokation_momok %>% select(MoMoK_Nr, Ursprung) %>% distinct() %>% group_by(MoMoK_Nr) %>% summarise(n_refpoints = n()) %>% pull(n_refpoints))
+max(lokation_momok %>% select(MoMoK_Nr, Ursprung) %>% distinct() %>% group_by(MoMoK_Nr) %>% dplyr::summarise(n_refpoints = dplyr::n()) %>% pull(n_refpoints))
 
 # 0.3.1.2.3.1.  prepare lokation -----------------------------------------------------------------------------------
 # correct lokation ursprung and skizzenpunkt
@@ -214,10 +214,10 @@ lokation_momok <- lokation_momok %>%
 vm_lokation_momok_1 <- lokation_momok %>%
   # join in the the respective reference point coordinates  for the center of the forest inventory by "ursprung"
   left_join(., lokation_momok %>% select( "MoMoK_Nr",  "Skizzenpunkt",  "Dezimalgrad.N..WGS84.", "Dezimalgrad.E..WGS84.") %>% 
-              rename("ref_northing" = "Dezimalgrad.N..WGS84.") %>% 
-              rename("ref_easting" = "Dezimalgrad.E..WGS84."), 
+              dplyr::rename("ref_northing" = "Dezimalgrad.N..WGS84.") %>% 
+              dplyr::rename("ref_easting" = "Dezimalgrad.E..WGS84."), 
             by = c("MoMoK_Nr", "Ursprung" = "Skizzenpunkt")) %>% 
-  mutate(across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing", "ref_easting", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
+  dplyr::mutate(dplyr::across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing", "ref_easting", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
   # calcualte coordiantes of mb based on utm coordinates of RP (referenzpoint) 
   # as the center of the forest inventory is not the center of the forest inventory
   mutate(rw_med = ifelse(is.na(Dezimalgrad.E..WGS84.), coord(ref_easting,  ref_northing, Distanz..m., Azimut..gon., coordinate = "x"), Dezimalgrad.E..WGS84.), # x, easting, longitude, RW 
@@ -228,10 +228,10 @@ vm_lokation_momok_1 <- lokation_momok %>%
 vm_lokation_momok_2 <- vm_lokation_momok_1 %>%
   # join in the the respective reference point coordinates  for the center of the forest inventory by "ursprung"
   left_join(., vm_lokation_momok_1 %>% select( "MoMoK_Nr",  "Skizzenpunkt",  "hw_med", "rw_med") %>% 
-              rename("ref_northing_1" = "hw_med") %>% 
-              rename("ref_easting_1" = "rw_med"), 
+              dplyr::rename("ref_northing_1" = "hw_med") %>% 
+              dplyr::rename("ref_easting_1" = "rw_med"), 
             by = c("MoMoK_Nr", "Ursprung" = "Skizzenpunkt")) %>% 
-  mutate(across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing_1", "ref_easting_1", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
+  dplyr::mutate(dplyr::across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing_1", "ref_easting_1", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
   # calcualte coordiantes of mb based on utm coordinates of RP (referenzpoint) 
   # as the center of the forest inventory is not the center of the forest inventory
   mutate(rw_med = ifelse(is.na(Dezimalgrad.E..WGS84.) & is.na(rw_med) , coord(ref_easting_1,  ref_northing_1, Distanz..m., Azimut..gon., coordinate = "x"), rw_med), # x, easting, longitude, RW 
@@ -242,10 +242,10 @@ vm_lokation_momok_2 <- vm_lokation_momok_1 %>%
 vm_lokation_momok_3 <- vm_lokation_momok_2 %>%
   # join in the the respective reference point coordinates  for the center of the forest inventory by "ursprung"
   left_join(., vm_lokation_momok_2 %>% select( "MoMoK_Nr",  "Skizzenpunkt",   "hw_med", "rw_med") %>% 
-              rename("ref_northing_2" = "hw_med") %>% 
-              rename("ref_easting_2" = "rw_med"), 
+              dplyr::rename("ref_northing_2" = "hw_med") %>% 
+              dplyr::rename("ref_easting_2" = "rw_med"), 
             by = c("MoMoK_Nr", "Ursprung" = "Skizzenpunkt")) %>% 
-  mutate(across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing_2", "ref_easting_2", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
+  dplyr::mutate(dplyr::across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing_2", "ref_easting_2", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
   # calcualte coordiantes of mb based on utm coordinates of RP (referenzpoint) 
   # as the center of the forest inventory is not the center of the forest inventory
   mutate(rw_med = ifelse(is.na(Dezimalgrad.E..WGS84.) & is.na(rw_med) , coord(ref_easting_2,  ref_northing_2, Distanz..m., Azimut..gon., coordinate = "x"), rw_med), # x, easting, longitude, RW 
@@ -256,10 +256,10 @@ vm_lokation_momok_3 <- vm_lokation_momok_2 %>%
 vm_lokation_momok_4 <- vm_lokation_momok_3 %>%
   # join in the the respective reference point coordinates  for the center of the forest inventory by "ursprung"
   left_join(., vm_lokation_momok_3 %>% select( "MoMoK_Nr",  "Skizzenpunkt",   "hw_med", "rw_med") %>% 
-              rename("ref_northing_3" = "hw_med") %>% 
-              rename("ref_easting_3" = "rw_med"), 
+              dplyr::rename("ref_northing_3" = "hw_med") %>% 
+              dplyr::rename("ref_easting_3" = "rw_med"), 
             by = c("MoMoK_Nr", "Ursprung" = "Skizzenpunkt")) %>% 
-  mutate(across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing_3", "ref_easting_3", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
+  dplyr::mutate(dplyr::across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing_3", "ref_easting_3", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
   # calcualte coordiantes of mb based on utm coordinates of RP (referenzpoint) 
   # as the center of the forest inventory is not the center of the forest inventory
   mutate(rw_med = ifelse(is.na(Dezimalgrad.E..WGS84.) & is.na(rw_med) , coord(ref_easting_3,  ref_northing_3, Distanz..m., Azimut..gon., coordinate = "x"), rw_med), # x, easting, longitude, RW 
@@ -270,10 +270,10 @@ vm_lokation_momok_4 <- vm_lokation_momok_3 %>%
 vm_lokation_momok_5 <- vm_lokation_momok_4 %>%
   # join in the the respective reference point coordinates  for the center of the forest inventory by "ursprung"
   left_join(., vm_lokation_momok_4 %>% select( "MoMoK_Nr",  "Skizzenpunkt",   "hw_med", "rw_med") %>% 
-              rename("ref_northing_4" = "hw_med") %>% 
-              rename("ref_easting_4" = "rw_med"), 
+              dplyr::rename("ref_northing_4" = "hw_med") %>% 
+              dplyr::rename("ref_easting_4" = "rw_med"), 
             by = c("MoMoK_Nr", "Ursprung" = "Skizzenpunkt")) %>% 
-  mutate(across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing_4", "ref_easting_4", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
+  dplyr::mutate(dplyr::across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing_4", "ref_easting_4", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
   # calcualte coordiantes of mb based on utm coordinates of RP (referenzpoint) 
   # as the center of the forest inventory is not the center of the forest inventory
   mutate(rw_med = ifelse(is.na(Dezimalgrad.E..WGS84.) & is.na(rw_med) , coord(ref_easting_4,  ref_northing_4, Distanz..m., Azimut..gon., coordinate = "x"), rw_med), # x, easting, longitude, RW 
@@ -289,10 +289,10 @@ vm_lokation_momok_6 <- vm_lokation_momok_5 %>%
               # filter only reference points
               filter(Skizzenpunkt == "RP") %>% 
               select( "MoMoK_Nr",  "Dezimalgrad.N..WGS84.", "Dezimalgrad.E..WGS84.") %>% 
-              rename("ref_northing_5" = "Dezimalgrad.N..WGS84.") %>% 
-              rename("ref_easting_5" = "Dezimalgrad.E..WGS84."), 
+              dplyr::rename("ref_northing_5" = "Dezimalgrad.N..WGS84.") %>% 
+              dplyr::rename("ref_easting_5" = "Dezimalgrad.E..WGS84."), 
             by = c("MoMoK_Nr")) %>% 
-  mutate(across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing_5", "ref_easting_5", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
+  dplyr::mutate(dplyr::across(c("Dezimalgrad.E..WGS84.", "Dezimalgrad.N..WGS84.", "ref_northing_5", "ref_easting_5", "Distanz..m.", "Azimut..gon."), as.numeric)) %>% 
   # calcualte coordiantes of mb based on utm coordinates of RP (referenzpoint) 
   # as the center of the forest inventory is not the center of the forest inventory
   mutate(rw_med = ifelse(is.na(Dezimalgrad.E..WGS84.) & is.na(rw_med) ,ref_easting_5 , rw_med), # x, easting, longitude, RW 
@@ -312,7 +312,7 @@ vm_lokation_momok_6 <- vm_lokation_momok_5 %>%
      paste0(MoMoK_Nr, str_sub(Skizzenpunkt, start= -1)),
      # otherwise leave old plot number
      MoMoK_Nr)) %>% 
-   rename("bfhnr" = "MoMoK_Nr") %>% 
+   dplyr::rename("bfhnr" = "MoMoK_Nr") %>% 
   select(bfhnr, rw_med, hw_med) %>% 
   distinct()
 
@@ -395,7 +395,7 @@ if(isTRUE(nrow(double_plots_momok) != 0) == T){
     my.be.row.to.rep <- be_momok[be_momok$bund_nr == my.plot.id, ]
     # repeat the row as often as the plot has centres: https://stackoverflow.com/questions/11121385/repeat-rows-of-a-data-frame
     my.be.row.to.rep <- my.be.row.to.rep[rep(seq_len(nrow(my.be.row.to.rep)), each = n.rep), ] %>% 
-      mutate(bund_nr = paste0(bund_nr, row_number()))
+      dplyr::mutate(bund_nr = paste0(bund_nr, dplyr::row_number()))
     
     # save to export 
     be_momok_double_plots_list[[i]] <- my.be.row.to.rep
@@ -435,7 +435,7 @@ beab_momok <- beab_momok %>%
     paste0(MoMoK_Nr, Nr_PK),
     # otherwise leave old plot number
     MoMoK_Nr)) %>% 
-   mutate(across(c("BHD..mm.", "Distanz..cm.",      "Azimut..Gon.",      "Azimut...."), as.numeric)) %>% 
+  dplyr::mutate(dplyr::across(c("BHD..mm.", "Distanz..cm.",      "Azimut..Gon.",      "Azimut...."), as.numeric)) %>% 
   mutate(Azimut..Gon. = ifelse(is.na(Azimut..Gon.), (Azimut..../360)*400 , Azimut..Gon.), 
          baumkennzahl = -9) %>% 
   select("MoMoK_Nr"                # "bund_nr"    
@@ -455,7 +455,7 @@ beab_momok <- beab_momok %>%
          , "baumkennzahl"         # baumkennzahl
          )  %>% distinct() %>% 
   # there were different trees with the same tree id so we have to reassing the three IDs this cannot happen in BZE data since we have a plausi check for them
-  group_by(MoMoK_Nr) %>% mutate(BNr = row_number() )
+  group_by(MoMoK_Nr) %>% dplyr::mutate(BNr = dplyr::row_number() )
 # assign new colnames corresponding with bze
 colnames(beab_momok) <- c("bund_nr", "lfd_nr", "zwiesel","bart", "alter", "alter_methode", "d_mess",  "bhd_hoehe" , "hoehe", "kransatz",  "azi", "hori", "kraft", "schi", "baumkennzahl")
   # export 
@@ -518,7 +518,7 @@ RG_plots_missing_df <- (cbind(
   # join in date
   mutate(MoMoK_Nr = as.character(MoMoK_Nr)) %>% 
   left_join(., tit_momok[, c("bund_nr", "datum")], by = c("MoMoK_Nr"= "bund_nr")) %>% 
-  rename("Datum" = "datum") %>% 
+  dplyr::rename("Datum" = "datum") %>% 
   mutate(Datum = ifelse(is.na(Datum), "2023-01-01", Datum) 
          ,  pk_aufnahme = 2)
 
@@ -529,7 +529,7 @@ RG_with_circles_missing <-  RG_momok%>%
   distinct() %>% 
   group_by(MoMoK_Nr) %>%
     # count number of cirlce by RG plot
-  summarise(n = dplyr::n()) %>% 
+  dplyr::summarise(n = dplyr::n()) %>% 
     # only take those that have less then 4
     filter(n <4) %>% 
   select(MoMoK_Nr)
@@ -548,7 +548,7 @@ RG_circles_missing <-
   # join in date
   mutate(MoMoK_Nr = as.character(MoMoK_Nr)) %>% 
   left_join(., tit_momok[, c("bund_nr", "datum")], by = c("MoMoK_Nr"= "bund_nr")) %>% 
-  rename("Datum" = "datum") %>% 
+  dplyr::rename("Datum" = "datum") %>% 
   mutate(Datum = ifelse(is.na(Datum), "2023-01-01", Datum), 
          Nr_VJ_PK = case_when(Lage == "Nord" ~ "N", 
                               Lage == "Ost" ~ "O",
@@ -575,7 +575,7 @@ RG_momok <- RG_momok %>%
   left_join(., RG_momok%>% 
   select("MoMoK_Nr", "Lage", "pk_maxdist..cm.") %>% 
   distinct() %>% 
-  group_by(MoMoK_Nr, Lage) %>% mutate(pk_nr_double_plots = ifelse(MoMoK_Nr %in% c(double_plots_momok$MoMoK_Nr), row_number(), NA)), 
+  group_by(MoMoK_Nr, Lage) %>% dplyr::mutate(pk_nr_double_plots = ifelse(MoMoK_Nr %in% c(double_plots_momok$MoMoK_Nr), dplyr::row_number(), NA)), 
   by = c("MoMoK_Nr", "Lage", "pk_maxdist..cm.")) %>%
   # adjust plot_ID for double plots:
   mutate(MoMoK_Nr = ifelse(
@@ -611,7 +611,7 @@ bej_momok <- RG_momok %>%
          pk_anmerkung = NA) %>% 
   distinct() %>% 
   # assign consequitve number to sampling circuits
-  group_by(MoMoK_Nr) %>% arrange(MoMoK_Nr , Lage  , pk_maxdist..cm.) %>% mutate(Nr_VJ_PK = row_number() ) 
+  group_by(MoMoK_Nr) %>% arrange(MoMoK_Nr , Lage  , pk_maxdist..cm.) %>% dplyr::mutate(Nr_VJ_PK = dplyr::row_number() ) 
 
 # assign new colnames
 colnames(bej_momok) <- c("bund_nr",  "pk_nr",  "pk_aufnahme", "pk_richtung",  "pk_dist", "pk_maxdist" ,      "pk_anmerkung")
@@ -643,7 +643,7 @@ bejb_momok <- RG_momok %>%
          ,"Hoehe..cm."             # "hoehe"
          ,"grklasse"               # "grklasse"
          ) %>% distinct() %>%
-  group_by(MoMoK_Nr, Lage, pk_maxdist..cm.) %>% mutate(LfdNr = row_number() ) %>% 
+  group_by(MoMoK_Nr, Lage, pk_maxdist..cm.) %>% dplyr::mutate(LfdNr = dplyr::row_number() ) %>% 
   # join in correct RG sampling circuit number from bej
   left_join(., bej_momok %>% select(bund_nr, pk_nr, pk_richtung, pk_maxdist), by = c(c("MoMoK_Nr" = "bund_nr"), c("Lage" = "pk_richtung"), c("pk_maxdist..cm."  = "pk_maxdist" ))) %>% 
   # change Nr_VJ_PK to numbers from pk_nr column from bej_momok: 
@@ -692,7 +692,7 @@ be_totholz_punkt_momok <- rbind(
   mutate(status = ifelse(is.na(status), 1, status), # if the status wasnt set to 2 by the missing plot stuff, we assume everything went fine and its stat = 1 
          pk_dist = -9, 
          pk_azi = -9) %>% 
-  rename("bund_nr" = "MoMoK_Nr") %>% 
+  dplyr::rename("bund_nr" = "MoMoK_Nr") %>% 
   distinct()
 
 # export
@@ -722,9 +722,9 @@ be_totholz_liste_momok <- DW_momok %>%
   mutate(anzahl = -9) %>%  
   distinct() %>% 
   group_by(MoMoK_Nr) %>% 
-  mutate(Nr = row_number())
+  dplyr::mutate(Nr = dplyr::row_number())
 
-# rename
+# dplyr::rename
 colnames(be_totholz_liste_momok) <- c("bund_nr","lfd_nr","typ" ,"baumgruppe" ,"durchmesser" ,"laenge" ,"zersetzung",  "anzahl")
 # export
 write.csv(be_totholz_liste_momok, paste0(input.path, "momok_be_totholz_liste.csv"), row.names = FALSE)
@@ -747,10 +747,10 @@ ld_momok <- plyr::rbind.fill(
   # regeneration data with double plots
 RG_momok %>% select(MoMoK_Nr, Bundeland) %>% distinct(), 
 # deadwood data with double plots
-DW_momok%>% select(MoMoK_Nr, Bundesland) %>% distinct() %>% rename("Bundeland" = "Bundesland")
+DW_momok%>% select(MoMoK_Nr, Bundesland) %>% distinct() %>% dplyr::rename("Bundeland" = "Bundesland")
 ) %>% distinct() %>% mutate(inv = "momok") %>% 
-  rename("plot_ID" = "MoMoK_Nr") %>% 
-  rename("ld" = "Bundeland") %>% 
+  dplyr::rename("plot_ID" = "MoMoK_Nr") %>% 
+  dplyr::rename("ld" = "Bundeland") %>% 
   # nor we are goint to correct the ld codes that do not correcpond with the BZE code tables
   mutate(ld = case_when(ld == "NS" ~ "NI", 
                         ld == "NRW"~ "NW", 
