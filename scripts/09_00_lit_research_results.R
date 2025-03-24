@@ -16,7 +16,7 @@ out.path <- ("/output/out_data/")
 
 
 # ----- 0.3 data import --------------------------------------------------------
-bio_func_df <- read.delim(file = paste0(getwd(), "/data/input/", "B_lit_functions.csv"), sep = ",", dec = ".") %>% select(-c(func_ID, paper_ID))
+bio_func_df <- read.delim(file = paste0(getwd(), "/data/input/", "B_lit_functions.csv"), sep = ",", dec = ".") 
 
 
 
@@ -24,18 +24,20 @@ bio_func_df <- read.delim(file = paste0(getwd(), "/data/input/", "B_lit_function
 # assign IDs to papers and functions
 bio_func_df <- bio_func_df %>% 
   dplyr::distinct() %>% 
-  dplyr::group_by(title, author, year) %>% 
+  dplyr::group_by(title, author, year, TSL) %>% 
   dplyr::mutate(func_ID = dplyr::row_number()) %>% 
   left_join(., 
             bio_func_df %>% 
-              select(title, author, year) %>% 
+              select(title, author, year, TSL) %>% 
               distinct() %>% 
               dplyr::mutate(paper_ID = dplyr::row_number()), 
-            by = c("title", "author", "year")) 
+            by = c("title", "author", "year", "TSL")) 
 # transform coefficients to numeric
-bio_func_df[,13:27] <- lapply(bio_func_df[,13:27], as.numeric)
+bio_func_df[,13:28] <- lapply(bio_func_df[,13:28], as.numeric)
 # add a column that combines func id and paper id
 bio_func_df$ID <- paste0(bio_func_df$paper_ID,"_", bio_func_df$func_ID)
+# exclude those functions that require age as we don´t always have it
+bio_func_df <- bio_func_df[!(str_detect(bio_func_df$variables, "age")),]
 
 
 
@@ -50,7 +52,7 @@ bio_func_final <- subset(bio_func_df,
 # 1. results -----------------------------------------------------------------
 # 1.1. number of papers covered per genus -----------------------------------------------------------------
 # assign genus group: 
-bio_func_final[, genus_group :=(ifelse(species %like% "Betula", "Betula", 
+setDT(bio_func_final)[, genus_group := (ifelse(species %like% "Betula", "Betula", 
                                        ifelse(species %like% "Alnus", "Alnus", "other")))]
 # count paper by genus 
 unique(setDT(bio_func_final)[!is.na("variables")&

@@ -139,7 +139,94 @@ view(
 )
 
 
+
+# statistical comparisson -------------------------------------------------
+trees_sub <- trees_data[bot_name %in% c("Betula pubescens, Alnus glutinosa") , ]
+
+
+
+shapiro.test(trees_sub$H_m)
+
+
+
+
+
+
+
 # 2. visuals of comparisson -----------------------------------------------------------------
+# fit nls first so we can decide which function ggplot uses t fit the smooth
+# nls : DBH vs. sampled hight of all trees at all plots split by org vs. mineral soil
+trees_data_h_nls <- 
+  left_join(trees_data %>% filter(H_method == "sampled")
+            #%>% left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2")) %>% 
+            # mutate(min_org = ifelse(inv == "momok", "org", min_org)),
+            ,trees_data %>% filter(H_method == "sampled") %>%
+              # left_join(., soil_types_db %>% 
+              #             select(bfhnr_2 , min_org), 
+              #           by = c("plot_ID" = "bfhnr_2"))%>%
+              # mutate(min_org = ifelse(inv == "momok", "org", min_org)) %>% 
+              group_by(min_org, bot_name) %>%
+              nls_table( #H_m ~ b0 * (1 - exp( -b1 * DBH_cm))^b2, 
+                #mod_start = c(b0=23, b1=0.03, b2 =1.3), 
+                H_m ~ 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3,  # Petterson function
+                mod_start = c(b0=1, b1=1), 
+                output = "table", 
+                .groups = c("min_org", "bot_name")),
+            by = c("min_org", "bot_name")) %>% 
+  mutate(H_m_nls = 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3, 
+         H_method_nls = "nls")
+
+
+# height mod min soil
+model_min <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3, 
+                 data = trees_data %>% 
+                   #   left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
+                   filter(H_method == "sampled" #& compartiment == "ag" 
+                          & min_org == "min")  , 
+                 start = list(a = 1, b = 1))  # Initial guesses for a and b
+
+# Step 4: View the results
+summary(model_min)
+
+# height mod org soil
+model_org <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3, 
+                 data = trees_data %>%
+                   #left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>%
+                   filter(H_method == "sampled"
+                          # & compartiment == "ag" 
+                          & min_org == "org")  , 
+                 start = list(a = 1, b = 1))  # Initial guesses for a and b
+
+# Step 4: View the results
+summary(model_org)
+
+h_DBH_all_SP <- ggplot() +
+  geom_point(data = (trees_data %>%
+                       filter(H_method == "sampled" 
+                              #    & BWI_SP_group %in% c("aLh", "aLn")
+                              & bot_name %in% c("Betula pubescens", "Alnus glutinosa")
+                       ) %>% 
+                       #left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
+                       mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
+             aes(x = DBH_cm, y = H_m, color = min_org), alpha = 0.05)+
+  geom_smooth(data = trees_data_h_nls %>% 
+                filter(H_method == "sampled" 
+                       # & BWI_SP_group %in% c("aLh", "aLn")
+                       # & bot_genus %in% c("Betula", "Alnus")
+                       & bot_name %in% c("Betula pubescens", "Alnus glutinosa")
+                ),# %>%  
+              #  mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
+              aes(x = DBH_cm, y = H_m_nls, color = min_org))+ 
+  theme_bw()+ 
+  facet_wrap(~bot_name)+
+  xlab("DBH [cm]")+ 
+  ylab("height [m]")
+
+
+
+
+
+
 # dominant heights by dg per plot (only trees in stand A and canopy layer 1) separeted by botanical species 
 ggplot(data = LT_avg_SP_ST_P %>% 
          left_join(., SP_names_com_ID_tapeS %>% mutate(Chr_code_ger_lower = tolower(Chr_code_ger)) %>% select(Chr_code_ger_lower, bot_name, bot_genus, bot_species), by = c("SP_code" = "Chr_code_ger_lower")) %>% 
@@ -253,73 +340,54 @@ ggplot() +
               aes(x = DBH_cm, y = H_m, color = min_org))
 
 
-# nls : DBH vs. sampled hight of all trees at all plots split by org vs. mineral soil
-trees_data_h_nls <- 
-  left_join(trees_data %>% filter(H_method == "sampled")
-            #%>% left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2")) %>% 
-             # mutate(min_org = ifelse(inv == "momok", "org", min_org)),
-            ,trees_data %>% filter(H_method == "sampled") %>%
-              # left_join(., soil_types_db %>% 
-              #             select(bfhnr_2 , min_org), 
-              #           by = c("plot_ID" = "bfhnr_2"))%>%
-              # mutate(min_org = ifelse(inv == "momok", "org", min_org)) %>% 
-              group_by(min_org) %>%
-              nls_table( #H_m ~ b0 * (1 - exp( -b1 * DBH_cm))^b2, 
-                #mod_start = c(b0=23, b1=0.03, b2 =1.3), 
-                H_m ~ 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3,  # Petterson function
-                mod_start = c(b0=1, b1=1), 
-                output = "table", 
-                .groups = "min_org"),
-            by = c( "min_org")) %>% 
-  mutate(H_m_nls = 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3, 
-         H_method_nls = "nls")
 
-
-# height mod min soil
-model_min <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3, 
-                 data = trees_data %>% 
-                #   left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
-                   filter(H_method == "sampled" #& compartiment == "ag" 
-                          & min_org == "min")  , 
-                 start = list(a = 1, b = 1))  # Initial guesses for a and b
-
-# Step 4: View the results
-summary(model_min)
-
-# height mod org soil
-model_org <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3, 
-                 data = trees_data %>%
-                   #left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>%
-                   filter(H_method == "sampled"
-                          # & compartiment == "ag" 
-                          & min_org == "org")  , 
-                 start = list(a = 1, b = 1))  # Initial guesses for a and b
-
-# Step 4: View the results
-summary(model_org)
-
-h_DBH_all_SP <- ggplot() +
-  geom_point(data = (trees_data %>%
-                       filter(H_method == "sampled" 
-                            #    & BWI_SP_group %in% c("aLh", "aLn")
-                            & bot_name %in% c("Betula pubescens", "Alnus glutinosa")
-                       ) %>% 
-                       #left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
-                       mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
-             aes(x = DBH_cm, y = H_m, color = min_org), alpha = 0.08)+
-  geom_smooth(data = trees_data_h_nls %>% 
-                filter(H_method == "sampled" 
-                        # & BWI_SP_group %in% c("aLh", "aLn")
-                      # & bot_genus %in% c("Betula", "Alnus")
-                      & bot_name %in% c("Betula pubescens", "Alnus glutinosa")
-                ),# %>%  
-              #  mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
-              aes(x = DBH_cm, y = H_m_nls, color = min_org))+ 
-  theme_bw()+ 
-  facet_wrap(~bot_name)
 
 HD_box <- ggplot()+ 
-  geom_boxplot(data = setDT(trees_data)[(H_method == "sampled" & , ':=' (HD = H_m/ DBH_cm)])
+  geom_boxplot(data = setDT(trees_data)[H_method == "sampled" , ':=' (HD = H_m/ DBH_cm)])
+
+
+
+
+# base r line plo ---------------------------------------------------------
+
+# Split data for faceting
+trees_filtered <- subset(trees_data, H_method == "sampled" & bot_name %in% c("Betula pubescens", "Alnus glutinosa"))
+trees_nls_filtered <- subset(trees_data_h_nls, H_method == "sampled" & bot_name %in% c("Betula pubescens", "Alnus glutinosa"))
+
+# Get unique species
+species_list <- unique(trees_filtered$bot_name)
+
+# Set up faceted plotting
+par(mfrow = c(1, length(species_list))) # Adjust panel layout (1 row, multiple columns)
+
+# Define colors for min_org categories
+colors <- c("org" = "red", "other" = "blue")  # Adjust "other" if there are more categories
+
+for (species in species_list) {
+  i = 1
+  # Filter data for current species
+  sub_data <- subset(trees_filtered, bot_name == species)
+  sub_nls_data <- subset(trees_nls_filtered, bot_name == species)
+  
+  # Plot scatter points
+plot(sub_data$DBH_cm, sub_data$H_m, col = adjustcolor(colors[sub_data$min_org], alpha.f = 0.05),
+       pch = 16, xlab = "DBH [cm]", ylab = "height [m]", main = species)
+  
+  # Add smoothed line (if applicable)
+  if (nrow(sub_nls_data) > 0) {
+    lines(sub_nls_data$DBH_cm, sub_nls_data$H_m_nls, col = "black", lwd = 2)
+  }
+}
+
+# Reset par settings
+par(mfrow = c(1, 1))
+
+
+
+
+
+
+
 
 
 tikz(here("output/out_graphs/h_DBH_all_SP.jpg"),
