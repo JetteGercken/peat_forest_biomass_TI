@@ -179,7 +179,7 @@ try( # "try" statement needed so the run_NDI script can run, since the coercion 
                             select(bot_genus, bark_type) %>% 
                             group_by(bot_genus) %>% 
                             # count rows per species
-                            summarise(n_bark = n()) %>% 
+                            dplyr::summarise(n_bark = dplyr::n()) %>% 
                             # filter for bot_geni that have more then one representative in the Storch table 
                             filter(n_bark > 1),
                           # finish the semi join 
@@ -259,7 +259,7 @@ fruit_div <-
            select(bot_genus, fruit_type) %>% 
            group_by(bot_genus) %>% 
            # count rows per genus --> are there mutliple species of one genus? 
-           summarise(n_fruits = n()) %>% 
+           dplyr::summarise(n_fruits = dplyr::n()) %>% 
            # filter for bot_geni that have more then one representative in the Storch table 
            filter(n_fruits > 1), 
          by = "bot_genus") %>% ## close semi join 
