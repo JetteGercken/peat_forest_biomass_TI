@@ -465,7 +465,7 @@ forest_edges.man.sub.1.edge.nogeo <- forest_edges.man %>% # rows:84
   filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>%  # rows:81
   # remove plots that have two edges
   anti_join(forest_edges.man %>%  filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
+              group_by(plot_ID) %>% dplyr::summarise(n = dplyr::n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
   anti_join(., forest_edges.man %>% filter(e_type %in% c(1, 2)) %>% select(plot_ID) %>% distinct(), by = "plot_ID")#  %>% # 14 plots with 2 edges --> 28 rows -> 53 left
 ## remove plots that do now have a corresponding center coordiante in the HBI loc document
 # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID") # nrow = 52 --> there is 1 plots without corresponding
@@ -619,7 +619,7 @@ for (i in 1:length(unique(forest_edges.man.sub.1.edge.nogeo$plot_ID))){
     group_by(plot_ID) %>% 
     arrange(area_m2) %>% 
     # lowest area receives stand ID C, then B, then A
-    mutate(stand = case_when(
+    dplyr::mutate(stand = dplyr::case_when(
       row_number()== 1 ~ "B",
       row_number()== 2 ~ "A",
       TRUE ~ NA)) %>% 
@@ -680,7 +680,7 @@ forest_edges.man.sub.1.outer.edge.nogeo <- forest_edges.man %>% # rows:84
   filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>%  # rows:81
   # remove plots that have two edges
   anti_join(forest_edges.man %>%  filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID")  %>% # 14 plots with 2 edges --> 28 rows -> 53 left
+              group_by(plot_ID) %>% dplyr::summarise(n = dplyr::n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID")  %>% # 14 plots with 2 edges --> 28 rows -> 53 left
   filter(e_type %in% c(1, 2))
 ## remove plots that do now have a corresponding center coordiante in the HBI loc document
 # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID") # nrow = 52 --> there is 1 plots without corresponding
@@ -893,7 +893,7 @@ for (i in 1:length(unique(forest_edges.man.sub.1.outer.edge.nogeo$plot_ID))){
   
   
   inter.area.df <- inter.area.df%>%
-    mutate(stand = case_when(
+    dplyr::mutate(stand = dplyr::case_when(
       e_ID > 0  ~ my.poly$stand, # e_ID == 1 or 2 is the edge plygone, this will apply for all circles
       e_ID == 0 ~ remaining.circle.poly.17$stand, # e_ID == 0 represents the remaoning cricle
       TRUE ~ NA)) %>% 
@@ -980,7 +980,7 @@ forest_edges.man.sub.2.edges.nogeo <- forest_edges.man %>% # rows:84
   semi_join(forest_edges.man %>% filter(e_form == 1 | 
                                           e_form == 2 & inter_status_AT_17 == "two I" | 
                                           e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
+              group_by(plot_ID) %>% dplyr::summarise(n = dplyr::n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
   anti_join(., forest_edges.man %>% filter(e_type %in% c(1, 2)) %>% select(plot_ID) %>% distinct(), by = "plot_ID") %>% 
   arrange(plot_ID, e_ID)# %>% # 14 plots iwth 2 edges --> 28 rows
 # remove plots that do now have a corresponding center coordiante in the HBI loc document
@@ -1231,7 +1231,7 @@ for (i in 1:length(unique(forest_edges.man.sub.2.edges.nogeo$plot_ID))){
     group_by(plot_ID, inv_year) %>% 
     arrange(area_m2) %>% 
     # lowest area receives stand ID C, then B, then A
-    mutate(stand = case_when(
+    dplyr::mutate(stand = dplyr::case_when(
       row_number()== 1 ~ "C",
       row_number()== 2 ~ "B",
       row_number()== 3 ~ "A",
@@ -1327,7 +1327,7 @@ forest_edges.man.sub.2.outer.edges.nogeo <-
   semi_join(forest_edges.man %>% filter(e_form == 1 | 
                                           e_form == 2 & inter_status_AT_17 == "two I" | 
                                           e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
+              group_by(plot_ID) %>% dplyr::summarise(n = dplyr::n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
   # select those plots among the plots htat have two edges of which at least one intersects the circle which 
   # have at least one edge_type of 1 or 2
   semi_join(., forest_edges.man %>% filter(e_type %in% c(1, 2)) %>% select(plot_ID), by = "plot_ID") %>% 
@@ -1680,11 +1680,11 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
   if(isTRUE(nrow(st_intersection(inter.poly.17.2, tree.sf))!=0 & my.poly.2$e_type %in% c(1,2))){inter.17.2.tree.stat <- "trees but outer edge"}else{inter.17.2.tree.stat <- NA}
   if(isTRUE(nrow(st_intersection(inter.poly.17.1, tree.sf))==0 & nrow(st_intersection(inter.poly.17.1, circle.pt))==0 & my.poly.1$e_type %in% c(1,2))){inter.17.1.forest.stat <- "no forest"}else{inter.17.1.forest.stat <- NA}
   if(isTRUE(nrow(st_intersection(inter.poly.17.2, tree.sf))==0 & nrow(st_intersection(inter.poly.17.2, circle.pt))==0 & my.poly.2$e_type %in% c(1,2))){inter.17.2.forest.stat <- "no forest"}else{inter.17.2.forest.stat <- NA}
-  my.poly.1$stand <- case_when(inter.17.1.tree.stat ==  "trees but outer edge"  ~ "warning_1",
+  my.poly.1$stand <- dplyr::case_when(inter.17.1.tree.stat ==  "trees but outer edge"  ~ "warning_1",
                                inter.17.1.forest.stat == "no forest"~ "no forest", 
                                TRUE ~ NA)
   
-  my.poly.2$stand <- case_when(inter.17.2.tree.stat ==  "trees but outer edge" ~ "warning_2",
+  my.poly.2$stand <- dplyr::case_when(inter.17.2.tree.stat ==  "trees but outer edge" ~ "warning_2",
                                inter.17.2.forest.stat == "no forest"~ "no forest", 
                                TRUE ~ NA)
   
@@ -1830,7 +1830,7 @@ trees.one.edge.nogeo <- trees_data %>%
               select(plot_ID) %>% distinct(), by = "plot_ID") %>% 
   # filter for trees located in plots htat haev only one forest edge
   anti_join(forest_edges.man %>% filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") #%>% 
+              group_by(plot_ID) %>% dplyr::summarise(n = dplyr::n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") #%>% 
 # anti_join(., forest_edges.man %>% filter(e_type %in% c(1, 2)) %>% select(plot_ID), by = "plot_ID") #%>% 
 ## remove plots that do now have a corresponding center coordiante in the HBI loc document
 # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID")
@@ -1940,7 +1940,7 @@ trees.two.edges.nogeo <- trees_data %>%
               select(plot_ID) %>% distinct(), by = "plot_ID") %>% 
   # filter for trees located in plots htat haev only one forest edge
   semi_join(forest_edges.man %>% filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") #%>% 
+              group_by(plot_ID) %>% dplyr::summarise(n = dplyr::n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") #%>% 
 ## remove plots that do now have a corresponding center coordiante in the HBI loc document
 # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID")
 
