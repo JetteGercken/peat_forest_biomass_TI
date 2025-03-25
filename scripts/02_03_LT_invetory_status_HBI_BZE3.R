@@ -36,7 +36,7 @@ data_circle <- data.frame(x0 = c(0,0,0),       # x of centre point of all 3 circ
 
 # complete pre inventory dataset
 HBI_trees <- HBI_trees %>% 
-  rename(old_tree_inventory_status = tree_inventory_status) %>% 
+  dplyr::rename(old_tree_inventory_status = tree_inventory_status) %>% 
   # these two columns are meant to prepare for the comming data sorting
   mutate(old_tree_ID = tree_ID, 
          tree_inventory_status = old_tree_inventory_status) 
@@ -709,11 +709,14 @@ BZE3_trees_removed <- if(exists('tree_type_status_6')) {plyr::rbind.fill(
 
 # HBI Update
 HBI_trees_update_02 <- HBI_trees %>% filter(tree_inventory_status %in% c(0, 1, -9, -1))
-HBI_trees_removed <- plyr::rbind.fill(HBI_trees_removed, 
+# if there are trees to exclude, add them to the excluded tree dataset: 
+if(isTRUE(
+  nrow(HBI_trees %>% filter(!(tree_inventory_status %in% c(0, 1, -9, -1)))) >0) == T){HBI_trees_removed <-  plyr::rbind.fill(HBI_trees_removed, 
                                       HBI_trees %>% 
                                         filter(!(tree_inventory_status %in% c(0, 1, -9, -1))) %>% 
                                         mutate(rem_reason = "LT excluded during tree inventory status sorting (Baumkennzahl)")
-                                      )
+)}else{
+  HBI_trees_removed <- HBI_trees_removed}
 
 # export data -------------------------------------------------------------
 write.csv(HBI_trees_update_02, paste0(out.path, paste(unique(HBI_trees_update_02$inv)[1], "LT", "update", "2", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")

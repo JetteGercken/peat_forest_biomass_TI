@@ -469,18 +469,46 @@ forest_edges_update_1 <- forest_edges %>%
   filter(inv != "warning")
 
 #  2.2.2. collect removed forest endges in one df ---------------------------------------------------------------------------------------
-forest_edges_removed <-  
-  plyr::rbind.fill(
-    forest_edges %>% 
+# forest edges with inv status == warning 
+if(isTRUE(nrow(forest_edges %>% 
+               # make sure we don´t pull in edges that already were removed because the whole plot was removed
+               anti_join(., plots_to_exclude,  by = "plot_ID") %>% 
+               # remove those forest edges with a problematic inventory: 
+               filter(inv == "warning") )>0)==T){
+  forest_edges_warning <- forest_edges %>% 
+  # make sure we don´t pull in edges that already were removed because the whole plot was removed
+  anti_join(., plots_to_exclude,  by = "plot_ID") %>% 
+  # remove those forest edges with a problematic inventory: 
+  filter(inv == "warning") %>% 
+  mutate(rem_reason = "all LT circles excluded during inventory status sorting")}else{
+    
+    forest_edges_warning <- forest_edges %>% 
       # make sure we don´t pull in edges that already were removed because the whole plot was removed
       anti_join(., plots_to_exclude,  by = "plot_ID") %>% 
       # remove those forest edges with a problematic inventory: 
-      filter(inv == "warning") %>% 
-      mutate(rem_reason = "all LT circles excluded during inventory status sorting"), 
-    forest_edges %>% 
+      filter(inv == "warning") 
+  }
+
+
+# forest edges where the whole plot was removed from HBI/BZE 
+if(isTRUE(nrow(forest_edges %>% 
+               # here we filter those plots from the edges dataset that are not analysed for the HBI/ BZE3
+               semi_join(., plots_to_exclude,  by = "plot_ID")) >0 ) == T){
+  forest_edges_rem_plot <- forest_edges %>% 
+  # here we filter those plots from the edges dataset that are not analysed for the HBI/ BZE3
+  semi_join(., plots_to_exclude,  by = "plot_ID") %>% 
+  mutate(rem_reason = "whole plot excluded during inventory status sorting")}else{
+    forest_edges_rem_plot <- forest_edges %>% 
       # here we filter those plots from the edges dataset that are not analysed for the HBI/ BZE3
-      semi_join(., plots_to_exclude,  by = "plot_ID") %>% 
-      mutate(rem_reason = "whole plot excluded during inventory status sorting")
+      semi_join(., plots_to_exclude,  by = "plot_ID")
+  }
+
+# bin all removed edges together 
+forest_edges_removed <-  
+  plyr::rbind.fill(
+    ## forest edges with inv == warning
+    forest_edges_warning, 
+    forest_edges_rem_plot
   ) %>% 
   distinct()
 
