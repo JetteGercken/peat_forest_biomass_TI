@@ -191,8 +191,8 @@ forest_edges.man.sub.e1.nogeo <-  forest_edges.man%>% filter(e_form == 1) # %>%
 triangle.e1.list.nogeo <- vector("list", length = length(forest_edges.man.sub.e1.nogeo$plot_ID))
 triangle.e1.coords.nogeo <- vector("list", length = length(forest_edges.man.sub.e1.nogeo$plot_ID)*4)
 for(i in 1:length(forest_edges.man.sub.e1.nogeo$plot_ID) ) {
-  # i = 1
-  # i = which(grepl(50086, forest_edges.man.sub.e1.nogeo$plot_ID))
+  # i = 2
+  # i = which(grepl(50121, forest_edges.man.sub.e1.nogeo$plot_ID))
   
   #if(nrow(forest_edges.man.sub.e1.nogeo) == 0){break}
   
@@ -217,13 +217,13 @@ for(i in 1:length(forest_edges.man.sub.e1.nogeo$plot_ID) ) {
   # point A 
   dist.A <-  forest_edges.man.sub.e1.nogeo[i, "A_dist"] 
   azi.A <- forest_edges.man.sub.e1.nogeo[i, "A_azi"] 
-  x.A <- round(dist.A*sin(azi.A*pi/200), digits = 12)       # this is: easting, longitude, RW ##test*pi/200
-  y.A <- round(dist.A*cos(azi.A*pi/200), digits = 12)       # this is: northing, latitude, HW ##test*pi/200
+  x.A <- round(dist.A*sin(azi.A*(pi/200)), digits = 12)       # this is: easting, longitude, RW ##test*pi/200
+  y.A <- round(dist.A*cos(azi.A*(pi/200)), digits = 12)       # this is: northing, latitude, HW ##test*pi/200
   # point B
   dist.B <- forest_edges.man.sub.e1.nogeo[i, "B_dist"] 
   azi.B <- forest_edges.man.sub.e1.nogeo[i, "B_azi"] 
-  x.B <-  round(dist.B*sin(azi.B*pi/200), digits = 12)      # this is: easting, longitude, RW #test*pi/200
-  y.B <-  round(dist.B*cos(azi.B*pi/200), digits = 12)      # this is: northing, latitude, HW #test*pi/200
+  x.B <-  round(dist.B*sin(azi.B*(pi/200)), digits = 12)      # this is: easting, longitude, RW #test*pi/200
+  y.B <-  round(dist.B*cos(azi.B*(pi/200)), digits = 12)      # this is: northing, latitude, HW #test*pi/200
   
   # calcualte slope (b1) and intercept (b0)
   b1 <- (y.B- y.A)/(x.B - x.A)
@@ -302,15 +302,15 @@ for(i in 1:length(forest_edges.man.sub.e1.nogeo$plot_ID) ) {
   c.poly.5 <- sf::st_buffer(c.pt, 5.64)
   c.poly.60 <-  sf::st_buffer(c.pt, 60.0)
   # test 
-  # print(ggplot() +
-  #         ggtitle(my.plot.id)+
-  #         geom_sf(data = c.poly.60, aes(alpha = 0))+
-  #         geom_sf(data = c.poly.17, aes(alpha = 0))+
-  #         geom_sf(data = c.poly.12, aes(alpha = 0))+
-  #         geom_sf(data = c.poly.5, aes(alpha = 0))+
-  #         geom_sf(data = triangle.e1.poly, aes(alpha = 0))+
-  #         xlim(-80, 80)+
-  #         ylim(-80, 80))
+  print(ggplot() +
+          ggtitle(my.plot.id)+
+          geom_sf(data = c.poly.60, aes(alpha = 0))+
+          geom_sf(data = c.poly.17, aes(alpha = 0))+
+          geom_sf(data = c.poly.12, aes(alpha = 0))+
+          geom_sf(data = c.poly.5, aes(alpha = 0))+
+          geom_sf(data = triangle.e1.poly, aes(alpha = 0))+
+          xlim(-80, 80)+
+          ylim(-80, 80))
   
   #save polygones in list 
   triangle.e1.list.nogeo[[i]] <- c("plot_ID" = my.plot.id, "inv_year" = my.inv.year, "e_form" = my.e.form, triangle.e1.poly)
@@ -318,13 +318,9 @@ for(i in 1:length(forest_edges.man.sub.e1.nogeo$plot_ID) ) {
   # save coordiantes of polygones in list
   triangle.e1.coords.nogeo[[i]] <- triangle.e1.df %>% mutate(e_form = my.e.form)
   
-  print(i)
-  
 } # closing loop for square polys of edge form 1
 triangle.e1.poly.df.nogeo <- as.data.frame(rbindlist(triangle.e1.list.nogeo, fill=TRUE)) 
 triangle.e1.coords.df.nogeo <- as.data.frame(rbindlist(triangle.e1.coords.nogeo))
-
-
 
 
 # 3.2.1.2. nogeo creating list of triangle polygons for edge form 2 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -465,7 +461,7 @@ forest_edges.man.sub.1.edge.nogeo <- forest_edges.man %>% # rows:84
   filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>%  # rows:81
   # remove plots that have two edges
   anti_join(forest_edges.man %>%  filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% dplyr::summarise(n = dplyr::n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
+              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
   anti_join(., forest_edges.man %>% filter(e_type %in% c(1, 2)) %>% select(plot_ID) %>% distinct(), by = "plot_ID")#  %>% # 14 plots with 2 edges --> 28 rows -> 53 left
 ## remove plots that do now have a corresponding center coordiante in the HBI loc document
 # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID") # nrow = 52 --> there is 1 plots without corresponding
@@ -619,7 +615,7 @@ for (i in 1:length(unique(forest_edges.man.sub.1.edge.nogeo$plot_ID))){
     group_by(plot_ID) %>% 
     arrange(area_m2) %>% 
     # lowest area receives stand ID C, then B, then A
-    dplyr::mutate(stand = dplyr::case_when(
+    mutate(stand = case_when(
       row_number()== 1 ~ "B",
       row_number()== 2 ~ "A",
       TRUE ~ NA)) %>% 
@@ -680,7 +676,7 @@ forest_edges.man.sub.1.outer.edge.nogeo <- forest_edges.man %>% # rows:84
   filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>%  # rows:81
   # remove plots that have two edges
   anti_join(forest_edges.man %>%  filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% dplyr::summarise(n = dplyr::n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID")  %>% # 14 plots with 2 edges --> 28 rows -> 53 left
+              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID")  %>% # 14 plots with 2 edges --> 28 rows -> 53 left
   filter(e_type %in% c(1, 2))
 ## remove plots that do now have a corresponding center coordiante in the HBI loc document
 # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID") # nrow = 52 --> there is 1 plots without corresponding
@@ -893,7 +889,7 @@ for (i in 1:length(unique(forest_edges.man.sub.1.outer.edge.nogeo$plot_ID))){
   
   
   inter.area.df <- inter.area.df%>%
-    dplyr::mutate(stand = dplyr::case_when(
+    mutate(stand = case_when(
       e_ID > 0  ~ my.poly$stand, # e_ID == 1 or 2 is the edge plygone, this will apply for all circles
       e_ID == 0 ~ remaining.circle.poly.17$stand, # e_ID == 0 represents the remaoning cricle
       TRUE ~ NA)) %>% 
@@ -966,7 +962,6 @@ outer.rem.circle.one.edge.df.nogeo <- plyr::rbind.fill(outer.rem.circle.poly.df.
 
 
 
-
 # 3.2.1.3.1. loop for intersections for plots with two edges ----------------------------------------------------------------------------------------------------------------------------
 # dataprep for loop
 # createa dataframe with plots that have only one forest edges
@@ -980,7 +975,7 @@ forest_edges.man.sub.2.edges.nogeo <- forest_edges.man %>% # rows:84
   semi_join(forest_edges.man %>% filter(e_form == 1 | 
                                           e_form == 2 & inter_status_AT_17 == "two I" | 
                                           e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% dplyr::summarise(n = dplyr::n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
+              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
   anti_join(., forest_edges.man %>% filter(e_type %in% c(1, 2)) %>% select(plot_ID) %>% distinct(), by = "plot_ID") %>% 
   arrange(plot_ID, e_ID)# %>% # 14 plots iwth 2 edges --> 28 rows
 # remove plots that do now have a corresponding center coordiante in the HBI loc document
@@ -1231,7 +1226,7 @@ for (i in 1:length(unique(forest_edges.man.sub.2.edges.nogeo$plot_ID))){
     group_by(plot_ID, inv_year) %>% 
     arrange(area_m2) %>% 
     # lowest area receives stand ID C, then B, then A
-    dplyr::mutate(stand = dplyr::case_when(
+    mutate(stand = case_when(
       row_number()== 1 ~ "C",
       row_number()== 2 ~ "B",
       row_number()== 3 ~ "A",
@@ -1327,7 +1322,7 @@ forest_edges.man.sub.2.outer.edges.nogeo <-
   semi_join(forest_edges.man %>% filter(e_form == 1 | 
                                           e_form == 2 & inter_status_AT_17 == "two I" | 
                                           e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% dplyr::summarise(n = dplyr::n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
+              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") %>% 
   # select those plots among the plots htat have two edges of which at least one intersects the circle which 
   # have at least one edge_type of 1 or 2
   semi_join(., forest_edges.man %>% filter(e_type %in% c(1, 2)) %>% select(plot_ID), by = "plot_ID") %>% 
@@ -1680,11 +1675,11 @@ for (i in 1:length(unique(forest_edges.man.sub.2.outer.edges.nogeo$plot_ID))){
   if(isTRUE(nrow(st_intersection(inter.poly.17.2, tree.sf))!=0 & my.poly.2$e_type %in% c(1,2))){inter.17.2.tree.stat <- "trees but outer edge"}else{inter.17.2.tree.stat <- NA}
   if(isTRUE(nrow(st_intersection(inter.poly.17.1, tree.sf))==0 & nrow(st_intersection(inter.poly.17.1, circle.pt))==0 & my.poly.1$e_type %in% c(1,2))){inter.17.1.forest.stat <- "no forest"}else{inter.17.1.forest.stat <- NA}
   if(isTRUE(nrow(st_intersection(inter.poly.17.2, tree.sf))==0 & nrow(st_intersection(inter.poly.17.2, circle.pt))==0 & my.poly.2$e_type %in% c(1,2))){inter.17.2.forest.stat <- "no forest"}else{inter.17.2.forest.stat <- NA}
-  my.poly.1$stand <- dplyr::case_when(inter.17.1.tree.stat ==  "trees but outer edge"  ~ "warning_1",
+  my.poly.1$stand <- case_when(inter.17.1.tree.stat ==  "trees but outer edge"  ~ "warning_1",
                                inter.17.1.forest.stat == "no forest"~ "no forest", 
                                TRUE ~ NA)
   
-  my.poly.2$stand <- dplyr::case_when(inter.17.2.tree.stat ==  "trees but outer edge" ~ "warning_2",
+  my.poly.2$stand <- case_when(inter.17.2.tree.stat ==  "trees but outer edge" ~ "warning_2",
                                inter.17.2.forest.stat == "no forest"~ "no forest", 
                                TRUE ~ NA)
   
@@ -1830,7 +1825,7 @@ trees.one.edge.nogeo <- trees_data %>%
               select(plot_ID) %>% distinct(), by = "plot_ID") %>% 
   # filter for trees located in plots htat haev only one forest edge
   anti_join(forest_edges.man %>% filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% dplyr::summarise(n = dplyr::n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") #%>% 
+              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") #%>% 
 # anti_join(., forest_edges.man %>% filter(e_type %in% c(1, 2)) %>% select(plot_ID), by = "plot_ID") #%>% 
 ## remove plots that do now have a corresponding center coordiante in the HBI loc document
 # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID")
@@ -1940,7 +1935,7 @@ trees.two.edges.nogeo <- trees_data %>%
               select(plot_ID) %>% distinct(), by = "plot_ID") %>% 
   # filter for trees located in plots htat haev only one forest edge
   semi_join(forest_edges.man %>% filter(e_form == 1 | e_form == 2 & inter_status_AT_17 == "two I" | e_form == 2 & inter_status_BT_17 == "two I") %>% 
-              group_by(plot_ID) %>% dplyr::summarise(n = dplyr::n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") #%>% 
+              group_by(plot_ID) %>% summarise(n = n()) %>% filter(n > 1) %>% select(plot_ID), by = "plot_ID") #%>% 
 ## remove plots that do now have a corresponding center coordiante in the HBI loc document
 # semi_join(geo_loc %>% filter(!is.na( RW_MED) & !is.na(HW_MED)) %>%  select(plot_ID)  %>% distinct(), by = "plot_ID")
 
@@ -2259,31 +2254,31 @@ all.triangle.coords.df.nogeo <- plyr::rbind.fill(triangle.e1.coords.df.nogeo, tr
 
 # 3.3.2. exporting data ---------------------------------------------------
 # exporting tree and edge/ plot area data
-write.csv(trees_update_1, paste0(out.path, paste(unique(trees_update_1$inv)[1], "LT_update_1", sep = "_"), ".csv"), row.names = FALSE)
-if(nrow(trees_removed)!=0){write.csv(trees_removed, paste0(out.path, paste(unique(trees_update_1$inv)[1], "LT_removed", sep = "_"), ".csv"), row.names = FALSE)}
+write.csv(trees_update_1, paste0(out.path.BZE3, paste(unique(trees_update_1$inv)[1], "LT_update_1", sep = "_"), ".csv"), row.names = FALSE)
+if(nrow(trees_removed)!=0){write.csv(trees_removed, paste0(out.path.BZE3, paste(unique(trees_update_1$inv)[1], "LT_removed", sep = "_"), ".csv"), row.names = FALSE)}
 
 # export tree stand status of all trees nomatter if they have one, two or no forest edges at their plot
-write.csv(all.trees.status.df, paste0(out.path, paste(unique(trees_update_1$inv)[1], "all_LT_stand", sep = "_"), ".csv"), row.names = FALSE)
+write.csv(all.trees.status.df, paste0(out.path.BZE3, paste(unique(trees_update_1$inv)[1], "all_LT_stand", sep = "_"), ".csv"), row.names = FALSE)
 # export areas and stand info of all sampling circuits, edges and remaining circles
-write.csv(all.edges.area.df.nogeo,  paste0(out.path, paste(unique(trees_update_1$inv)[1], "all_edges_rem_circles", sep = "_"), ".csv"), row.names = FALSE)
+write.csv(all.edges.area.df.nogeo,  paste0(out.path.BZE3, paste(unique(trees_update_1$inv)[1], "all_edges_rem_circles", sep = "_"), ".csv"), row.names = FALSE)
 
 # export list of plots where the both edge polygones intersect within the 17.84 radius
-write.csv(intersection.two.edges.warning.df.nogeo,  paste0(out.path, paste(unique(trees_update_1$inv)[1], "edges_intersecting_warning", sep = "_"), ".csv"), row.names = FALSE)
+write.csv(intersection.two.edges.warning.df.nogeo,  paste0(out.path.BZE3, paste(unique(trees_update_1$inv)[1], "edges_intersecting_warning", sep = "_"), ".csv"), row.names = FALSE)
 
 # exporting edge triangle polygones
-write.csv(all.triangle.polys.df.nogeo, paste0(out.path, paste(unique(trees_update_1$inv)[1], "all_edges_triangle_poly", sep = "_"), ".csv"), row.names = FALSE)
+write.csv(all.triangle.polys.df.nogeo, paste0(out.path.BZE3, paste(unique(trees_update_1$inv)[1], "all_edges_triangle_poly", sep = "_"), ".csv"), row.names = FALSE)
 # exporting edge triangle coordiantes
-write.csv(all.triangle.coords.df.nogeo, paste0(out.path, paste(unique(trees_update_1$inv)[1], "all_edges_triangle_coords", sep = "_"), ".csv"), row.names = FALSE)
+write.csv(all.triangle.coords.df.nogeo, paste0(out.path.BZE3, paste(unique(trees_update_1$inv)[1], "all_edges_triangle_coords", sep = "_"), ".csv"), row.names = FALSE)
 
 
 # exporting edge intersection polygones 
-#write.csv2(all.edge.intersections.poly, paste0(out.path, paste(unique(trees_update_1$inv)[1], "all_edges_intersection_poly", sep = "_"), ".csv"))
+#write.csv2(all.edge.intersections.poly, paste0(out.path.BZE3, paste(unique(trees_update_1$inv)[1], "all_edges_intersection_poly", sep = "_"), ".csv"))
 # to export the dataframes with long geometries and keep the geometries in list format for better processing later 
 # thus we export them with the following function, that enables to save the whole geometry list in 1 Table
 # https://stackoverflow.com/questions/48024266/save-a-data-frame-with-list-columns-as-csv-file
-tibble_with_lists_to_csv(all.edge.intersections.poly %>% nest("geometry" = geometry), paste0(out.path, paste(unique(trees_update_1$inv)[1], "all_edges_intersection_poly", sep = "_"), ".csv"))
+tibble_with_lists_to_csv(all.edge.intersections.poly %>% nest("geometry" = geometry), paste0(out.path.BZE3, paste(unique(trees_update_1$inv)[1], "all_edges_intersection_poly", sep = "_"), ".csv"))
 # exporting all remaining circles polygones
-tibble_with_lists_to_csv(all.remaning.circles.poly %>% nest("geometry" = geometry), paste0(out.path, paste(unique(trees_update_1$inv)[1], "all_edges_rem_circles_poly", sep = "_"), ".csv"))
+tibble_with_lists_to_csv(all.remaning.circles.poly %>% nest("geometry" = geometry), paste0(out.path.BZE3, paste(unique(trees_update_1$inv)[1], "all_edges_rem_circles_poly", sep = "_"), ".csv"))
 
 
 ## export coordiantes of all edge-triangle-circle-intersections polygones  to  dataframes 
@@ -2305,7 +2300,7 @@ all.edge.intersections.coords.df <- as.data.frame(all.edge.intersections.coords.
   # join in the stand info by plot_ID, e_ID, CCS_r_M
   left_join(., all.edges.area.df.nogeo %>% select(plot_ID, e_ID, CCS_r_m, stand), 
             by = c("plot_ID", "e_ID", "CCS_r_m"))
-write.csv(all.edge.intersections.coords.df,  paste0(out.path, paste(unique(trees_update_1$inv)[1], "all_edges_intersection_coords", sep = "_"), ".csv"), row.names = FALSE)
+write.csv(all.edge.intersections.coords.df,  paste0(out.path.BZE3, paste(unique(trees_update_1$inv)[1], "all_edges_intersection_coords", sep = "_"), ".csv"), row.names = FALSE)
 
 
 
@@ -2328,7 +2323,17 @@ all.rem.circle.coords.df <- as.data.frame(all.rem.circle.coords.list.final) %>%
   # join in the stand info by plot_ID, e_ID, CCS_r_M
   left_join(., all.edges.area.df.nogeo %>% select(plot_ID, e_ID, CCS_r_m, stand), 
             by = c("plot_ID", "e_ID", "CCS_r_m"))
-write.csv(all.rem.circle.coords.df,  paste0(out.path, paste(unique(trees_update_1$inv)[1], "all_rem_circles_coords", sep = "_"), ".csv"), row.names = FALSE)
+write.csv(all.rem.circle.coords.df,  paste0(out.path.BZE3, paste(unique(trees_update_1$inv)[1], "all_rem_circles_coords", sep = "_"), ".csv"), row.names = FALSE)
+
+
+
+
+
+
+
+
+
+
 
 
 
