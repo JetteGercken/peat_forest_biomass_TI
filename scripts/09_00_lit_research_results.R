@@ -36,20 +36,50 @@ bio_func_df <- bio_func_df %>%
 bio_func_df[,13:28] <- lapply(bio_func_df[,13:28], as.numeric)
 # add a column that combines func id and paper id
 bio_func_df$ID <- paste0(bio_func_df$paper_ID,"_", bio_func_df$func_ID)
-# exclude those functions that require age as we don´t always have it
-bio_func_df <- bio_func_df[!(str_detect(bio_func_df$variables, "age")),]
+
+
+
+
+
+
+
+
+
+# 1. results -----------------------------------------------------------------
+
+# number of papers in general ---------------------------------------------
+# inital number
+nrow(unique(bio_func_df[!is.na(bio_func_df$variables), "paper_ID"])) # 29
+
+
+# count functions excluded because variabels are not available 
+nrow(unique(bio_func_df[!(bio_func_df$variables %in% c("DBH_cm, H_m", "DBH_cm")) & !is.na(bio_func_df$variables), "paper_ID"])) # 1
+
+
+# count functions unsuitable to calculate woody aboceground biomass
+nrow(unique(bio_func_df[!(bio_func_df$leafes_inkl %in% c("not included", "possible")) & !is.na(bio_func_df$variables), "paper_ID"])) # 6
 
 
 
 ## filter applied to functions before being applied: this is the dataset the analysis eventually ran with
-bio_func_final <- subset(bio_func_df, 
-       species %like% "Betula" | species %like% "Alnus" &     # select only Alnus specific species
-         !is.na("variables ") &                # select only those papers with functions
-         compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb")& # only the usual compartiments 
-         !(str_detect(bio_func_df$variables, "age"))   # only functions with DBH and height as explainatory variablse
-) 
+bio_func_sub <- setDT(bio_func_df)[
+    !is.na(bio_func_df$variables) &                # select only those papers with functions
+    bio_func_df$compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb")& # only the usual compartiments 
+      bio_func_df$leafes_inkl %in% c("not included", "possible") & # select only those suitable for aboveground wood y biomass
+    bio_func_df$variables %in% c("DBH_cm, H_m", "DBH_cm"),    # only functions with DBH and height as explainatory variablse
+]
+ 
+bio_func_final <- bio_func_sub[bio_func_sub$species %like% "Betula" | # select only betula specific functions or
+  bio_func_sub$ species %like% "Alnus" ,]     # select only Alnus specific species
 
-# 1. results -----------------------------------------------------------------
+
+
+# coun´t functions that did not only include DBH and H 
+length(unique(bio_func_final$paper_ID))  # 23
+
+
+
+
 # 1.1. number of papers covered per genus -----------------------------------------------------------------
 # assign genus group: 
 setDT(bio_func_final)[, genus_group := (ifelse(species %like% "Betula", "Betula", 
@@ -60,10 +90,10 @@ unique(setDT(bio_func_final)[!is.na("variables")&
                           c("title", "author", "year", "genus_group")])[,.N, by= list(genus_group)]
 
 # result
-#      genus_group     N
-#         <char>   <int>
-# 1:       Alnus    13
-# 2:      Betula    26
+#        genus_group     N
+#            <char> <int>
+#   1:      Betula    18
+#   2:       Alnus    14
 
 # 1.2. number of papers per species -----------------------------------------------------------------
 # harmonise species names
@@ -71,9 +101,7 @@ bio_func_final[, spec_group :=(ifelse(species %like% "Betula pubescens", "Betula
                                       ifelse(species %like% "Alnus glutinosa" |
                                                species %like% "Alnus Glutinosa", "Alnus glutinosa", "other")))]
 # count paper by speices 
-unique(setDT(bio_func_final)[!is.na("variables")&
-                            species %like% "Betula" | species %like% "Alnus", 
-                          c("title", "author", "year", "spec_group")])[,.N, by= list(spec_group)]
+unique(setDT(bio_func_final)[, c("title", "author", "year", "spec_group")])[,.N, by= list(spec_group)]
 
 # result: 
 #          spec_group     N
