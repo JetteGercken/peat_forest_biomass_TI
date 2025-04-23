@@ -37,9 +37,11 @@ LT_summary <-read.delim(file = paste0(getwd(), out.path, "HBI_LT_stocks_ha_all_g
 
 
 # 0.4 subset data ---------------------------------------------------------
+# # filter only those trees and functions that were part of the single tree biomass analysis
 # only select our organic sites with the different biomass calculation methods
 # & only the alnus and betula trees 
-trees_org <- subset(trees_data, min_org == "org" & bot_genus %in% c("Betula", "Alnus"))
+trees_org <- subset(trees_data, min_org == "org" & bot_genus %in% c("Betula") | 
+                      min_org == "org" & bot_genus %in% c( "Alnus") & paper_ID != 9)
 
 # join bot spec and genus to LT_summary 
 LT_summary <- setDT(LT_summary)[setDT(unique(trees_data[, c("plot_ID", "inv", "min_org")])) , on = c("plot_ID", "inv") ,allow.cartesian=T]
@@ -71,15 +73,24 @@ pseudo_mono_P_SP <- trees_org %>%
           n_trees_CCS_ha = dplyr::n()/plot_A_ha_SP) %>% 
   distinct()%>% 
   # now we summarise all the t/ha values of the cirlces per plot
-  group_by(plot_ID, paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
-  summarise(B_t_ha = sum(B_CCS_t_ha), 
+  dplyr::group_by(plot_ID, paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
+  dplyr::summarise(B_t_ha = sum(B_CCS_t_ha), 
             C_t_ha = sum(C_CCS_t_ha), 
            BA_m2_ha = sum(BA_CCS_m2_ha), 
             n_ha = sum(n_trees_CCS_ha)) 
 
+install.packages("countrycode")
+library(countrycode)
+# add country code to data set for lables
+setDT(pseudo_mono_P_SP)[, `:=` (country_code = toupper(substr(pseudo_mono_P_SP$country, start = 1, stop = 2)))]
+setDT(pseudo_mono_P_SP)[, `:=` (country_code = countrycode(pseudo_mono_P_SP$country, origin = 'country.name', destination = 'iso3c'))]
+
+
+
 # 1.3. mean stock pseudo-mono-stands: by calculation method  ---------------------------------------------------------
-pseudo_mono_mean_func <- pseudo_mono_P_SP %>% group_by(paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
-                                summarise(mean_B_t_ha = mean(B_t_ha), 
+pseudo_mono_mean_func <- pseudo_mono_P_SP %>% 
+    group_by(paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
+                                dplyr::summarise(mean_B_t_ha = mean(B_t_ha), 
                                           mean_C_t_ha = mean(C_t_ha), 
                                           mean_n_ha = mean(n_ha)) %>% 
   distinct() %>% 
@@ -99,13 +110,13 @@ m_nfi_aLHn <- ton(52859)
 # 1.4.1.1. Alnus differences TapeS NFI -----------------------------------------------
 m_all_func_alnus <- mean(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" ])
 
-# percent difference: 73.66395
+# percent difference: 47.34492
 ((m_all_func_alnus - m_nfi_aLHn)/m_nfi_aLHn)*100 
 
 # 1.4.1.2. Betula differences TapeS NFI -----------------------------------------------
 m_all_func_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb" ]))
 
-# percent difference: 
+# percent difference: 16.39841
 ((m_all_func_betula - m_nfi_aLHn)/m_nfi_aLHn)*100 
 
 
@@ -114,16 +125,17 @@ m_all_func_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_
 # 1.4.2.1. Alnus differences TapeS and overall mean -----------------------------------------------
 m_tapes_alnus <- mean(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$func_ID == "tapes"])
 
-# percent difference: - 14.93
+# percent difference:  -0.05678202
 ((m_tapes_alnus - m_all_func_alnus)/m_all_func_alnus)*100 
 
 # 1.4.2.2. Betula differences TapeS and overall mean -----------------------------------------------
 m_tapes_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$func_ID == "tapes"]))
 
-# percent difference
+# percent difference: 14.85599
 ((m_tapes_betula - m_all_func_betula)/m_all_func_betula)*100 
 
-
+# percent difference: 33.69055
+((m_tapes_betula - m_nfi_aLHn)/m_nfi_aLHn)*100 
 
 
 # 2. visuals --------------------------------------------------------------
@@ -144,38 +156,61 @@ abline(h=ton(52859), col = "red") # nfi mean
 abline(h=mean(as.numeric(alnus_wag$values)), col = "blue") #functions mean 
 
 
+
+
+
+# 2.1.2. boxplot c stocks ha alnus  ---------------------------------------
 # subset for boxplot
-values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb"
-                                  #& pseudo_mono_P_SP$ID != "2_w_agb" 
-                                  & pseudo_mono_P_SP$paper_ID != 41]
-names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb" 
-                            # & pseudo_mono_P_SP$ID != "2_w_agb" 
-                             & pseudo_mono_P_SP$paper_ID != 41]
-alnus_wag <- as.data.frame(cbind(names, values))
+values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") 
+                                  & pseudo_mono_P_SP$compartiment == "w_agb"
+                                  & pseudo_mono_P_SP$paper_ID !=9]
+
+names <-  setDT(pseudo_mono_P_SP[pseudo_mono_P_SP$bot_genus %in% c("Alnus") 
+                             & pseudo_mono_P_SP$compartiment == "w_agb" 
+                             & pseudo_mono_P_SP$paper_ID !=9,])[, `:=`(
+                               "names" = paste0(paper_ID, ", ", ifelse(func_ID != "w_agb", paste0(func_ID, ", ") , ""), country_code) )]$names
+
+# assign colors: # mark only tapes plot 
+farbe <-  setDT(pseudo_mono_P_SP[pseudo_mono_P_SP$bot_genus %in% c("Alnus") 
+                                 & pseudo_mono_P_SP$compartiment == "w_agb" 
+                                 & pseudo_mono_P_SP$paper_ID !=9,])[, `:=`(
+                                   "farbe" = ifelse(ID %like% c("tapes") , "red" , # tapes red
+                                                  ifelse(peat == "yes",  "blue" , # "#53868B",
+                                                         ifelse(peat == "partly", "turquoise1", # "#7AC5CD",
+                                                                "grey" ) )))]$farbe
+
+# bind colors, names and values together 
+alnus_wag <- as.data.frame(cbind(names, values, farbe))
+
+color_map <- setNames(alnus_wag$farbe, alnus_wag$ID)
+
 # mark only tapes plot
-my.colors <- ifelse(levels(as.factor(alnus_wag$names)) %like% c("tapes") , "red" , # tapes red
-       ifelse(levels(as.factor(alnus_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "yes"]), "#53868B",
-              ifelse(levels(as.factor(alnus_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "partly"]), "#7AC5CD",
-                     "grey" ) )) 
+my.colors <- unique(alnus_wag[,c("names", "farbe")])$farbe
 
 
 
 # plotting boxplot
 boxplot(as.numeric(values) ~ as.factor(names),
         col=my.colors ,
-        xlab = "Biomass calculation method",
+        xlab = "Biomass equation",
         ylab = "C stock t ha-1", 
-        main = "Alnus spp. C stock t ha-1 by biomass method", 
+        main = "Alnus spp. C stock t ha-1 by biomass equation", 
         ylim = c(0,275.1831))
 # add nfi mean
 # segments(x0 = 0.5, 
 #          x1 = length(unique(names)) + 0.5,
 #          y0 = ton(52859), y1 = ton(52859), col = "blue", lwd = 2) 
-# add line for dataset mean
+# add line for dataset mean across all equations
 segments(x0 = 0.5, 
          x1 = length(unique(names)) + 0.5, 
          y0 = mean(as.numeric(na.omit(alnus_wag$values))), 
          y1 = mean(as.numeric(na.omit(alnus_wag$values))), col = "black", lwd = 2) #functions mean
+# means of every function
+points(as.numeric(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") 
+                                         & pseudo_mono_mean_func$compartiment == "w_agb"
+                                         & pseudo_mono_mean_func$paper_ID !=9]) 
+       , col = "black",  pch = 16)
+# legend
 legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", 
                              #"mean C t ha-1 NFI", 
                              "mean C t ha-1 over all equations") , 
@@ -207,8 +242,8 @@ names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseud
 betula_wag <- as.data.frame(cbind(names, values))
 # mark only tapes plot
 my.colors <-my.colors <- ifelse(levels(as.factor(betula_wag$names)) %like% c("tapes") , "red" , # tapes red
-                                ifelse(levels(as.factor(betula_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "yes"]), "#53868B",
-                                       ifelse(levels(as.factor(betula_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "partly"]), "#7AC5CD",
+                                ifelse(levels(as.factor(betula_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "yes"]), "blue", # "#53868B",
+                                       ifelse(levels(as.factor(betula_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "partly"]), "turquoise1" , # "#7AC5CD",
                                               "grey" ) )) 
 
 # plotting boxplot
@@ -227,6 +262,11 @@ segments(x0 = 0.5,
          x1 = length(unique(names) )- 0.5 , 
          y0 = mean(as.numeric(na.omit(betula_wag$values))), 
          y1 = mean(as.numeric(na.omit(betula_wag$values))), col = "black", lwd = 2) #functions mean
+# means of every function
+points(as.numeric(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") 
+                                                    & pseudo_mono_mean_func$compartiment == "w_agb"]) 
+       , col = "black", pch = 16)
+# legend 
 legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", 
                              #"mean C t ha-1 NFI", 
                              "mean C t ha-1 over all equations") , 
