@@ -29,6 +29,7 @@
       #  install.packages("sjmisc")
       # #install.packages("stringr")
       #  install.packages("readODS")
+      #  install.packages("countrycode")
       # ## laTex
       #  install.packages("stargazer")  #for compatability with Latex
       #  install.packages("tikzDevice") #for compatability with Latex#
@@ -87,6 +88,7 @@
     #library(stringr)
     library(readODS)
     require(remotes)
+    library(countrycode)
     ## laTex
     library(stargazer)  #for compatability with Latex
     library(tikzDevice) #for compatability with Latex#

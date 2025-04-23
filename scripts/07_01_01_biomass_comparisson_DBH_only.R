@@ -61,7 +61,9 @@ bio_func_df <- bio_func_df %>%
               select(title, author, year, TSL) %>% 
               dplyr::distinct() %>% 
               dplyr::mutate(paper_ID = dplyr::row_number()), 
-            by = c("title", "author", "year", "TSL")) 
+            by = c("title", "author", "year", "TSL")) %>% 
+  # assign country code
+  mutate(country_code = countrycode(country, origin = 'country.name', destination = 'iso3c'))
 # transform coefficients to numeric
 bio_func_df[,13:28] <- lapply(bio_func_df[,13:28], as.numeric)
 # add a column that combines func id and paper id
@@ -397,6 +399,7 @@ wagb_tapes <- unique(
            func_ID = "tapes",
            ID = paste0(paper_ID, "_", func_ID), 
            country = "Germany", 
+           country_code = "GER", 
            peat = "no")
 ), on = .(plot_ID, tree_ID) ])
 
@@ -419,6 +422,7 @@ trees_data_update_5 <- rbind(
     paper_ID = max(na.omit(as.numeric(bio_func_df$paper_ID)))+1, 
     func_ID = "tapes", 
     country = "Germany",
+    country_code = "GER",
     peat = "no",
     ID = paste0(paper_ID, "_", func_ID)) ,
   # betula
@@ -493,7 +497,7 @@ alnus_ag <-  trees_data_update_5[compartiment %in% c("agb", "ag") & bot_genus %i
 alnus_ag_labels <- alnus_ag %>% group_by(paper_ID, func_ID, ID) %>% dplyr::summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
   left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Alnus")) %>% select(paper_ID, country)) %>% distinct()#%>% mutate_at("paper_ID", ~as.character(.))
             , by = "paper_ID" ) %>% 
-  mutate(country_code = ifelse(func_ID == "tapes", "GER", toupper(substr(country, start = 1, stop = 2))),
+  mutate(country_code = ifelse(func_ID == "tapes", "GER", countrycode(country, origin = 'country.name', destination = 'iso3c')),
          ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
          label_name = paste0(ID, ", ",country_code))
 
@@ -524,7 +528,7 @@ alnus_wag <-  trees_data_update_5[trees_data_update_5$compartiment %in% c("w_agb
 
 alnus_wag_labels <- alnus_wag %>% group_by(paper_ID, func_ID, ID, country, peat) %>% 
   dplyr::summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
-  mutate(country_code =  toupper(substr(country, start = 1, stop = 2)),
+  mutate(country_code = countrycode(country, origin = 'country.name', destination = 'iso3c')),
          ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
          label_name = paste0(paper_ID, ", ",country_code)) %>% 
   distinct()
@@ -642,7 +646,7 @@ betula_ag <-
 
 betula_ag_labels <- betula_ag %>% group_by(paper_ID, func_ID, ID) %>% dplyr::summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree))%>% #mutate_at("paper_ID", ~as.integer(.)) %>% 
   left_join(., ungroup(bio_func_df %>% filter(str_detect(species, "Betula")) %>% select(paper_ID, country)) %>% distinct() %>% mutate_at("paper_ID", ~as.character(.)), by = "paper_ID" ) %>% 
-  mutate(country_code = ifelse(func_ID == "tapes", "GER", toupper(substr(country, start = 1, stop = 2))),
+  mutate(country_code = ifelse(func_ID == "tapes", "GER", countrycode(country, origin = 'country.name', destination = 'iso3c') ),
          ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
          label_name = paste0(ID, ", ",country_code)) %>% 
   distinct()
@@ -668,7 +672,7 @@ ggplot(data = ungroup(betula_ag) # %>% filter(!(ID %in% c("13_1"))) # "16_4" and
 betula_wag <-  trees_data_update_5[compartiment %in% c("w_agb") & bot_genus %in% c("Betula") & min_org == "org", ]
 
 betula_wag_labels <- betula_wag %>% group_by(paper_ID, func_ID, peat, country, ID) %>% dplyr::summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
-  mutate(country_code =toupper(substr(country, start = 1, stop = 2)),
+  mutate(country_code = countrycode(country, origin = 'country.name', destination = 'iso3c')),
          ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
          label_name = paste0(paper_ID, ", ",country_code)) %>% 
   distinct()

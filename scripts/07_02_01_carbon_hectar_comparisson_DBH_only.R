@@ -79,8 +79,7 @@ pseudo_mono_P_SP <- trees_org %>%
            BA_m2_ha = sum(BA_CCS_m2_ha), 
             n_ha = sum(n_trees_CCS_ha)) 
 
-install.packages("countrycode")
-library(countrycode)
+
 # add country code to data set for lables
 setDT(pseudo_mono_P_SP)[, `:=` (country_code = toupper(substr(pseudo_mono_P_SP$country, start = 1, stop = 2)))]
 setDT(pseudo_mono_P_SP)[, `:=` (country_code = countrycode(pseudo_mono_P_SP$country, origin = 'country.name', destination = 'iso3c'))]
