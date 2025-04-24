@@ -100,10 +100,14 @@ alnus_func <-subset(bio_func_df, species %like% "Alnus glutinosa" &     # select
                       compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb")) 
   
   
-  
 
 # select alnus trees at organic sites
-tree_data_alnus <- trees_data[trees_data$bot_genus %in% c("Alnus") & trees_data$min_org == "org",]  
+# with incana trees: 822 rows
+# without incana trees: 817
+tree_data_alnus <- trees_data[trees_data$bot_name %in% c("Alnus glutinosa") & 
+                                trees_data$min_org == "org" |
+                                trees_data$bot_name %in% c("Alnus spp.") &
+                                trees_data$min_org == "org",]  
 alnus_agb_kg_tree <- vector("list", length = nrow(tree_data_alnus))
 for (i in 1:nrow(alnus_func)){
  # i = 23
@@ -256,8 +260,12 @@ betula_func <- subset(bio_func_df, species %like% "Betula pubescens" &     # sel
                         compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb"))            # select only those paper which have leafes not icluded or a possible compartimentalisation
 
 # 1.2.1. BETULA compartiment biomass calculations -------------------------------------------------
-# select alnus trees at organic sites
-tree_data_betula <- trees_data[trees_data$bot_genus %in% c("Betula") & trees_data$min_org == "org",]  
+# select betula pubescens or spp trees at organic sites
+# with betula pednula 518 rows, without 518
+tree_data_betula <- trees_data[trees_data$bot_name %in% c("Betula pubescens") & 
+                                 trees_data$min_org == "org" |
+                                 trees_data$bot_name %in% c("Betula spp.") & 
+                                 trees_data$min_org == "org" ,]  
 betula_agb_kg_tree <- vector("list", length = nrow(tree.df))
 for (i in 1:nrow(betula_func)){
   # i = 43
@@ -405,11 +413,12 @@ wagb_tapes <- unique(
 
 # 2.1. alnus tapeS wagb compartiement calculation ---------------------------------------------------------
 alnus_wagb_tapes <- wagb_tapes[wagb_tapes$bot_genus %in% c("Alnus") & 
+                                 wagb_tapes$bot_species %in% c("glutinosa", "spp.") &
                                  wagb_tapes$min_org == "org", ]
 
 # 2.2. betula tapeS wagb compartiement calculation ---------------------------------------------------------
 betula_wagb_tapes <- wagb_tapes[wagb_tapes$bot_genus %in% c("Betula") &
-                                # wagb_tapes$bot_species %in% c("pubescens", "spp.") &
+                                 wagb_tapes$bot_species %in% c("pubescens", "spp.") &
                                  wagb_tapes$min_org == "org", ]
 
 
@@ -422,7 +431,7 @@ trees_data_update_5 <- rbind(
     paper_ID = max(na.omit(as.numeric(bio_func_df$paper_ID)))+1, 
     func_ID = "tapes", 
     country = "Germany",
-    country_code = "GER",
+    country_code = "DEU",
     peat = "no",
     ID = paste0(paper_ID, "_", func_ID)) ,
   # betula
@@ -442,38 +451,149 @@ write.csv(trees_data_update_5, paste0(getwd(), out.path, paste(trees_data_update
 
 
 
-# 4. Differences ---------------------------------------------------------------
+# 4. statistical characteristics ---------------------------------------------------------------
 # ((endwert-anfangswert)/ anfangswert)*100
 
-# 1.4.1. differences TapeS mean all function -----------------------------------------------
-#mean NFI: 52859 kg/ha
-m_nfi_aLHn <- ton(52859)
-# 1.4.1.1. Alnus differences TapeS NFI -----------------------------------------------
-m_all_func_alnus <- mean(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" ])
-
-# percent difference: 73.66395
-((m_all_func_alnus - m_nfi_aLHn)/m_nfi_aLHn)*100 
-
-# 1.4.1.2. Betula differences TapeS NFI -----------------------------------------------
-m_all_func_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb" ]))
-
-# percent difference: 
-((m_all_func_betula - m_nfi_aLHn)/m_nfi_aLHn)*100 
+# 4.1.Alnus ------------------------------------------------------------------------
+# 4.1.1. Alnus all functions -----------------------------------------------
+alnus_wag <-  trees_data_update_5[trees_data_update_5$compartiment %in% c("w_agb") &
+                                    trees_data_update_5$bot_genus %in% c("Alnus") & 
+                                    trees_data_update_5$min_org == "org" &
+                                    trees_data_update_5$paper_ID != 9
+                                  , ]
 
 
+m_B_alnus <- mean(alnus_wag$B_kg_tree) # mean
+sd_B_alnus <- sd(alnus_wag$B_kg_tree)  # sd
+cv_B_alnus <- sd_B_alnus/m_B_alnus     # cv
 
-# 1.4.2. differences TapeS and overall mean -----------------------------------------------
-# 1.4.2.1. Alnus differences TapeS and overall mean -----------------------------------------------
-m_tapes_alnus <- mean(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$func_ID == "tapes"])
+m_dbh_alnus = mean(alnus_wag$DBH_cm)
+min_dbh_alnus = min(alnus_wag$DBH_cm)
+max_dbh_alnus = max(alnus_wag$DBH_cm)
 
-# percent difference:  -0.05678202
-((m_tapes_alnus - m_all_func_alnus)/m_all_func_alnus)*100 
+# 4.1.2. Alnus Tapes -----------------------------------------------
+alnus_wag_tapes <-  trees_data_update_5[trees_data_update_5$compartiment %in% c("w_agb") &
+                                          trees_data_update_5$bot_genus %in% c("Alnus") & 
+                                          trees_data_update_5$min_org == "org" &
+                                          trees_data_update_5$func_ID == "tapes"
+                                        , ]
 
-# 1.4.2.2. Betula differences TapeS and overall mean -----------------------------------------------
-m_tapes_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$func_ID == "tapes"]))
 
-# percent difference: 14.85599
-((m_tapes_betula - m_all_func_betula)/m_all_func_betula)*100 
+m_B_alnus_tapes <- mean(alnus_wag_tapes$B_kg_tree) # mean
+sd_B_alnus_tapes <- sd(alnus_wag_tapes$B_kg_tree)  # sd
+cv_B_alnus_tapes <- sd_B_alnus_tapes/m_B_alnus_tapes     # cv
+
+
+
+
+
+# 4.1.3. alnus extreme function characteristics ---------------------------
+# summarize mean B per tree per function per species
+alnus_wag_mean_func <- alnus_wag %>% 
+  group_by(paper_ID, func_ID, bot_genus, compartiment) %>% 
+  dplyr::summarise(B_kg_tree = mean(B_kg_tree))
+
+
+
+# 4.1.3.1. min alnus  function characteristics ---------------------------
+# min biomass
+min(alnus_wag$B_kg_tree) # 4.389455
+
+# min function: 28 
+alnus_wag$paper_ID[alnus_wag$B_kg_tree == min(alnus_wag$B_kg_tree)] # 28
+alnus_wag_mean_func$paper_ID[alnus_wag_mean_func$B_kg_tree == min(alnus_wag_mean_func$B_kg_tree)] # 14!!!!
+
+# min mean biomass
+min(alnus_wag_mean_func$B_kg_tree) #  145.8856
+# mean of min function 28: 160.6613
+mean(alnus_wag$B_kg_tree[alnus_wag$paper_ID == alnus_wag$paper_ID[alnus_wag$B_kg_tree == min(alnus_wag$B_kg_tree)]]) 
+
+
+# 4.1.3.2. max alnus  function characteristics ---------------------------
+# max biomass: 
+max(alnus_wag$B_kg_tree) # 2657.473
+# max function: 
+alnus_wag$paper_ID[alnus_wag$B_kg_tree == max(alnus_wag$B_kg_tree)] # 40 
+alnus_wag_mean_func$paper_ID[alnus_wag_mean_func$B_kg_tree == max(alnus_wag_mean_func$B_kg_tree)] # 27!!!
+
+# mean of max function: 219.4056 
+mean(alnus_wag$B_kg_tree[alnus_wag$paper_ID == alnus_wag$paper_ID[alnus_wag$B_kg_tree == max(alnus_wag$B_kg_tree)]]) 
+# biomass of the function that predicts averagely highest biomass 
+max(alnus_wag_mean_func$B_kg_tree) #  231.9356
+
+
+
+
+boxplot(as.numeric(alnus_wag$B_kg_tree) ~ as.factor(alnus_wag$ID))
+
+# 4.1.4. Alnus difference tapes - all functions ------------------------------------------------------------------
+m_B_alnus_tapes - m_B_alnus
+
+
+
+# 4.2. Betula ------------------------------------------------------------------------
+# 4.2.1. Betula all functions ---------------------------------------------
+betula_wag <-  trees_data_update_5[compartiment %in% c("w_agb") & bot_genus %in% c("Betula") & min_org == "org", ]
+
+m_B_betula <- mean(betula_wag$B_kg_tree)
+sd_B_betula <- sd(betula_wag$B_kg_tree)
+cv_B_betula <- sd_B_betula/m_B_betula
+
+
+m_dbh_betula = mean(betula_wag$DBH_cm)
+min_dbh_betula = min(betula_wag$DBH_cm)
+max_dbh_betula = max(betula_wag$DBH_cm)
+# 4.2.2. Betula tapes ---------------------------------------------
+betula_wag_tapes <-  trees_data_update_5[compartiment %in% c("w_agb") & 
+                                     bot_genus %in% c("Betula") & 
+                                     min_org == "org" & 
+                                     trees_data_update_5$func_ID == "tapes", ]
+
+m_B_betula_tapes <- mean(betula_wag_tapes$B_kg_tree)
+sd_B_betula_tapes <- sd(betula_wag_tapes$B_kg_tree)
+cv_B_betula_tapes <- sd_B_betula_tapes/m_B_betula_tapes
+
+boxplot(as.numeric(betula_wag$B_kg_tree) ~ as.factor(betula_wag$ID))
+
+
+
+
+
+# 4.1.3. Betula extreme function characteristics ---------------------------
+# summarize mean B per tree per function per species
+betula_wag_mean_func <- betula_wag %>% 
+  group_by(paper_ID, func_ID, bot_genus, compartiment) %>% 
+  dplyr::summarise(B_kg_tree = mean(B_kg_tree))
+
+
+# 4.1.3.1. min Betula  function characteristics ---------------------------
+# min biomass
+min(betula_wag$B_kg_tree) # 8.123259
+# min function: 28 
+betula_wag$paper_ID[betula_wag$B_kg_tree == min(betula_wag$B_kg_tree)] # 6
+betula_wag_mean_func$paper_ID[betula_wag_mean_func$B_kg_tree == min(betula_wag_mean_func$B_kg_tree)] # 10!!!!
+# mean of min function: 
+mean(betula_wag$B_kg_tree[betula_wag$paper_ID == betula_wag$paper_ID[betula_wag$B_kg_tree == min(betula_wag$B_kg_tree)]]) # 160.6613
+# biomass of the function that produces min mean biomass
+min(betula_wag_mean_func$B_kg_tree) # 56.54606
+
+
+# 4.1.3.2. max betula  function characteristics ---------------------------
+# max biomass: 
+max(betula_wag$B_kg_tree) # 2587.323
+# max function: 
+betula_wag$paper_ID[betula_wag$B_kg_tree == max(betula_wag$B_kg_tree)] # 20
+betula_wag_mean_func$paper_ID[betula_wag_mean_func$B_kg_tree == max(betula_wag_mean_func$B_kg_tree)] # 29!!!!
+# mean of max function: 
+mean(betula_wag$B_kg_tree[betula_wag$paper_ID == betula_wag$paper_ID[betula_wag$B_kg_tree == max(betula_wag$B_kg_tree)]]) # 164.8527
+max(betula_wag_mean_func$B_kg_tree) # 229.5567
+
+
+# 4.2.3. betula difference tapes - all functions ------------------------------------------------------------------
+m_B_betula_tapes - m_B_betula
+
+
+
 
 
 
@@ -528,9 +648,9 @@ alnus_wag <-  trees_data_update_5[trees_data_update_5$compartiment %in% c("w_agb
 
 alnus_wag_labels <- alnus_wag %>% group_by(paper_ID, func_ID, ID, country, peat) %>% 
   dplyr::summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
-  mutate(country_code = countrycode(country, origin = 'country.name', destination = 'iso3c')),
+  mutate(country_code = countrycode(country, origin = 'country.name', destination = 'iso3c'),
          ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
-         label_name = paste0(paper_ID, ", ",country_code)) %>% 
+         label_name =  paste0(paper_ID, ", ", ifelse(func_ID != "w_agb", paste0(func_ID, ", ") , ""), country_code)) %>% 
   distinct()
 
 alnus_wag <- 
@@ -544,9 +664,9 @@ color_map <- setNames(alnus_wag$farbe, alnus_wag$ID)
 
 
 # sd mean betula 
-m_b_al <- alnus_wag[alnus_wag$ID != "2_w_agb", .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
-m_b_al <- alnus_wag[alnus_wag$ID != "2_w_agb", .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
-sd_b_al <- alnus_wag[alnus_wag$ID != "2_w_agb", .(sd_B_kg_tree =sd(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]  
+m_b_al <- alnus_wag[alnus_wag$ID != "9_w_agb", .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
+m_b_al <- alnus_wag[alnus_wag$ID != "9_w_agb", .(B_kg_tree=mean(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]
+sd_b_al <- alnus_wag[alnus_wag$ID != "9_w_agb", .(sd_B_kg_tree =sd(B_kg_tree)),.(plot_ID, tree_ID, compartiment, DBH_cm)]  
 m_sd_b_al <- m_b_al[sd_b_al, on = list(plot_ID, tree_ID, compartiment, DBH_cm)]
 m_sd_b_al[, up_sd_B_kg_tree := (B_kg_tree + sd_B_kg_tree)]
 m_sd_b_al[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]  
@@ -555,10 +675,10 @@ m_sd_b_al[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]
 
 # plot 
 ggplot( )+ 
-  geom_point(data = ungroup(alnus_wag)  %>% filter(!(ID %in% c("2_w_agb"))) 
+  geom_point(data = ungroup(alnus_wag)  %>% filter(!(ID %in% c("9_w_agb"))) 
              , aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID), 
   )+
-  geom_smooth(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("2_w_agb")))
+  geom_smooth(data = ungroup(alnus_wag) %>% filter(!(ID %in% c("9_w_agb")))
               , method= "loess"
               , aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID) 
               , se = F 
@@ -583,7 +703,7 @@ ggplot( )+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
   geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name), 
             data = alnus_wag_labels
-            %>% filter(!(ID %in% c("2_w_agb")))
+            %>% filter(!(ID %in% c("9_w_agb")))
   )+
   ylim(0, 2700)+
   xlim(0, 64)+
@@ -672,9 +792,9 @@ ggplot(data = ungroup(betula_ag) # %>% filter(!(ID %in% c("13_1"))) # "16_4" and
 betula_wag <-  trees_data_update_5[compartiment %in% c("w_agb") & bot_genus %in% c("Betula") & min_org == "org", ]
 
 betula_wag_labels <- betula_wag %>% group_by(paper_ID, func_ID, peat, country, ID) %>% dplyr::summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
-  mutate(country_code = countrycode(country, origin = 'country.name', destination = 'iso3c')),
+  mutate(country_code = countrycode(country, origin = 'country.name', destination = 'iso3c'),
          ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
-         label_name = paste0(paper_ID, ", ",country_code)) %>% 
+         label_name =  paste0(paper_ID, ", ", ifelse(func_ID != "w_agb", paste0(func_ID, ", ") , ""), country_code)) %>% 
   distinct()
 
 betula_wag <- 

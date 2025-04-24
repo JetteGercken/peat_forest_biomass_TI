@@ -40,8 +40,8 @@ LT_summary <-read.delim(file = paste0(getwd(), out.path, "HBI_LT_stocks_ha_all_g
 # # filter only those trees and functions that were part of the single tree biomass analysis
 # only select our organic sites with the different biomass calculation methods
 # & only the alnus and betula trees 
-trees_org <- subset(trees_data, min_org == "org" & bot_genus %in% c("Betula") | 
-                      min_org == "org" & bot_genus %in% c( "Alnus") & paper_ID != 9)
+trees_org <- subset(trees_data, min_org == "org" & bot_genus %in% c("Betula") & bot_species %in% c("pubescens", "spp.")| 
+                      min_org == "org" & bot_genus %in% c( "Alnus") & bot_species %in% c("glutinosa", "spp.") & paper_ID != 9)
 
 # join bot spec and genus to LT_summary 
 LT_summary <- setDT(LT_summary)[setDT(unique(trees_data[, c("plot_ID", "inv", "min_org")])) , on = c("plot_ID", "inv") ,allow.cartesian=T]
@@ -81,7 +81,6 @@ pseudo_mono_P_SP <- trees_org %>%
 
 
 # add country code to data set for lables
-setDT(pseudo_mono_P_SP)[, `:=` (country_code = toupper(substr(pseudo_mono_P_SP$country, start = 1, stop = 2)))]
 setDT(pseudo_mono_P_SP)[, `:=` (country_code = countrycode(pseudo_mono_P_SP$country, origin = 'country.name', destination = 'iso3c'))]
 
 
@@ -108,24 +107,34 @@ pseudo_mono_mean_func <- pseudo_mono_P_SP %>%
 m_nfi_aLHn <- ton(52859)
 # 1.4.1.1. Alnus differences TapeS NFI -----------------------------------------------
 m_all_func_alnus <- mean(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" ])
+sd_all_func_alnus <- sd(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" ])
+var_all_func_alnus <- var(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" ])
+cv_all_func_alnus <- sd_all_func_alnus/m_all_func_alnus
 
-# percent difference: 47.34492
+
+# percent difference:  48.8332% 25.8127 tons
 ((m_all_func_alnus - m_nfi_aLHn)/m_nfi_aLHn)*100 
 
 # 1.4.1.2. Betula differences TapeS NFI -----------------------------------------------
 m_all_func_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb" ]))
+sd_all_func_betula <- sd(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb" ]))
+cv_all_func_betula <- sd_all_func_betula/m_all_func_betula
 
-# percent difference: 16.39841
+
+# percent difference: 16.39841 %, 8.668038 tonns
 ((m_all_func_betula - m_nfi_aLHn)/m_nfi_aLHn)*100 
 
 
+# differenc Betula Alnus all func:  17.1447
+m_all_func_alnus-m_all_func_betula
 
 # 1.4.2. differences TapeS and overall mean -----------------------------------------------
 # 1.4.2.1. Alnus differences TapeS and overall mean -----------------------------------------------
 m_tapes_alnus <- mean(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$func_ID == "tapes"])
 
-# percent difference:  -0.05678202
+# percent difference: 0.03252872
 ((m_tapes_alnus - m_all_func_alnus)/m_all_func_alnus)*100 
+
 
 # 1.4.2.2. Betula differences TapeS and overall mean -----------------------------------------------
 m_tapes_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$func_ID == "tapes"]))
@@ -137,25 +146,42 @@ m_tapes_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mea
 ((m_tapes_betula - m_nfi_aLHn)/m_nfi_aLHn)*100 
 
 
+
+
+
+
+# 1.4.3. differences tapes and peat specific functions --------------------
+# 1.4.3.1. Alnus differences tapes and peat specific functions --------------------
+m_peat_alnus <- mean(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$peat %in% c("yes", "partly")])
+sd_peat_alnus <- sd(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$peat %in% c("yes", "partly")])
+
+
+m_tapes_alnus - m_peat_alnus #  -2.041231
+
+# 1.4.3.2. Betula differences tapes and peat specific functions --------------------
+m_peat_betula <- mean(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$peat %in% c("yes", "partly")])
+sd_peat_betula <- sd(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$peat %in% c("yes", "partly")])
+
+
+m_tapes_betula - m_peat_betula # 8.746796
+
+
+
+
+# 1.4.4. differences tapes and nfi --------------------
+# 1.4.4,1. Alnus differences tapes and nfi --------------------
+# tapes to nfi 
+m_tapes_alnus-m_nfi_aLHn
+
+# 1.4.4,2. Betula differences tapes and nfi --------------------
+# tapes to nfi 
+m_tapes_betula -m_nfi_aLHn
+
+
+
 # 2. visuals --------------------------------------------------------------
 # https://bwi.info/inhalt1.3.aspx?Text=3.14%20Kohlenstoff%20[kg/ha]%20nach%20Baumartengruppe%20und%20Altersklasse%20(rechnerischer%20Reinbestand)&prRolle=public&prInv=THG2017&prKapitel=3.14
 # mean c stock of "andere Laubhölzer niedlriger Lebensdauer (aLn) according to BWI: 52859 kg ha-1 
-
-# 2.1. alnus mean c t ha barplot ------------------------------------------
-values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$paper_ID != 41]
-names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$paper_ID != 41]
-alnus_wag <- as.data.frame(cbind(names, values))# , mean_NFI = c(ton(52859))))
-
-# plotting barplot
-barplot(height = as.numeric(alnus_wag$values), names=alnus_wag$names, 
-        xlab = "Biomass calculation method",
-        ylab = "mean C stock t ha-1", 
-        main = "Alnus spp. mean C stock t ha-1 by biomass method")
-abline(h=ton(52859), col = "red") # nfi mean
-abline(h=mean(as.numeric(alnus_wag$values)), col = "blue") #functions mean 
-
-
-
 
 
 # 2.1.2. boxplot c stocks ha alnus  ---------------------------------------
@@ -218,22 +244,7 @@ legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. par
 
 
 
-# 2.1. betula mean c t ha barplot ------------------------------------------
-values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
-names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
-betula_wag <- as.data.frame(cbind(names, values))
-
-# plotting barplot
-barplot(height = as.numeric(betula_wag$values), names=betula_wag$names, 
-        xlab = "Biomass calculation method",
-        ylab = "mean C stock t ha-1", 
-        main = "Betula spp. mean C stock t ha-1 by biomass method", 
-        cex.names=0.75)
-abline(h=ton(52859), col = "red")
-abline(h=mean(as.numeric(na.omit(betula_wag$values))), col = "blue")
-
-
-
+# 2.2.1. betula mean c t ha boxplot -----------------------------------------------------
 
 # subset for boxplot
 values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]
@@ -271,6 +282,20 @@ legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. par
                              "mean C t ha-1 over all equations") , 
        col = c("red", "#53868B", "#7AC5CD", "grey", # "blue", 
                "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(1.0 , 0.1))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -343,3 +368,43 @@ getSpeciesCode(inSp = NULL, outSp = NULL)
 
 
 sp_list_Bdat %>% arrange(biomass_BA)
+
+
+
+
+
+
+# n barplot alnus c stocks ------------------------------------------------
+
+# N. 2.1. alnus mean c t ha barplot ------------------------------------------
+values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$paper_ID != 41]
+names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$paper_ID != 41]
+alnus_wag <- as.data.frame(cbind(names, values))# , mean_NFI = c(ton(52859))))
+
+# plotting barplot
+barplot(height = as.numeric(alnus_wag$values), names=alnus_wag$names, 
+        xlab = "Biomass calculation method",
+        ylab = "mean C stock t ha-1", 
+        main = "Alnus spp. mean C stock t ha-1 by biomass method")
+abline(h=ton(52859), col = "red") # nfi mean
+abline(h=mean(as.numeric(alnus_wag$values)), col = "blue") #functions mean 
+
+
+# N. 2.2.betula c stock ha barplot ------------------------------------------
+  values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
+names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
+betula_wag <- as.data.frame(cbind(names, values))
+
+# plotting barplot
+barplot(height = as.numeric(betula_wag$values), names=betula_wag$names, 
+        xlab = "Biomass calculation method",
+        ylab = "mean C stock t ha-1", 
+        main = "Betula spp. mean C stock t ha-1 by biomass method", 
+        cex.names=0.75)
+abline(h=ton(52859), col = "red")
+abline(h=mean(as.numeric(na.omit(betula_wag$values))), col = "blue")
+
+
+
+
+
