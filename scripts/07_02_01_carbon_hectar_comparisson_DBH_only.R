@@ -179,6 +179,79 @@ m_tapes_betula -m_nfi_aLHn
 
 
 
+
+
+
+# 1.4.5. stat summary stocks per ha  --------------------------------------
+# 1.4.5.1. Alnus stat summary stocks per ha  --------------------------------------
+## min 
+# Tapes:  11.81495
+min(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$func_ID == "tapes"]))
+
+# min all:  8.920784
+min(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb"]))
+# min all func: "14_w_agb"
+pseudo_mono_P_SP$ID[pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$C_t_ha == min(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb"]))]
+
+# min mean all :  58.87383
+min(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb"]))
+# min mean all function:  14_w_agb"
+pseudo_mono_mean_func$ID[ pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$mean_C_t_ha == min(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb"]))]
+
+## max
+# Tapes: 139.6858
+max(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$func_ID == "tapes"]))
+
+# max all:  174.1403
+max(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb"]))
+# max all func: "40_w_agb"
+pseudo_mono_P_SP$ID[pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$C_t_ha == max(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus") & pseudo_mono_P_SP$compartiment == "w_agb"]))]
+
+
+# max mean all :  92.78914
+max(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb"]))
+# max mean  function:  ] "27_w_agb"
+pseudo_mono_mean_func$ID[ pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$mean_C_t_ha == max(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb"]))]
+
+
+
+
+
+# 1.4.5.2. Betula  stat summary stocks per ha  --------------------------------------
+## min 
+# Tapes:  1.010374
+min(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$func_ID == "tapes"]))
+
+# min all: 0.5585434
+min(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]))
+# min all func: "6_w_agb"
+pseudo_mono_P_SP$ID[pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$C_t_ha == min(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]))]
+
+# min mean all :  28.41816
+min(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]))
+# min mean all function:  6_w_agb
+pseudo_mono_mean_func$ID[ pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$mean_C_t_ha == min(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]))]
+
+## max
+# Tapes:  70.66749
+max(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$func_ID == "tapes"]))
+
+# min all: 250.3115
+max(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]))
+# min all func: "29_w_agb"
+pseudo_mono_P_SP$ID[pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$C_t_ha == max(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]))]
+
+
+# max mean all :  110.9092
+max(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]))
+# max mean  function:  ] "29_w_agb"
+pseudo_mono_mean_func$ID[ pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$mean_C_t_ha == max(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]))]
+
+
+
+
+
+
 # 2. visuals --------------------------------------------------------------
 # https://bwi.info/inhalt1.3.aspx?Text=3.14%20Kohlenstoff%20[kg/ha]%20nach%20Baumartengruppe%20und%20Altersklasse%20(rechnerischer%20Reinbestand)&prRolle=public&prInv=THG2017&prKapitel=3.14
 # mean c stock of "andere Laubhölzer niedlriger Lebensdauer (aLn) according to BWI: 52859 kg ha-1 
