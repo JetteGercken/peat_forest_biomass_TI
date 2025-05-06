@@ -78,7 +78,7 @@ for (i in 1:length(unique(trees_data$plot_ID))) {
      # select only the 20% strongest trees  
     arrange(desc(DBH_cm)))[1:n.20, ] %>% 
     group_by(plot_ID, inv, min_org,  stand, C_layer, SP_code, H_SP_group) %>% 
-    summarise(mean_DBH_cm = mean(DBH_cm), 
+    dplyr::summarise(mean_DBH_cm = mean(DBH_cm), 
               sd_DBH_cm = sd(DBH_cm),
               Dg_cm = ((sqrt(mean(BA_m2)/pi))*2)*100,  
               mean_BA_m2 = mean(BA_m2),
@@ -131,8 +131,8 @@ top_20_trees <- as.data.frame(rbindlist(top_20_trees_list))
 
 
 view(
-  trees_data %>% group_by(min_org, plot_ID, SP_code) %>% summarise(n_SP = n()) %>% 
-    left_join(.,trees_data %>% group_by(min_org, plot_ID) %>% summarise(n_tot = n()) , by = c("plot_ID", "min_org") ) %>% 
+  trees_data %>% group_by(min_org, plot_ID, SP_code) %>% dplyr::summarise(n_SP = dplyr::n()) %>% 
+    left_join(.,trees_data %>% group_by(min_org, plot_ID) %>% dplyr::summarise(n_tot = dplyr::n()) , by = c("plot_ID", "min_org") ) %>% 
     mutate(n_share = n_SP/n_tot*100) %>% 
     filter(min_org == "org") %>% 
     arrange(n_share)
@@ -141,14 +141,48 @@ view(
 
 
 # statistical comparisson -------------------------------------------------
-trees_sub <- trees_data[bot_name %in% c("Betula pubescens, Alnus glutinosa") , ]
-
+trees_sub <- trees_data[trees_data$bot_name %in% c("Betula pubescens", "Alnus glutinosa") & trees_data$H_method == "sampled", ]
+setDT(trees_sub)[, `:=`(HD = H_m/DBH_cm)]
 
 
 shapiro.test(trees_sub$H_m)
 
+# 
+# Shapiro-Wilk normality test
+# 
+# data:  trees_sub$H_m
+# W = 0.99187, p-value = 1.648e-08
 
+shapiro.test(trees_sub$HD)
+# Shapiro-Wilk normality test
+# 
+# data:  trees_sub$HD
+# W = 0.9797, p-value = 7.197e-07
 
+# man withne u / wilcoxon test for non-parametric data of 2 indepentend groups whos mean we are comparing
+wilcox.test(HD~min_org, data = trees_sub, 
+            exact = FALSE, 
+            correct = FALSE, 
+            conf.int = FALSE)
+# Wilcoxon rank sum test
+# 
+# data:  HD by min_org
+# W = 39260, p-value = 0.09944
+# alternative hypothesis: true location shift is not equal to 0
+
+wilcox.test(H_m~min_org, data = trees_sub[trees_sub$bot_name == "Alnus glutinosa", ], 
+            exact = FALSE, 
+            correct = FALSE, 
+            conf.int = FALSE)
+# H_m  means for Alnus are different 
+# HD means are not different 
+
+wilcox.test(H_m~min_org, data = trees_sub[trees_sub$bot_name == "Betula pubescens", ], 
+            exact = FALSE, 
+            correct = FALSE, 
+            conf.int = FALSE)
+# H_m  means for Alnus are different
+# HD means are not different
 
 
 

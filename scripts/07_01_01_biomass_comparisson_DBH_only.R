@@ -453,6 +453,42 @@ write.csv(trees_data_update_5, paste0(getwd(), out.path, paste(trees_data_update
 
 # 4. statistical characteristics ---------------------------------------------------------------
 # ((endwert-anfangswert)/ anfangswert)*100
+# general statistics of tree dataset
+trees_data %>% 
+  group_by(bot_name, min_org) %>% 
+    dplyr::summarise(mean_DBH = mean(DBH_cm), 
+                     min_DBH = min(DBH_cm), 
+                     max_DBH = max(DBH_cm),
+            mean_H = mean(H_m), 
+            mean_H_old = mean(H_m_old)) %>% 
+  filter(bot_name %in% c("Alnus glutinosa", "Betula pubescens"))
+
+
+# bot_name         min_org mean_DBH mean_H
+# <chr>            <chr>      <dbl>  <dbl>
+# 1 Alnus glutinosa  min       25.4   19.9
+# 2 Alnus glutinosa  org         20.8   17.6
+# 3 Betula pubescens min         18.0   17.6
+# 4 Betula pubescens org         17.0   16.0
+
+trees_data %>% 
+  filter(H_method == "sampled") %>% 
+  group_by(bot_name, min_org) %>% 
+  dplyr::summarise(mean_DBH = mean(DBH_cm), 
+                   min_DBH = min(DBH_cm), 
+                   max_DBH = max(DBH_cm),
+                   mean_H_sampled = mean(H_m_old), 
+                   min_H = min(H_m_old), 
+                   max_H = max(H_m_old)) %>% 
+  filter(bot_name %in% c("Alnus glutinosa", "Betula pubescens"))
+
+# bot_name         min_org mean_DBH min_DBH max_DBH mean_H_sampled min_H max_H
+# <chr>            <chr>      <dbl>   <dbl>   <dbl>          <dbl> <dbl> <dbl>
+# 1 Alnus glutinosa  min         25.4    8.15    60.0           19.4   4.6  35.5
+# 2 Alnus glutinosa  org         20.5    7.1     61.4           16.0   4.6  32.5
+# 3 Betula pubescens min         19.3    7       38.2           17.8   4.8  26.8
+# 4 Betula pubescens org         19.0    7.1     50             16.0   4.5  25.1
+
 
 # 4.1.Alnus ------------------------------------------------------------------------
 # 4.1.1. Alnus all functions -----------------------------------------------
