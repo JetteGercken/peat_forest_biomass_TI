@@ -141,48 +141,96 @@ view(
 
 
 # statistical comparisson -------------------------------------------------
+# all sp together statistical comparisson -------------------------------------------------
+trees_sub_all <-  trees_data[trees_data$H_method == "sampled", ]
+setDT(trees_sub_all)[, `:=`(HD = H_m/DBH_cm)]
+
+# test normality of height
+shapiro.test(trees_sub_all$H_m)
+# test normalitly of HD
+shapiro.test(trees_sub_all$HD)
+
+# test significant difference of mean HD
+wilcox.test(HD~min_org, data = trees_sub_all, 
+            exact = FALSE, 
+            correct = FALSE, 
+            conf.int = FALSE)
+# p-value = 0.5739 --> there is no significant difference by min org if we compare all species together
+# n_all: nrow(unique(trees_sub_all[, c("plot_ID", "tree_ID")])) -> 45766
+# n_org: nrow(unique(trees_sub_all[trees_sub_all$min_org == "org", c("plot_ID", "tree_ID")])) -> 2597
+# n_min: nrow(unique(trees_sub_all[trees_sub_all$min_org == "min", c("plot_ID", "tree_ID")])) -> 43169
+
+# test significant difference of mean H
+wilcox.test(H_m~min_org, data = trees_sub_all, 
+            exact = FALSE, 
+            correct = FALSE, 
+            conf.int = FALSE)
+# p-value < 2.2e-16 --> there is a sign. diff. between H of org and mineral plots
+
+# test significant difference of mean D
+wilcox.test(DBH_cm~min_org, data = trees_sub_all, 
+            exact = FALSE, 
+            correct = FALSE, 
+            conf.int = FALSE)
+# p-value p-value < 2.2e-16 --> there is a sign. diff. between DBH of org and mineral plots
+
+
+
+
+
+# alnus betula statistical comparisson -------------------------------------------------
 trees_sub <- trees_data[trees_data$bot_name %in% c("Betula pubescens", "Alnus glutinosa") & trees_data$H_method == "sampled", ]
 setDT(trees_sub)[, `:=`(HD = H_m/DBH_cm)]
 
+# check n
+# n_all: nrow(unique(trees_sub[, c("plot_ID", "tree_ID")])) -> 544
+# n_org: nrow(unique(trees_sub[trees_sub$min_org == "org", c("plot_ID", "tree_ID")])) -> 310
+# n_min: nrow(unique(trees_sub[trees_sub$min_org == "min", c("plot_ID", "tree_ID")])) -> 234
+# n_org_alnus: nrow(unique(trees_sub[trees_sub$min_org == "org" & trees_sub$bot_name == "Alnus glutinosa", c("plot_ID", "tree_ID")])) -> 196
+# n_min_alnus: nrow(unique(trees_sub[trees_sub$min_org == "min" & trees_sub$bot_name == "Alnus glutinosa", c("plot_ID", "tree_ID")])) -> 135 
+# n_org_alnus: nrow(unique(trees_sub[trees_sub$min_org == "org" & trees_sub$bot_name == "Betula pubescens", c("plot_ID", "tree_ID")])) -> 114
+# n_min_alnus: nrow(unique(trees_sub[trees_sub$min_org == "min" & trees_sub$bot_name == "Betula pubescens", c("plot_ID", "tree_ID")])) -> 99 
 
+
+
+# test normality of height
 shapiro.test(trees_sub$H_m)
-
-# 
 # Shapiro-Wilk normality test
 # 
 # data:  trees_sub$H_m
-# W = 0.99187, p-value = 1.648e-08
+# W = 0.99187, p-value = 1.648e-08 --> significant --> not normally 
 
 shapiro.test(trees_sub$HD)
 # Shapiro-Wilk normality test
 # 
 # data:  trees_sub$HD
-# W = 0.9797, p-value = 7.197e-07
+# W = 0.9797, p-value = 7.197e-07 --> signidicant --> not normal distributed
 
 # man withne u / wilcoxon test for non-parametric data of 2 indepentend groups whos mean we are comparing
 wilcox.test(HD~min_org, data = trees_sub, 
             exact = FALSE, 
             correct = FALSE, 
             conf.int = FALSE)
-# Wilcoxon rank sum test
-# 
-# data:  HD by min_org
-# W = 39260, p-value = 0.09944
-# alternative hypothesis: true location shift is not equal to 0
+# HD values are not significantly different: p-value = 0.09944 --> diff is not significant 
+# H_m for alnus and betula together is significanlty different: p-value = 1.014e-07
+# DBH_cm for alnus and betula together is significanlty different: p-value = 0.00169
 
-wilcox.test(H_m~min_org, data = trees_sub[trees_sub$bot_name == "Alnus glutinosa", ], 
+
+wilcox.test(HD~min_org, data = trees_sub[trees_sub$bot_name == "Alnus glutinosa", ], 
             exact = FALSE, 
             correct = FALSE, 
             conf.int = FALSE)
-# H_m  means for Alnus are different 
-# HD means are not different 
+# DBH mean for alnus are different: p-value = 0.0003553
+# H_m  means for Alnus are different: p-value = 5.058e-06 
+# HD means are not different: p-value = 0.8471 
 
-wilcox.test(H_m~min_org, data = trees_sub[trees_sub$bot_name == "Betula pubescens", ], 
+wilcox.test(HD~min_org, data = trees_sub[trees_sub$bot_name == "Betula pubescens", ], 
             exact = FALSE, 
             correct = FALSE, 
             conf.int = FALSE)
-# H_m  means for Alnus are different
-# HD means are not different
+# DBH mean for Betula are not different: p-value = 0.3822
+# H_m  means for betula are different: p-value = 0.008783
+# HD means are not different: p-value = 0.1163
 
 
 
@@ -209,6 +257,9 @@ trees_data_h_nls <-
             by = c("min_org", "bot_name")) %>% 
   mutate(H_m_nls = 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3, 
          H_method_nls = "nls")
+
+write.csv(trees_data_h_nls, paste0(out.path, paste(trees_data_h_nls$inv[1], "LT_update_3_petterson", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+
 
 
 # height mod min soil
@@ -331,7 +382,7 @@ ggplot(data = trees_data %>%
   ylim(0, 50)
 
 
-# dbh comparisson violin plot org min boxplot separated  by bot genus and soil type
+# dbh comparisson box plot org min boxplot separated  by bot genus and soil type
 ggplot(data = trees_data %>% 
          mutate(hd = H_m/DBH_cm) %>% 
          filter(startsWith(bot_name, "Betula") & H_method == "sampled" |
@@ -344,8 +395,8 @@ ggplot(data = trees_data %>%
          mutate(hd = H_m/DBH_cm) %>% 
          filter(bot_name == "Betula pubescens" & H_method == "sampled" |
          bot_name == "Alnus glutinosa" & H_method == "sampled")) +
-  geom_boxplot(aes(x = min_org, y = DBH_cm))+
-  geom_violin(aes(x = min_org, y = DBH_cm), alpha=0.2) +
+  geom_boxplot(aes(x = min_org, y = H_m))+
+  geom_violin(aes(x = min_org, y = H_m), alpha=0.2) +
   facet_wrap(~bot_name)
 
 # dbh comparisson violin plot org min boxplot separated  by species, soil type and dominating vs. not dominating social class 
