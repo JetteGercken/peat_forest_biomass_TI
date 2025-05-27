@@ -70,9 +70,10 @@ bio_func_df[,13:28] <- lapply(bio_func_df[,13:28], as.numeric)
 bio_func_df$ID <- paste0(bio_func_df$paper_ID,"_", bio_func_df$func_ID)
 # exclude those functions that require age as we don´t always have it
 bio_func_df <- bio_func_df[!(str_detect(bio_func_df$variables, "age")),]
+write.csv(bio_func_df, paste0(getwd(), out.path, "bio_func_ID.csv"))
 
-
-
+view(bio_func_df %>% filter(peat %in% c("yes", "partly")) %>% select(paper_ID, author, year, species) %>% distinct() %>% ungroup()
+)
 # 1. Biomass calculations -------------------------------------------------
 # we need the biomass without leafes. 
 # so we have these 3 scenarios: 

@@ -83,6 +83,7 @@ pseudo_mono_P_SP <- trees_org %>%
 # add country code to data set for lables
 setDT(pseudo_mono_P_SP)[, `:=` (country_code = countrycode(pseudo_mono_P_SP$country, origin = 'country.name', destination = 'iso3c'))]
 
+write.csv(pseudo_mono_P_SP, paste0(getwd(), out.path, "C_stock_ha_pseudo_mono_P_SP.csv"))
 
 
 # 1.3. mean stock pseudo-mono-stands: by calculation method  ---------------------------------------------------------
@@ -95,7 +96,9 @@ pseudo_mono_mean_func <- pseudo_mono_P_SP %>%
   arrange(bot_genus, paper_ID,  func_ID, country, ID,compartiment)
 
 
-
+# export for visuals
+# this is the mean c stock per function based on the hectar values per plot per function calculated in pseudo_mono_P_SP
+write.csv(pseudo_mono_mean_func, paste0(getwd(), out.path, "C_stock_ha_pseudo_mono_func.csv"))
 
 
 
