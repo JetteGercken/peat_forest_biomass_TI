@@ -106,8 +106,8 @@ write.csv(pseudo_mono_mean_func, paste0(getwd(), out.path, "C_stock_ha_pseudo_mo
 # ((endwert-anfangswert)/ anfangswert)*100
 
 # 1.4.1. differences TapeS NFI -----------------------------------------------
-#mean NFI: 52859 kg/ha
-m_nfi_aLHn <- ton(52859)
+#mean NFI: 41811 kg/ha: https://bwi.info/inhalt1.3.aspx?Text=3.11%20Vorr%C3%A4te%20nach%20Baumartengruppen%20(ZIELMERKMALSTABELLE)%20(rechnerischer%20Reinbestand)&prRolle=public&prInv=THG2017&prKapitel=3.11
+m_nfi_aLHn <- ton(41811)
 # 1.4.1.1. Alnus differences TapeS NFI -----------------------------------------------
 m_all_func_alnus <- mean(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" ])
 sd_all_func_alnus <- sd(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") & pseudo_mono_mean_func$compartiment == "w_agb" ])
@@ -115,7 +115,7 @@ var_all_func_alnus <- var(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_fun
 cv_all_func_alnus <- sd_all_func_alnus/m_all_func_alnus
 
 
-# percent difference:  48.8332% 25.8127 tons
+# percent difference:  88.16039% 36.86074 tons
 ((m_all_func_alnus - m_nfi_aLHn)/m_nfi_aLHn)*100 
 
 # 1.4.1.2. Betula differences TapeS NFI -----------------------------------------------
@@ -124,7 +124,7 @@ sd_all_func_betula <- sd(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_m
 cv_all_func_betula <- sd_all_func_betula/m_all_func_betula
 
 
-# percent difference: 16.39841 %, 8.668038 tonns
+# percent difference: 47.15515 %, 19.71604 tonns
 ((m_all_func_betula - m_nfi_aLHn)/m_nfi_aLHn)*100 
 
 
@@ -138,6 +138,8 @@ m_tapes_alnus <- mean(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bo
 # percent difference: 0.03252872
 ((m_tapes_alnus - m_all_func_alnus)/m_all_func_alnus)*100 
 
+# difference mean tapes alnus nfi 
+((m_tapes_alnus - m_nfi_aLHn)/m_all_func_alnus)*100 
 
 # 1.4.2.2. Betula differences TapeS and overall mean -----------------------------------------------
 m_tapes_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb" & pseudo_mono_mean_func$func_ID == "tapes"]))
@@ -145,7 +147,7 @@ m_tapes_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mea
 # percent difference: 14.85599
 ((m_tapes_betula - m_all_func_betula)/m_all_func_betula)*100 
 
-# percent difference: 33.69055
+# percent difference: 33.69055 %, 28.85649tons
 ((m_tapes_betula - m_nfi_aLHn)/m_nfi_aLHn)*100 
 
 
@@ -239,7 +241,7 @@ pseudo_mono_mean_func$ID[ pseudo_mono_mean_func$compartiment == "w_agb" & pseudo
 # Tapes:  70.66749
 max(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$func_ID == "tapes"]))
 
-# min all: 250.3115
+# ma all: 250.3115
 max(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]))
 # min all func: "29_w_agb"
 pseudo_mono_P_SP$ID[pseudo_mono_P_SP$compartiment == "w_agb" & pseudo_mono_P_SP$C_t_ha == max(na.omit(pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]))]

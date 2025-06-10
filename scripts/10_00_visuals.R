@@ -52,6 +52,9 @@ trees_height_data <- trees_height_data %>%
 
 
 # 1. jitter and line plot -------------------------------------------------
+tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/DBH_H_al_bet.tex'),width=1000,height=847)
+
+{
 ggplot() +
   geom_point(data = (trees_height_data %>%
                        filter(H_method == "sampled" 
@@ -71,8 +74,13 @@ ggplot() +
               aes(x = DBH_cm, y = H_m_nls, color = min_org))+ 
   theme_bw()+ 
   facet_wrap(~bot_name)+
-  xlab("DBH [cm]")+ 
-  ylab("height [m]")
+  xlab("diameter at breast height [cm]")+ 
+  ylab("height [m]")+ 
+  theme(legend.position="none")
+}
+dev.off()
+
+
 
 
 # 1.1.2. height violin boxplot --------------------------------------------
@@ -83,7 +91,9 @@ ggplot(data = trees_data %>%
                   bot_name == "Alnus glutinosa" & H_method == "sampled")) +
   geom_boxplot(aes(x = min_org, y = H_m))+
   geom_violin(aes(x = min_org, y = H_m), alpha=0.2) +
-  facet_wrap(~bot_name)
+  facet_wrap(~bot_name)+
+  xlab("site type (min: mineral, org: organic)")+ 
+  ylab("height [m]")
 
 
 
@@ -127,7 +137,12 @@ m_sd_b_al[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]
 
 
 # 1.2.1.2. alnus biomass ggplot  ------------------------------------------
-# plot 
+# latex friendly export
+# 1000, 847
+
+tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/alnus_bio.tex'),width=1000,height=847)
+
+{ 
 ggplot( )+ 
   geom_point(data = ungroup(alnus_wag)  %>% filter(!(ID %in% c("9_w_agb"))) 
              , aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID), 
@@ -163,9 +178,12 @@ ggplot( )+
   xlim(0, 64)+
   theme_bw()+
   theme(legend.position="none")+
-  ggtitle("Alnus woody aboveground biomass kg/tree by diameter cm")
+  # ggtitle("Alnus woody aboveground biomass [$kg~tree^{-1}$] by diameter at breat height DBH [cm]")+
+  xlab("Diameter at breast height [$cm$]")+ 
+  ylab("Woody aboveground biomass [$kg~tree^{-1}$]")
+  }
 
-
+dev.off()
 
 # 1.2.2. BETULA biomass  --------------------------------------------------
 # 1.2.2.1. betula biomass data wrangling ----------------------------------
@@ -199,6 +217,10 @@ m_sd_b_be[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]
 
 
 # 1.2.2.2. betula biomass ggplot ------------------------------------------
+
+tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/betula_bio.tex'),width=1000,height=847)
+
+{ 
 # plot 
 ggplot( )+ 
   geom_point(data = ungroup(betula_wag) # %>% filter(!(ID %in% c("2_w_agb"))), 
@@ -236,7 +258,9 @@ ggplot( )+
   theme_bw()+
   theme(legend.position="none")+
   ggtitle("Betula woody aboveground biomass kg/tree by diameter cm")
+}
 
+dev.off()
 
 
 
@@ -278,22 +302,24 @@ color_map <- setNames(alnus_wag$farbe, alnus_wag$ID)
 my.colors <- unique(alnus_wag[,c("names", "farbe")])$farbe
 
 
+tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/alnus_c.tex'),width=1000,height=847)
 
+{ 
 # plotting boxplot
 boxplot(as.numeric(values) ~ as.factor(names),
         col=my.colors ,
         xlab = "Biomass equation",
-        ylab = "C stock t ha-1", 
-        main = "Alnus spp. C stock t ha-1 by biomass equation", 
+        ylab = "Carbon stock $C~t~ha^{-1}$", 
+        # main = "Alnus spp. C stock t ha-1 by biomass equation", 
         ylim = c(0,275.1831))
 # add nfi mean
- segments(x0 = 0.5, 
-          x1 = length(unique(names)) + 0.5,
-          y0 = ton(52859), y1 = ton(52859), col = "blue", lwd = 2) 
- # add nfi mean abovgorund c stock 
- segments(x0 = 0.5, 
-          x1 = length(unique(names)) + 0.5,
-          y0 = ton(41811), y1 = ton(41811), col = "green", lwd = 2) 
+ # segments(x0 = 0.5, 
+ #          x1 = length(unique(names)) + 0.5,
+ #          y0 = ton(52859), y1 = ton(52859), col = "blue", lwd = 2) 
+ # # add nfi mean abovgorund c stock 
+ # segments(x0 = 0.5, 
+ #          x1 = length(unique(names)) + 0.5,
+ #          y0 = ton(41811), y1 = ton(41811), col = "green", lwd = 2) 
 # add line for dataset mean across all equations
 segments(x0 = 0.5, 
          x1 = length(unique(names)) + 0.5, 
@@ -304,62 +330,82 @@ points(as.numeric(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_ge
                                                     & pseudo_mono_mean_func$compartiment == "w_agb"
                                                     & pseudo_mono_mean_func$paper_ID !=9]) 
        , col = "black",  pch = 16)
-# legend
-legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", 
-                             #"mean C t ha-1 NFI", 
-                             "mean C t ha-1 over all equations") , 
-       col = c("red", "#53868B", "#7AC5CD", "grey", # "blue", 
-               "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(1.0 , 0.1))
-
+## legend
+# legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", 
+#                              #"mean C t ha-1 NFI", 
+#                              "mean C t ha-1 over all equations") , 
+#        col = c("red", "#53868B", "#7AC5CD", "grey", # "blue", 
+#                "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(1.0 , 0.1))
+}
+dev.off()
 
 
 # 1.3.2. Betula C stock boxplot-----------------------------------------------------
 
+#  boxplot mean c stocks ha alnus per plot and species   ---------------------------------------
 # subset for boxplot
-values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]
-names <- pseudo_mono_P_SP$ID[pseudo_mono_P_SP$bot_genus %in% c("Betula") & pseudo_mono_P_SP$compartiment == "w_agb"]
-betula_wag <- as.data.frame(cbind(names, values))
+values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Betula") 
+                                  & pseudo_mono_P_SP$compartiment == "w_agb"]
+
+names <-  setDT(pseudo_mono_P_SP[pseudo_mono_P_SP$bot_genus %in% c("Betula") 
+                                 & pseudo_mono_P_SP$compartiment == "w_agb" ,])[, `:=`(
+                                   "names" = paste0(paper_ID, ", ", 
+                                                    ifelse(func_ID != "w_agb", 
+                                                           paste0(func_ID, ", ") , ""), 
+                                                    country_code) )]$names
+
+# assign colors: # mark only tapes plot 
+farbe <-  setDT(pseudo_mono_P_SP[pseudo_mono_P_SP$bot_genus %in% c("Betula") 
+                                 & pseudo_mono_P_SP$compartiment == "w_agb" ,
+                                 ])[, `:=`(
+                                   "farbe" = ifelse(ID %like% c("tapes") , "red" , # tapes red
+                                                    ifelse(peat == "yes",  "blue" , # "#53868B",
+                                                           ifelse(peat == "partly", "turquoise1", # "#7AC5CD",
+                                                                  "grey" ) )))]$farbe
+
+# bind colors, names and values together 
+betula_wag <- as.data.frame(cbind(names, values, farbe))
+
+color_map <- setNames(betula_wag$farbe, betula_wag$ID)
+
 # mark only tapes plot
-my.colors <-my.colors <- ifelse(levels(as.factor(betula_wag$names)) %like% c("tapes") , "red" , # tapes red
-                                ifelse(levels(as.factor(betula_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "yes"]), "blue", # "#53868B",
-                                       ifelse(levels(as.factor(betula_wag$names)) %in% c(pseudo_mono_mean_func$ID[pseudo_mono_mean_func$peat == "partly"]), "turquoise1" , # "#7AC5CD",
-                                              "grey" ) )) 
-
-# plotting boxplot
-boxplot(as.numeric(values) ~ as.factor(names),
-        col=my.colors ,
-        xlab = "Biomass calculation method",
-        ylab = "mean C stock t ha-1", 
-        main = "Betula spp. C stock t ha-1 by biomass method", 
-        ylim = c(0, max(as.numeric(values), na.rm = TRUE) * 1.1))
-## add nfi mean
- segments(x0 = 0.5, 
-          x1 = length(unique(names))- 0.5 ,
-          y0 = ton(52859), y1 = ton(52859), col = "blue", lwd = 2) 
-## add line for dataset mean
-segments(x0 = 0.5, 
-         x1 = length(unique(names) )- 0.5 , 
-         y0 = mean(as.numeric(na.omit(betula_wag$values))), 
-         y1 = mean(as.numeric(na.omit(betula_wag$values))), col = "black", lwd = 2) #functions mean
-# means of every function
-points(as.numeric(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") 
-                                                    & pseudo_mono_mean_func$compartiment == "w_agb"]) 
-       , col = "black", pch = 16)
-# legend 
-legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", 
-                             #"mean C t ha-1 NFI", 
-                             "mean C t ha-1 over all equations") , 
-       col = c("red", "#53868B", "#7AC5CD", "grey", # "blue", 
-               "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(1.0 , 0.1))
+my.colors <- unique(betula_wag[,c("names", "farbe")])$farbe
 
 
+tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/betula_c.tex'),width=1000,height=847)
 
-
-
-
-
-
-
-
+{ 
+  # plotting boxplot
+  boxplot(as.numeric(values) ~ as.factor(names),
+          col=my.colors ,
+          xlab = "Biomass equation",
+          ylab = "Carbon stock $C~t~ha^{-1}$", 
+          # main = "Alnus spp. C stock t ha-1 by biomass equation", 
+          ylim = c(0,275.1831))
+  # add nfi mean
+  # segments(x0 = 0.5, 
+  #          x1 = length(unique(names)) + 0.5,
+  #          y0 = ton(52859), y1 = ton(52859), col = "blue", lwd = 2) 
+  # # add nfi mean abovgorund c stock 
+  # segments(x0 = 0.5, 
+  #          x1 = length(unique(names)) + 0.5,
+  #          y0 = ton(41811), y1 = ton(41811), col = "green", lwd = 2) 
+  # add line for dataset mean across all equations
+  segments(x0 = 0.5, 
+           x1 = length(unique(names)) + 0.5, 
+           y0 = mean(as.numeric(na.omit(alnus_wag$values))), 
+           y1 = mean(as.numeric(na.omit(alnus_wag$values))), col = "black", lwd = 2) #functions mean
+  # means of every function
+  points(as.numeric(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") 
+                                                      & pseudo_mono_mean_func$compartiment == "w_agb"]) 
+         , col = "black",  pch = 16)
+  ## legend
+  # legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", 
+  #                              #"mean C t ha-1 NFI", 
+  #                              "mean C t ha-1 over all equations") , 
+  #        col = c("red", "#53868B", "#7AC5CD", "grey", # "blue", 
+  #                "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(1.0 , 0.1))
+}
+dev.off()
 
 

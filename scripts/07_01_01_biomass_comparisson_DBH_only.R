@@ -450,7 +450,7 @@ trees_data_update_5 <- rbind(
 write.csv(trees_data_update_5, paste0(getwd(), out.path, paste(trees_data_update_5$inv[1], "LT_update_6_1", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 
-
+stop("biomass comparisson end")
 
 # 4. statistical characteristics ---------------------------------------------------------------
 # ((endwert-anfangswert)/ anfangswert)*100
@@ -520,9 +520,9 @@ m_B_alnus_tapes <- mean(alnus_wag_tapes$B_kg_tree) # mean
 sd_B_alnus_tapes <- sd(alnus_wag_tapes$B_kg_tree)  # sd
 cv_B_alnus_tapes <- sd_B_alnus_tapes/m_B_alnus_tapes     # cv
 
+max(alnus_wag_tapes$B_kg_tree)
 
-
-
+min(alnus_wag_tapes$B_kg_tree)
 
 # 4.1.3. alnus extreme function characteristics ---------------------------
 # summarize mean B per tree per function per species
@@ -589,6 +589,7 @@ betula_wag_tapes <-  trees_data_update_5[compartiment %in% c("w_agb") &
 m_B_betula_tapes <- mean(betula_wag_tapes$B_kg_tree)
 sd_B_betula_tapes <- sd(betula_wag_tapes$B_kg_tree)
 cv_B_betula_tapes <- sd_B_betula_tapes/m_B_betula_tapes
+max(betula_wag_tapes$B_kg_tree)
 
 boxplot(as.numeric(betula_wag$B_kg_tree) ~ as.factor(betula_wag$ID))
 

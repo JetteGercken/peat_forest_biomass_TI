@@ -22,16 +22,21 @@ bio_func_df <- read.delim(file = paste0(getwd(), "/data/input/", "B_lit_function
 
 # 0.4 data prep -----------------------------------------------------------
 # assign IDs to papers and functions
+# assign IDs to papers and functions
 bio_func_df <- bio_func_df %>% 
   dplyr::distinct() %>% 
+  arrange(author, title, species) %>% 
   dplyr::group_by(title, author, year, TSL) %>% 
   dplyr::mutate(func_ID = dplyr::row_number()) %>% 
   left_join(., 
             bio_func_df %>% 
+              arrange(author, title, species) %>%
               select(title, author, year, TSL) %>% 
-              distinct() %>% 
+              dplyr::distinct() %>% 
               dplyr::mutate(paper_ID = dplyr::row_number()), 
-            by = c("title", "author", "year", "TSL")) 
+            by = c("title", "author", "year", "TSL")) %>% 
+  # assign country code
+  mutate(country_code = countrycode(country, origin = 'country.name', destination = 'iso3c'))
 # transform coefficients to numeric
 bio_func_df[,13:28] <- lapply(bio_func_df[,13:28], as.numeric)
 # add a column that combines func id and paper id
@@ -39,29 +44,61 @@ bio_func_df$ID <- paste0(bio_func_df$paper_ID,"_", bio_func_df$func_ID)
 
 
 
-
+# 0.5 data preparation trees ---------------------------------------------------------
+trees_data <- trees_data %>% 
+  dplyr::rename("H_m_old" = "H_m") %>% # change name of H_m which includes sampled and not sampled hieghts that are estimated with DBH and HG
+  mutate(H_m = as.numeric(H_m_nls))  %>% # change HM to H_nls which is only SBH based heights
+  distinct() %>% 
+  # join in soil data
+  left_join(soil_types_db %>% select(bfhnr_2, min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
+  mutate(min_org = ifelse(inv == "momok", "org", min_org))
 
 
 
 
 
 # 1. results -----------------------------------------------------------------
+# number of peatland sites
+ length(unique(soil_types_db$bfhnr_2[soil_types_db$min_org == "org"]))
+# 31
+ nrow(unique(trees_data[trees_data$min_org == "org", c("plot_ID", "inv", "min_org")]))
+# 65
+ nrow(unique(trees_data[trees_data$min_org == "org" & trees_data$inv == "momok", c("plot_ID", "inv", "min_org")]))
+# 47
+ nrow(unique(trees_data[trees_data$min_org == "org" & trees_data$inv == "HBI", c("plot_ID", "inv", "min_org")]))
+# 18
+ nrow(unique(trees_data[trees_data$min_org == "min" & trees_data$inv == "HBI", c("plot_ID", "inv", "min_org")]))
+ # 18
+ 
+anti_join( (soil_types_db[soil_types_db$min_org == "org", c("bfhnr_2", "erhebjahr_2")]) %>% distinct(),
+          (trees_data[trees_data$min_org == "org" & trees_data$inv == "HBI", c("plot_ID", "inv", "min_org")]) %>% distinct(), 
+          by = c("bfhnr_2" = "plot_ID"))
 
 # number of papers in general ---------------------------------------------
 # inital number
 nrow(unique(bio_func_df[!is.na(bio_func_df$variables), "paper_ID"])) # 29
 
+# boreal, extratropical functions 
+view(unique(bio_func_df[!is.na(bio_func_df$variables), c("paper_ID", "country")]))
+
+# view functions
+view(unique(bio_func_df[!is.na(bio_func_df$variables), c("paper_ID", "function.")]))
+
 
 # count functions excluded because variabels are not available 
-nrow(unique(bio_func_df[!(bio_func_df$variables %in% c("DBH_cm, H_m", "DBH_cm")) & !is.na(bio_func_df$variables), "paper_ID"])) # 1
+nrow(unique(bio_func_df[!(bio_func_df$variables %in% c("H_m, DBH_cm", "DBH_cm, H_m", "DBH_cm")) & !is.na(bio_func_df$variables), "paper_ID"])) # 1
+(unique(bio_func_df[!(bio_func_df$variables %in% c("H_m, DBH_cm", "DBH_cm, H_m", "DBH_cm")) & !is.na(bio_func_df$variables), "paper_ID"])) # 1
 
 
 # count functions unsuitable to calculate woody aboceground biomass
 nrow(unique(bio_func_df[!(bio_func_df$leafes_inkl %in% c("not included", "possible")) & !is.na(bio_func_df$variables), "paper_ID"])) # 6
+(unique(bio_func_df[!(bio_func_df$leafes_inkl %in% c("not included", "possible")) & !is.na(bio_func_df$variables), "paper_ID"])) # 6
 
 
 
-## filter applied to functions before being applied: this is the dataset the analysis eventually ran with
+
+#+
+#+## filter applied to functions before being applied: this is the dataset the analysis eventually ran with
 bio_func_sub <- setDT(bio_func_df)[
     !is.na(bio_func_df$variables) &                # select only those papers with functions
     bio_func_df$compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb")& # only the usual compartiments 
@@ -69,13 +106,16 @@ bio_func_sub <- setDT(bio_func_df)[
     bio_func_df$variables %in% c("DBH_cm, H_m", "DBH_cm"),    # only functions with DBH and height as explainatory variablse
 ]
  
-bio_func_final <- bio_func_sub[bio_func_sub$species %like% "Betula" | # select only betula specific functions or
-  bio_func_sub$ species %like% "Alnus" ,]     # select only Alnus specific species
+bio_func_final <- bio_func_sub[bio_func_sub$species %like% "Betula pubescens" | # select only betula specific functions or
+  bio_func_sub$ species %like% "Alnus glutinosa" ,]     # select only Alnus specific species
 
 
 
-# coun´t functions that did not only include DBH and H 
-length(unique(bio_func_final$paper_ID))  # 23
+unique(setDT(bio_func_sub)[bio_func_sub$ species %like% "Alnus glutinosa" , c("author", "year", "title", "paper_ID")] )
+
+
+# final amount of functions 
+length(unique(bio_func_final$paper_ID))  # 19
 
 
 
@@ -97,11 +137,11 @@ unique(setDT(bio_func_final)[!is.na("variables")&
 
 # 1.2. number of papers per species -----------------------------------------------------------------
 # harmonise species names
-bio_func_final[, spec_group :=(ifelse(species %like% "Betula pubescens", "Betula pubescens", 
+bio_func_sub[, spec_group :=(ifelse(species %like% "Betula pubescens", "Betula pubescens", 
                                       ifelse(species %like% "Alnus glutinosa" |
                                                species %like% "Alnus Glutinosa", "Alnus glutinosa", "other")))]
 # count paper by speices 
-unique(setDT(bio_func_final)[, c("title", "author", "year", "spec_group")])[,.N, by= list(spec_group)]
+unique(setDT(bio_func_sub)[, c("title", "author", "year", "spec_group")])[,.N, by= list(spec_group)]
 
 # result: 
 #          spec_group     N
@@ -113,7 +153,7 @@ unique(setDT(bio_func_final)[, c("title", "author", "year", "spec_group")])[,.N,
 # 1.3. countries of origin -----------------------------------------------------------------
 ## countries 
 # count countries
-unique(setDT(bio_func_df)[!is.na("variables") , 
+unique(setDT(bio_func_sub)[!is.na("variables") , 
                           c("title", "author", "year", "country")])[,.N, by= list(country)]
 
 ## region
@@ -122,12 +162,12 @@ mediteran <- c("Albania", "Algeria", "Bosnia and Herzegovina", "Croatia", "Cypru
              "France", "Greece", "Israel", "Italy", "Lebanon", "Libya", "Malta", 
             "Monaco", "Montenegro", "Morocco", "Slovenia", "Spain", "Spain, Gallicia", "Syria", "Tunisia", "Turkey")
 # boreal countries
-boreal <- c("Canada", "China", "Finnland", "Japan", "Norway", "Russia", "Sweden", "USA", "Iceland", "Greenland")
+boreal <- c("Canada", "China", "Finnland", "Japan", "Norway", "Russia", "Sweden", "USA", "Iceland", "Greenland", "Latvia","Lituania", "Estonia")
 # assign regions to country
-bio_func_df[!is.na("variables"), region := (ifelse(country %in% mediteran, "mediterean", 
+bio_func_sub[!is.na("variables"), region := (ifelse(country %in% mediteran, "mediterean", 
                                 ifelse(country %in% boreal, "boreal", "temperate")))]
 # count regions
-unique(bio_func_df[!is.na("variables") , c("title", "author", "year", "country", "region")])[,.N, by= list(region)]
+unique(bio_func_sub[!is.na("variables") , c("title", "author", "year", "country", "region")])[,.N, by= list(region)]
 
 # region     N
 # <char> <int>
