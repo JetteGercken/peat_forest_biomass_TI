@@ -29,7 +29,7 @@
        #   install.packages("sjmisc")
        # install.packages("stringr")
        #   install.packages("readODS")
-       #  install.packages("countrycode")
+        # install.packages("countrycode")
        # ## laTex
        #  install.packages("stargazer")  #for compatability with Latex
        #  install.packages("tikzDevice") #for compatability with Latex#

@@ -144,7 +144,7 @@ coeff_H_SP <- left_join(trees_total %>%
                         by = c("SP_code"))%>%
   mutate(H_est = b0 * (1 - exp( -b1 * DBH_cm))^b2) %>% 
   group_by(SP_code) %>% 
-  summarise( b0 = mean(b0), 
+  dplyr::summarise( b0 = mean(b0), 
              b1 = mean(b1), 
              b2 = mean(b2), 
              #https://rdrr.io/cran/forestmangr/f/vignettes/eq_group_fit_en.Rmd
@@ -163,7 +163,7 @@ coeff_H_SP <- left_join(trees_total %>%
   select(plot_ID, SP_code, b0, b1, b2, bias, rsme, R2, mean_h, SSres, SStot, pseu_R2, diff_h)
 
  # 2.1.3 combined coefficients of height models -----------------------------------------------------
-coeff_H_comb <- rbind(coeff_H_SP_P %>% mutate(plot_ID = as.factor(plot_ID)), coeff_H_SP)
+coeff_H_comb <- rbind(coeff_H_SP_P %>% dplyr::mutate(plot_ID = as.factor(plot_ID)), coeff_H_SP)
 
 
 # 2.2 calculating Hg, Dg etc. per plot, stand, species-----------------------------------------------
