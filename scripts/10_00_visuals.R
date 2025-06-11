@@ -2,6 +2,8 @@
 # Analysis of the forest inventory accompanying the national soil inventory
 # visualisation script
 
+# path to latex for tikz(): # C:\Users\gercken\AppData\Local\Programs\MiKTeX\miktex\bin\x64\pdflatex.exe
+# options(tikzLatex = "C:/Program Files/texstudio/texstudio.exe")
 
 
 # 0. setup ----------------------------------------------------------------
@@ -10,7 +12,7 @@
 # 0.1 functions -----------------------------------------------------------
 source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
 
-
+options(tikzLatex = "C:/Program Files/MiKTeX/miktex/bin/x64/pdflatex.exe")
 # 0.2 working directory ---------------------------------------------------
 out.path <- paste0(getwd(), "/output/out_data/") 
 
@@ -52,10 +54,8 @@ trees_height_data <- trees_height_data %>%
 
 
 # 1. jitter and line plot -------------------------------------------------
- tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/DBH_H_al_bet.tex'),width=1000,height=847)
-
-{
-ggplot() +
+ 
+DBH_H_al_bet <- ggplot() +
   geom_point(data = (trees_height_data %>%
                        filter(H_method == "sampled" 
                               #    & BWI_SP_group %in% c("aLh", "aLn")
@@ -76,9 +76,36 @@ ggplot() +
   facet_wrap(~bot_name)+
   xlab("diameter at breast height [cm]")+ 
   ylab("height [m]")+ 
-  theme(legend.position="none")
- }
- dev.off()
+  theme(legend.position="none") 
+
+options(tikzMetricsDictionary = tempfile())
+
+tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/DBH_H_al_bet.tex'),width=3.5,height=3.5)
+
+  ggplot() +
+    geom_point(data = (trees_height_data %>%
+                         filter(H_method == "sampled" 
+                                #    & BWI_SP_group %in% c("aLh", "aLn")
+                                & bot_name %in% c("Betula pubescens", "Alnus glutinosa")
+                         ) %>% 
+                         #left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
+                         mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
+               aes(x = DBH_cm, y = H_m, color = min_org), alpha = 0.05)+
+    geom_smooth(data = trees_height_peterson %>% 
+                  filter(H_method == "sampled" 
+                         # & BWI_SP_group %in% c("aLh", "aLn")
+                         # & bot_genus %in% c("Betula", "Alnus")
+                         & bot_name %in% c("Betula pubescens", "Alnus glutinosa")
+                  ),# %>%  
+                #  mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
+                aes(x = DBH_cm, y = H_m_nls, color = min_org))+ 
+    theme_bw()+ 
+    facet_wrap(~bot_name)+
+    xlab("diameter at breast height [cm]")+ 
+    ylab("height [m]")+ 
+    theme(legend.position="none") 
+  
+dev.off()
 
 
 
