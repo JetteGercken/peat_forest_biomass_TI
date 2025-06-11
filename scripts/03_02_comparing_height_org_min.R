@@ -179,7 +179,7 @@ wilcox.test(DBH_cm~min_org, data = trees_sub_all,
 
 
 # alnus betula statistical comparisson -------------------------------------------------
-trees_sub <- trees_data[trees_data$bot_name %in% c("Betula pubescens", "Alnus glutinosa") & trees_data$H_method == "sampled", ]
+trees_sub <- trees_data[trees_data$bot_name %in% c("Betula pubescens", "Alnus glutinosa") & trees_data$H_method == "sampled" , ]
 setDT(trees_sub)[, `:=`(HD = H_m/DBH_cm)]
 
 # check n
@@ -216,7 +216,7 @@ wilcox.test(HD~min_org, data = trees_sub,
 # DBH_cm for alnus and betula together is significanlty different: p-value = 0.00169
 
 
-wilcox.test(HD~min_org, data = trees_sub[trees_sub$bot_name == "Alnus glutinosa", ], 
+wilcox.test(DBH_cm~min_org, data = trees_sub[trees_sub$bot_name == "Alnus glutinosa", ], 
             exact = FALSE, 
             correct = FALSE, 
             conf.int = FALSE)
@@ -224,7 +224,7 @@ wilcox.test(HD~min_org, data = trees_sub[trees_sub$bot_name == "Alnus glutinosa"
 # H_m  means for Alnus are different: p-value = 5.058e-06 
 # HD means are not different: p-value = 0.8471 
 
-wilcox.test(HD~min_org, data = trees_sub[trees_sub$bot_name == "Betula pubescens", ], 
+wilcox.test(DBH_cm~min_org, data = trees_sub[trees_sub$bot_name == "Betula pubescens", ], 
             exact = FALSE, 
             correct = FALSE, 
             conf.int = FALSE)
@@ -232,8 +232,18 @@ wilcox.test(HD~min_org, data = trees_sub[trees_sub$bot_name == "Betula pubescens
 # H_m  means for betula are different: p-value = 0.008783
 # HD means are not different: p-value = 0.1163
 
+trees_min_org <- trees_data[trees_data$bot_name %in% c("Betula pubescens", "Alnus glutinosa") & 
+             trees_data$min_org == "min" &  
+             trees_data$H_method == "sampled"  |
+             trees_data$bot_name %in% c("Betula pubescens", "Betula spp.", "Alnus glutinosa", "Alnus spp.")& 
+             trees_data$min_org == "org" &  
+             trees_data$H_method == "sampled", ]
+setDT(trees_min_org)[, `:=`(HD = H_m/DBH_cm)]
 
-
+wilcox.test(H_m~min_org, data = trees_min_org[trees_min_org$bot_genus == "Betula", ], 
+            exact = FALSE, 
+            correct = FALSE, 
+            conf.int = FALSE)
 
 # 2. visuals of comparisson -----------------------------------------------------------------
 # fit nls first so we can decide which function ggplot uses t fit the smooth

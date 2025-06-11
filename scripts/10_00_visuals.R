@@ -52,7 +52,7 @@ trees_height_data <- trees_height_data %>%
 
 
 # 1. jitter and line plot -------------------------------------------------
-tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/DBH_H_al_bet.tex'),width=1000,height=847)
+ tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/DBH_H_al_bet.tex'),width=1000,height=847)
 
 {
 ggplot() +
@@ -77,8 +77,8 @@ ggplot() +
   xlab("diameter at breast height [cm]")+ 
   ylab("height [m]")+ 
   theme(legend.position="none")
-}
-dev.off()
+ }
+ dev.off()
 
 
 
@@ -140,8 +140,8 @@ m_sd_b_al[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]
 # latex friendly export
 # 1000, 847
 
-tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/alnus_bio.tex'),width=1000,height=847)
-
+ tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/alnus_bio.tex'),width=1000,height=847)
+ 
 { 
 ggplot( )+ 
   geom_point(data = ungroup(alnus_wag)  %>% filter(!(ID %in% c("9_w_agb"))) 
@@ -179,16 +179,16 @@ ggplot( )+
   theme_bw()+
   theme(legend.position="none")+
   # ggtitle("Alnus woody aboveground biomass [$kg~tree^{-1}$] by diameter at breat height DBH [cm]")+
-  xlab("Diameter at breast height [$cm$]")+ 
-  ylab("Woody aboveground biomass [$kg~tree^{-1}$]")
-  }
-
-dev.off()
+  xlab("Diameter at breast height [cm]")+ 
+  ylab("Woody aboveground biomass [kg tree^-1]")
+   }
+ 
+ dev.off()
 
 # 1.2.2. BETULA biomass  --------------------------------------------------
 # 1.2.2.1. betula biomass data wrangling ----------------------------------
 # avbovegroun biomass of betula trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
-betula_wag <-  trees_data_bio[compartiment %in% c("w_agb") & bot_genus %in% c("Betula") & min_org == "org", ]
+betula_wag <-  setDT(trees_data_bio)[compartiment %in% c("w_agb") & bot_genus %in% c("Betula") & min_org == "org", ]
 
 # assign labels to functions
 betula_wag_labels <- betula_wag %>% group_by(paper_ID, func_ID, peat, country, ID) %>% dplyr::summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
@@ -218,9 +218,9 @@ m_sd_b_be[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]
 
 # 1.2.2.2. betula biomass ggplot ------------------------------------------
 
-tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/betula_bio.tex'),width=1000,height=847)
-
-{ 
+ tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/betula_bio.tex'),width=1000,height=847)
+ 
+ { 
 # plot 
 ggplot( )+ 
   geom_point(data = ungroup(betula_wag) # %>% filter(!(ID %in% c("2_w_agb"))), 
@@ -255,12 +255,14 @@ ggplot( )+
   )+
   ylim(0, 2700)+
   xlim(0, 64)+
-  theme_bw()+
-  theme(legend.position="none")+
-  ggtitle("Betula woody aboveground biomass kg/tree by diameter cm")
-}
-
-dev.off()
+    theme_bw()+
+    theme(legend.position="none")+
+    # ggtitle("Alnus woody aboveground biomass [$kg~tree^{-1}$] by diameter at breat height DBH [cm]")+
+  xlab("Diameter at breast height [cm]")+ 
+  ylab("Woody aboveground biomass [kg tree^-1]")
+ }
+ 
+ dev.off()
 
 
 
@@ -302,9 +304,9 @@ color_map <- setNames(alnus_wag$farbe, alnus_wag$ID)
 my.colors <- unique(alnus_wag[,c("names", "farbe")])$farbe
 
 
-tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/alnus_c.tex'),width=1000,height=847)
-
-{ 
+ tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/alnus_c.tex'),width=1000,height=847)
+ 
+ { 
 # plotting boxplot
 boxplot(as.numeric(values) ~ as.factor(names),
         col=my.colors ,
@@ -336,8 +338,8 @@ points(as.numeric(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_ge
 #                              "mean C t ha-1 over all equations") , 
 #        col = c("red", "#53868B", "#7AC5CD", "grey", # "blue", 
 #                "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(1.0 , 0.1))
-}
-dev.off()
+ }
+ dev.off()
 
 
 # 1.3.2. Betula C stock boxplot-----------------------------------------------------
@@ -372,9 +374,9 @@ color_map <- setNames(betula_wag$farbe, betula_wag$ID)
 my.colors <- unique(betula_wag[,c("names", "farbe")])$farbe
 
 
-tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/betula_c.tex'),width=1000,height=847)
-
-{ 
+ tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/betula_c.tex'),width=1000,height=847)
+ 
+ { 
   # plotting boxplot
   boxplot(as.numeric(values) ~ as.factor(names),
           col=my.colors ,
@@ -405,7 +407,7 @@ tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/betula_c.tex'),width=1000,h
   #                              "mean C t ha-1 over all equations") , 
   #        col = c("red", "#53868B", "#7AC5CD", "grey", # "blue", 
   #                "black") , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(1.0 , 0.1))
-}
-dev.off()
+ }
+ dev.off()
 
 

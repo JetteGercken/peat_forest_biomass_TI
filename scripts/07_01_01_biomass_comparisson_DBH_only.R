@@ -456,13 +456,17 @@ stop("biomass comparisson end")
 # ((endwert-anfangswert)/ anfangswert)*100
 # general statistics of tree dataset
 trees_data %>% 
-  group_by(bot_name, min_org) %>% 
+  filter(bot_genus %in% c("Alnus", "Betula") & 
+           bot_species %in% c("glutinosa", "pubescens", "spp.") & 
+           min_org == "org" & 
+           compartiment == "ag") %>% 
+  group_by(bot_genus, min_org) %>% 
     dplyr::summarise(mean_DBH = mean(DBH_cm), 
                      min_DBH = min(DBH_cm), 
                      max_DBH = max(DBH_cm),
             mean_H = mean(H_m), 
-            mean_H_old = mean(H_m_old)) %>% 
-  filter(bot_name %in% c("Alnus glutinosa", "Betula pubescens"))
+            mean_H_old = mean(H_m_old), 
+            n = n() )
 
 
 # bot_name         min_org mean_DBH mean_H
@@ -472,23 +476,32 @@ trees_data %>%
 # 3 Betula pubescens min         18.0   17.6
 # 4 Betula pubescens org         17.0   16.0
 
+# bot_genus min_org mean_DBH min_DBH max_DBH mean_H mean_H_old
+# <chr>     <chr>      <dbl>   <dbl>   <dbl>  <dbl>      <dbl>
+#  Alnus     min         25.4     7.2    60.0   19.9       20.0
+#  Alnus     org         21.1     7.1    61.4   17.6       17.6
+#  Betula    min         18.0     7      38.2   17.6       17.7
+#  Betula    org         16.7     7.1    50     16.2       16.6
+
+
 trees_data %>% 
-  filter(H_method == "sampled") %>% 
+  filter(H_method == "sampled" & compartiment == "ag") %>% 
   group_by(bot_name, min_org) %>% 
   dplyr::summarise(mean_DBH = mean(DBH_cm), 
                    min_DBH = min(DBH_cm), 
                    max_DBH = max(DBH_cm),
                    mean_H_sampled = mean(H_m_old), 
                    min_H = min(H_m_old), 
-                   max_H = max(H_m_old)) %>% 
+                   max_H = max(H_m_old), 
+                   n = n()) %>% 
   filter(bot_name %in% c("Alnus glutinosa", "Betula pubescens"))
 
-# bot_name         min_org mean_DBH min_DBH max_DBH mean_H_sampled min_H max_H
-# <chr>            <chr>      <dbl>   <dbl>   <dbl>          <dbl> <dbl> <dbl>
-# 1 Alnus glutinosa  min         25.4    8.15    60.0           19.4   4.6  35.5
-# 2 Alnus glutinosa  org         20.5    7.1     61.4           16.0   4.6  32.5
-# 3 Betula pubescens min         19.3    7       38.2           17.8   4.8  26.8
-# 4 Betula pubescens org         19.0    7.1     50             16.0   4.5  25.1
+# bot_name         min_org mean_DBH min_DBH max_DBH mean_H_sampled min_H max_H     n
+# <chr>            <chr>      <dbl>   <dbl>   <dbl>          <dbl> <dbl> <dbl> <int>
+# Alnus glutinosa  min         25.4    8.15    60.0           19.4   4.6  35.5   135
+# Alnus glutinosa  org         20.5    7.1     61.4           16.0   4.6  32.5   196
+# Betula pubescens min         19.3    7       38.2           17.8   4.8  26.8    99
+# Betula pubescens org         19.0    7.1     50             16.0   4.5  25.1   114
 
 
 # 4.1.Alnus ------------------------------------------------------------------------
