@@ -108,6 +108,34 @@ tikzDevice::tikz(paste0(getwd(), '/output/out_graphs/DBH_H_al_bet.tex'),width=3.
 dev.off()
 
 
+pdf(paste0(getwd(), '/output/out_graphs/DBH_H_al_bet.pdf'),   # The directory you want to save the file in
+    width = 4, # The width of the plot in inches
+    height = 4)
+ggplot() +
+  geom_point(data = (trees_height_data %>%
+                       filter(H_method == "sampled" 
+                              #    & BWI_SP_group %in% c("aLh", "aLn")
+                              & bot_name %in% c("Betula pubescens", "Alnus glutinosa")
+                       ) %>% 
+                       #left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
+                       mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
+             aes(x = DBH_cm, y = H_m, color = min_org), alpha = 0.05)+
+  geom_smooth(data = trees_height_peterson %>% 
+                filter(H_method == "sampled" 
+                       # & BWI_SP_group %in% c("aLh", "aLn")
+                       # & bot_genus %in% c("Betula", "Alnus")
+                       & bot_name %in% c("Betula pubescens", "Alnus glutinosa")
+                ),# %>%  
+              #  mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
+              aes(x = DBH_cm, y = H_m_nls, color = min_org))+ 
+  theme_bw()+ 
+  facet_wrap(~bot_name)+
+  xlab("diameter at breast height [cm]")+ 
+  ylab("height [m]")+ 
+  theme(legend.position="none") 
+dev.off()
+
+
 
 
 # 1.1.2. height violin boxplot --------------------------------------------
