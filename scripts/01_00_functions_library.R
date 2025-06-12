@@ -42,6 +42,8 @@
       #    options(tz="CA")
       #    install.packages("gridExtra")
       #    install.packages("plotly")
+      #  #  install.packages("gridGraphics")
+      #    install.packages("cowplot") # make base r plot into variable 
       #   ## analysis
       #    install.packages("corrplot")
       #   install.packages("SciViews")  # this is for ln and stuff --> to make the functions easier
@@ -103,6 +105,8 @@
     options(tz="CA")
     library(gridExtra)
     # library(plotly)
+    # library("gridGraphics") # this is to make base r plot a variable for export
+    library("cowplot")  # this is to make base r plot a variable for export
     # analysis
     library(corrplot)
     library(SciViews)  # this is for ln and stuff --> to make the functions easier
