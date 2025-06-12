@@ -104,7 +104,28 @@ DBH_H_bet <- ggplot() +
   theme(legend.position="none") 
 
 
-
+DBH_H_bet_al <- ggplot() +
+  geom_point(data = (trees_height_data %>%
+                       filter(H_method == "sampled" 
+                              #    & BWI_SP_group %in% c("aLh", "aLn")
+                              & bot_name %in% c("Betula pubescens", "Alnus glutinosa")
+                       ) %>% 
+                       #left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
+                       mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
+             aes(x = DBH_cm, y = H_m, color = min_org), alpha = 0.05)+
+  geom_smooth(data = trees_height_peterson %>% 
+                filter(H_method == "sampled" 
+                       # & BWI_SP_group %in% c("aLh", "aLn")
+                       # & bot_genus %in% c("Betula", "Alnus")
+                       & bot_name %in% c("Betula pubescens", "Alnus glutinosa")
+                ),# %>%  
+              #  mutate(min_org = ifelse(inv == "momok", "org", min_org))), 
+              aes(x = DBH_cm, y = H_m_nls, color = min_org))+ 
+  theme_bw()+ 
+  facet_wrap(~bot_name)+
+  xlab("diameter at breast height [cm]")+ 
+  ylab("height [m]")+ 
+  theme(legend.position="none") 
 
 # 1.1.2. height violin boxplot --------------------------------------------
 # dbh comparisson violin plot org min boxplot separated  by species and soil type 
@@ -578,9 +599,17 @@ lines(dens_betula)
  DBH_H_bet
  dev.off()
  
+ # 2.1.2 Betula and alnus facet H ~ DBH min org comparisson  jitter line ---------------------------------------
+ 
+ setEPS()
+ postscript(paste0(getwd(), "/output/out_graphs/DBH_H_betula_alnus.eps"))
+ # plot
+ DBH_H_bet_al
+ dev.off()
  
 
  # 2.2. biomass ~ DBH comparisson by equation jitter smooth  ---------------------------------------
+ 
  
  # 2.2.1. alnus biomass ~ DBH comparisson by equation jitter smooth  ---------------------------------------
  
