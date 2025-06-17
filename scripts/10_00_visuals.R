@@ -184,7 +184,7 @@ m_sd_b_al[, low_sd_B_kg_tree := (B_kg_tree - sd_B_kg_tree)]
 
 # 1.2.1.2. alnus biomass ggplot  ------------------------------------------
 # latex friendly export
-# 1000, 847
+# 1000, 847#
 
 alnus_bio <-  
 ggplot( )+ 
@@ -523,7 +523,7 @@ betula_c <- ggplot(data = betula_wag,
 
 
 
-# diamneter distribution --------------------------------------------------
+# 1.4 diamneter distribution --------------------------------------------------
 # subset data accordingly
 trees_sub <- unique(setDT(trees_data)[ min_org == "org" & 
                                          bot_genus %in% c("Alnus", "Betula") & bot_species %in% c("pubescens", "glutinosa", "spp.") & 
@@ -579,6 +579,151 @@ hist(trees_sub$DBH_cm[trees_sub$bot_genus == "Betula"],
      ylab = "Density", 
      freq = F)
 lines(dens_betula)
+
+
+
+
+
+# 1.5. biofunc table ------------------------------------------------------
+bio_func_wag_bet_al <- (bio_func_df %>% semi_join(., rbind(
+  unique(setDT(alnus_wag)[, c("paper_ID",   "country") ]),
+  unique(setDT(betula_wag)[, c("paper_ID", "country")])), 
+  by = c("paper_ID",  "country")))[]
+
+
+bio_func_wag_bet_al <- 
+subset(setDT(bio_func_wag_bet_al), 
+       ## filter alnus
+       species %like% "Alnus glutinosa" &     # select only Alnus specific species
+         !is.na(function.) &                    # select only those papers with functions
+         compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb") | 
+         species %like% "Alnus Glutinosa" &     # select only Alnus specific species
+         !is.na(function.) &                    # select only those papers with functions
+         compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb") | 
+         species %like% "Alnus spp." &     # select only Alnus specific species
+         !is.na(function.) &                    # select only those papers with functions
+         compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb")|
+         ## filter betula
+         !is.na(function.) &        
+         species %like% "Betula pubescens" &     # select only Alnus specific species
+        compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb")
+         ) 
+
+
+bio_func_wag_bet_al <- setDT(bio_func_wag_bet_al)[, c(
+  "paper_ID"
+  , "func_ID"
+  , "country"
+   ,"species"
+   ,"unit_B"
+   #,unit_DBH
+   #,unit_H	
+   ,"DBH_cm_min"	
+   ,"DBH_cm_max"	
+   ,"H_m_min"
+   ,"H_m_max"	
+   , "age_min"
+   , "age_max"
+   #,reference	
+   	
+   ,"r2"
+   ,"N"	
+   ,"compartiment"
+   ,"logarithm_B"	
+   ,"function."	
+   ,"a"	
+   ,"b"	
+   ,"c"	
+   ,"d"	
+   ,"e"	
+   ,"f"
+   ,"g"	
+   ,"h"	
+   ,"I"	
+   ,"j"	
+   ,"k"	
+   ,"m"	
+   ,"TSL"
+   ,"u_k"	
+   ,"e_ki"
+   )
+]
+
+# add h and dbh unit
+bio_func_wag_bet_al <- bio_func_wag_bet_al[, `:=`( 
+  unit_DBH = ifelse((grepl( "DBH_cm*10", bio_func_wag_bet_al$function., fixed = TRUE)) == TRUE, "mm", "cm"),
+  unit_H = ifelse((grepl( "H_m*10", bio_func_wag_bet_al$function., fixed = TRUE)) == TRUE, "dm", "m")
+ , equation = bio_func_wag_bet_al$function.)] # add new col called equation
+
+# create function col that only contains euqation form
+bio_func_wag_bet_al <- bio_func_wag_bet_al[, `:=`(equation = gsub("DBH_cm", "DBH", bio_func_wag_bet_al$equation))]
+bio_func_wag_bet_al <- bio_func_wag_bet_al[, `:=`(equation = gsub("DBH[*]10", "DBH", bio_func_wag_bet_al$equation))]
+bio_func_wag_bet_al <- bio_func_wag_bet_al[, `:=`(equation = gsub("H_m", "H", bio_func_wag_bet_al$equation))]
+bio_func_wag_bet_al <- bio_func_wag_bet_al[, `:=`(
+equation = sub('.*=', '', bio_func_wag_bet_al$equation) # # create function col that only contains euqation form: select before and after symbol: https://stackoverflow.com/questions/37051288/extract-text-after-a-symbol-in-r
+, compartiment = toupper(bio_func_wag_bet_al$compartiment))] # make compartiment into capital letters
+
+# add ln to compartiemtn if necesarry
+bio_func_wag_bet_al <- bio_func_wag_bet_al[, `:=`(
+  compartiment = ifelse(is.na(bio_func_wag_bet_al$logarithm_B), bio_func_wag_bet_al$compartiment, paste0("ln(", bio_func_wag_bet_al$compartiment,")"))
+  , DBH_range = paste0(bio_func_wag_bet_al$DBH_cm_min, "-",  bio_func_wag_bet_al$DBH_cm_max)
+  , H_range = paste0(bio_func_wag_bet_al$H_m_min, "-",  bio_func_wag_bet_al$H_m_max)
+  , age_range = paste0(bio_func_wag_bet_al$age_min, "-",  bio_func_wag_bet_al$age_max)
+  # make equation latex friendly
+  ,equation = paste0("$", bio_func_wag_bet_al$equation, "$"))]
+
+bio_func_wag_bet_al$compartment <- bio_func_wag_bet_al$compartiment
+
+
+# select only needed cols:
+bio_func_wag_bet_al <- bio_func_wag_bet_al[,c(
+  "paper_ID"
+  , "func_ID"
+  , "country"
+  ,"species"
+  ,"unit_B"
+  ,"unit_DBH"
+  ,"unit_H"	
+  , "DBH_range"
+  ,"H_range"	
+  ,"age_range"
+  #,reference	
+  ,"r2"
+  ,"N"	
+  ,"compartment"
+  , "equation"
+  ,"a"	
+  ,"b"	
+  ,"c"	
+  ,"d"	
+  ,"e"	
+  ,"f"
+  ,"g"	
+  ,"h"	
+  ,"I"	
+  ,"j"	
+  ,"k"	
+  ,"m"	
+  ,"TSL"
+  ,"u_k"	
+  ,"e_ki"
+)]
+
+
+# caption
+# Biomass equations ("equation") for different biomass components ("component") where
+# "AWG" reffers to the total aboveground biomass,
+# "SW" is stemwood %(aboveground woody compartiments > 7~$cm$ diameter, above  0.3~$m$ height, without bark),
+# "SB" is stemwood bark,
+# "STW" is stumpwood %(aboveground woody compartiments > 7~$cm$ diameter, below  0.3~$m$ height, without bark),
+# "STB" is stumpwood bark,
+# "FWB" is finewood %(aboveground woody compartiments < 7~$cm$ diameter, above 0.3~$m$ height, without bark),
+# NDL" is foliage.
+# Columns "a", "b", "c", "d","e"	,"f","g"	,"h"	,"I"	,"j"	,"k"	,"m"	,"TSL","u_k"	and "e_ki" provide parameter values.
+# Units of the diameter ("DBH"), height ("H") and biomass (B) are provided under "unit". The “ln” is the natural logarithm and "log10" the 10-based logarithm.
+# Additional information like number of sampled trees ("N"), coefficients of determination ("r\^{2}"), and range of diameter
+# ("DBH"), height ("H") and age ("age") of sampled trees are reported if available in the respective publication ("reference").
+# The IDs refer to the subsequent number of the paper used for the figures ("paper_ID") and the number of the equation in the respective paper ("func_ID").
 
 
 # 2. EXPORT ------------------------------------------------------------------
@@ -647,5 +792,10 @@ lines(dens_betula)
  dev.off()
  
  
+
+# 2.4.1. export only alnus and betula funcs that we actually used ---------
+
+ 
+ write.csv(bio_func_wag_bet_al, paste0(getwd(),"/output/out_data/bio_func_wag_bet_al.csv"))
  
  
