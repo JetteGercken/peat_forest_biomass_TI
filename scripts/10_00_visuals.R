@@ -39,6 +39,9 @@ pseudo_mono_P_SP <- read.delim(file = paste0(out.path, "C_stock_ha_pseudo_mono_P
 pseudo_mono_mean_func <- read.delim(file = paste0(out.path, "C_stock_ha_pseudo_mono_func.csv"), sep = ",", dec = ".")
 
 
+# importa data from literature research
+bio_func_df <- read.delim(file = paste0(getwd(), "/data/input/", "B_lit_functions.csv"), sep = ",", dec = ".")
+
 
 # 1. VISUALS ----------------------------------------------------------------------------------------------------
 
@@ -525,7 +528,7 @@ betula_c <- ggplot(data = betula_wag,
 
 # 1.4 diamneter distribution --------------------------------------------------
 # subset data accordingly
-trees_sub <- unique(setDT(trees_data)[ min_org == "org" & 
+trees_sub <- unique(setDT(trees_data_bio)[ min_org == "org" & 
                                          bot_genus %in% c("Alnus", "Betula") & bot_species %in% c("pubescens", "glutinosa", "spp.") & 
                                          compartiment == "ag" |
                                          min_org == "org" & 
@@ -585,9 +588,45 @@ lines(dens_betula)
 
 
 # 1.5. biofunc table ------------------------------------------------------
+# assign IDs to papers and functions
+bio_func_df <- bio_func_df %>% 
+  dplyr::distinct() %>% 
+  arrange(author, title, species) %>% 
+  dplyr::group_by(title, author, year, TSL) %>% 
+  dplyr::mutate(func_ID = dplyr::row_number()) %>% 
+  left_join(., 
+            bio_func_df %>% 
+              arrange(author, title, species) %>%
+              select(title, author, year, TSL) %>% 
+              dplyr::distinct() %>% 
+              dplyr::mutate(paper_ID = dplyr::row_number()), 
+            by = c("title", "author", "year", "TSL")) %>% 
+  # assign country code
+  mutate(country_code = countrycode(country, origin = 'country.name', destination = 'iso3c'))
+# transform coefficients to numeric
+bio_func_df[,13:28] <- lapply(bio_func_df[,13:28], as.numeric)
+# add a column that combines func id and paper id
+bio_func_df$ID <- paste0(bio_func_df$paper_ID,"_", bio_func_df$func_ID)
+# exclude those functions that require age as we don´t always have it
+bio_func_df <- bio_func_df[!(str_detect(bio_func_df$variables, "age")),]
+
+
+
+# 1.5.1. subset -----------------------------------------------------------
+
+
+# 1.5.1.1. Alnus ----------------------------------------------------------------
+alnus_wag <-  trees_data_bio[trees_data_bio$compartiment %in% c("w_agb") &
+                               trees_data_bio$bot_name %in% c("Alnus glutinosa", "Alnus spp.") & 
+                               trees_data_bio$min_org == "org" &
+                               trees_data_bio$paper_ID != 9
+                                  , ]
+# 1.5.1.1. Betula ----------------------------------------------------------------
+betula_wag <-  trees_data_bio[compartiment %in% c("w_agb") & bot_name %in% c("Betula pubescens", "Betula spp.") & min_org == "org", ]
+
 bio_func_wag_bet_al <- (bio_func_df %>% semi_join(., rbind(
   unique(setDT(alnus_wag)[, c("paper_ID",   "country") ]),
-  unique(setDT(betula_wag)[, c("paper_ID", "country")])), 
+  unique(setDT(betula_wag)[, c("paper_ID", "country")]) ), 
   by = c("paper_ID",  "country")))[]
 
 
@@ -669,17 +708,23 @@ bio_func_wag_bet_al <- bio_func_wag_bet_al[, `:=`(
   , DBH_range = paste0(bio_func_wag_bet_al$DBH_cm_min, "-",  bio_func_wag_bet_al$DBH_cm_max)
   , H_range = paste0(bio_func_wag_bet_al$H_m_min, "-",  bio_func_wag_bet_al$H_m_max)
   , age_range = paste0(bio_func_wag_bet_al$age_min, "-",  bio_func_wag_bet_al$age_max)
-  # make equation latex friendly
-  ,equation = paste0("$", bio_func_wag_bet_al$equation, "$"))]
+  # make equation latex friendly --> no need
+  # ,equation = paste0("$", bio_func_wag_bet_al$equation, "$")
+  )]
 
+# rename compartiment column
 bio_func_wag_bet_al$compartment <- bio_func_wag_bet_al$compartiment
+# introduce reference column
+bio_func_wag_bet_al$reference <- cat(paste("\\citep{}")) # \c didnt work because its a comand so we have to fool r: https://stackoverflow.com/questions/28421794/how-to-paste-a-backslash-character-to-a-string
 
+bio_func_wag_bet_al$reference <- paste0("\\\\citep{", "author.year", "}")
 
 # select only needed cols:
 bio_func_wag_bet_al <- bio_func_wag_bet_al[,c(
   "paper_ID"
   , "func_ID"
   , "country"
+  ,"reference"
   ,"species"
   ,"unit_B"
   ,"unit_DBH"
@@ -687,7 +732,6 @@ bio_func_wag_bet_al <- bio_func_wag_bet_al[,c(
   , "DBH_range"
   ,"H_range"	
   ,"age_range"
-  #,reference	
   ,"r2"
   ,"N"	
   ,"compartment"
@@ -732,14 +776,14 @@ bio_func_wag_bet_al <- bio_func_wag_bet_al[,c(
 # 2.1. H ~ DBH min org comparisson  jitter line ---------------------------------------
  # 2.1.1. Alnus H ~ DBH min org comparisson  jitter line ---------------------------------------
   setEPS()
- postscript(paste0(getwd(), "/output/out_graphs/DBH_H_alnus.eps"))
+ postscript(paste0(getwd(), "/output/out_graphs/DBH_H_alnus_HG.eps"))
  # plot
  DBH_H_al
  dev.off()
  
  # 2.1.2 Betula  H ~ DBH min org comparisson  jitter line ---------------------------------------
  setEPS()
- postscript(paste0(getwd(), "/output/out_graphs/DBH_H_betula.eps"))
+ postscript(paste0(getwd(), "/output/out_graphs/DBH_H_betula_HG.eps"))
  # plot
  DBH_H_bet
  dev.off()
@@ -747,7 +791,7 @@ bio_func_wag_bet_al <- bio_func_wag_bet_al[,c(
  # 2.1.2 Betula and alnus facet H ~ DBH min org comparisson  jitter line ---------------------------------------
  
  setEPS()
- postscript(paste0(getwd(), "/output/out_graphs/DBH_H_betula_alnus.eps"))
+ postscript(paste0(getwd(), "/output/out_graphs/DBH_H_betula_alnus_HG.eps"))
  # plot
  DBH_H_bet_al
  dev.off()
@@ -759,7 +803,7 @@ bio_func_wag_bet_al <- bio_func_wag_bet_al[,c(
  # 2.2.1. alnus biomass ~ DBH comparisson by equation jitter smooth  ---------------------------------------
  
  setEPS()
- postscript(paste0(getwd(), "/output/out_graphs/alnus_bio.eps"))
+ postscript(paste0(getwd(), "/output/out_graphs/alnus_bio_HG.eps"))
  # plot
  alnus_bio
  dev.off()
@@ -767,7 +811,7 @@ bio_func_wag_bet_al <- bio_func_wag_bet_al[,c(
  # 2.2.2. betula biomass ~ DBH comparisson by equation jitter smooth  ---------------------------------------
  
  setEPS()
- postscript(paste0(getwd(), "/output/out_graphs/betula_bio.eps"))
+ postscript(paste0(getwd(), "/output/out_graphs/betula_bio_HG.eps"))
  # plot
  betula_bio
  dev.off()
@@ -778,7 +822,7 @@ bio_func_wag_bet_al <- bio_func_wag_bet_al[,c(
  # 2.3.1. alnus carbon per hectare ~ equation comparisson by equation boxplot  ---------------------------------------
  
  setEPS()
- postscript(paste0(getwd(), "/output/out_graphs/alnus_c.eps"))
+ postscript(paste0(getwd(), "/output/out_graphs/alnus_c_HG.eps"))
  # plot
  alnus_c
  dev.off()
@@ -786,7 +830,7 @@ bio_func_wag_bet_al <- bio_func_wag_bet_al[,c(
  # 2.3.2. betula carbon per hectare ~ equation comparisson by equation boxplot  ---------------------------------------
  
  setEPS()
- postscript(paste0(getwd(), "/output/out_graphs/betula_c.eps"))
+ postscript(paste0(getwd(), "/output/out_graphs/betula_c_HG.eps"))
  # plot
  betula_c
  dev.off()
