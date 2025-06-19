@@ -132,7 +132,7 @@ DBH_H_bet_al <- ggplot() +
 
 # 1.1.2. height violin boxplot --------------------------------------------
 # dbh comparisson violin plot org min boxplot separated  by species and soil type 
-ggplot(data = trees_data %>% 
+ggplot(data = trees_height_data %>% 
          mutate(hd = H_m/DBH_cm) %>% 
          filter(bot_name == "Betula pubescens" & H_method == "sampled" |
                   bot_name == "Alnus glutinosa" & H_method == "sampled")) +
@@ -652,6 +652,10 @@ subset(setDT(bio_func_wag_bet_al),
 bio_func_wag_bet_al <- setDT(bio_func_wag_bet_al)[, c(
   "paper_ID"
   , "func_ID"
+  , "title"
+  , "author"
+  , "year"
+  , "DOI"
   , "country"
    ,"species"
    ,"unit_B"
@@ -663,8 +667,6 @@ bio_func_wag_bet_al <- setDT(bio_func_wag_bet_al)[, c(
    ,"H_m_max"	
    , "age_min"
    , "age_max"
-   #,reference	
-   	
    ,"r2"
    ,"N"	
    ,"compartiment"
@@ -723,6 +725,9 @@ bio_func_wag_bet_al$reference <- paste0("\\\\citep{", "author.year", "}")
 bio_func_wag_bet_al <- bio_func_wag_bet_al[,c(
   "paper_ID"
   , "func_ID"
+  , "tittle"
+  , "Author"
+  , "year"
   , "country"
   ,"reference"
   ,"species"
@@ -838,8 +843,8 @@ bio_func_wag_bet_al <- bio_func_wag_bet_al[,c(
  
 
 # 2.4.1. export only alnus and betula funcs that we actually used ---------
-
- 
+ bio_func_wag_bet_al_overview <- setDT(bio_func_wag_bet_al) %>% select(paper_ID, country:age_range, N) %>% distinct()
+ write.csv(bio_func_wag_bet_al_overview, paste0(getwd(),"/output/out_data/bio_func_wag_bet_al_overview.csv"))
  write.csv(bio_func_wag_bet_al, paste0(getwd(),"/output/out_data/bio_func_wag_bet_al.csv"))
  
- 
+ ##
