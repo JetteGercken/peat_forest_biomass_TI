@@ -7,7 +7,9 @@
 
 
 # 0. setup ----------------------------------------------------------------
+install.packages("ggrepel")
 library(ggrepel)
+
 library(ggforce)
 
 # 0.1 functions -----------------------------------------------------------
@@ -225,6 +227,7 @@ ggplot(data = trees_data %>%
 
 
 # 1.2. BIOMASS ------------------------------------------------------------
+install.packages("ggrepel")
 library(ggrepel)
 
 # 1.2.1. Alnus biomass -------------------------------------------
@@ -454,7 +457,7 @@ betula_bio <- ggplot() +
               method = "loess", color = "red", linetype = "dashed", se = FALSE) +
   
   # Labels mit geom_text_repel, rechts oben von den Punkten
-  geom_text_repel(
+ggrepel::geom_text_repel(
     data = smooth_points,
     aes(x = DBH_cm, y = B_kg_tree, label = label_name, color = ID),
     nudge_x = 3,
