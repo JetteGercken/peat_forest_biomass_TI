@@ -9,7 +9,7 @@
 # 0. setup ----------------------------------------------------------------
 install.packages("ggrepel")
 library(ggrepel)
-
+install.packages("ggforce")
 library(ggforce)
 
 # 0.1 functions -----------------------------------------------------------
@@ -212,7 +212,7 @@ DBH_H_plot
 
 # 1.1.2. height violin boxplot --------------------------------------------
 # dbh comparisson violin plot org min boxplot separated  by species and soil type 
-ggplot(data = trees_data %>% 
+ggplot(data = trees_height_data %>% 
          mutate(hd = H_m/DBH_cm) %>% 
          filter(bot_name == "Betula pubescens" & H_method == "sampled" |
                   bot_name == "Alnus glutinosa" & H_method == "sampled")) +
@@ -847,6 +847,7 @@ lines(dens_betula)
  dev.off()
  
  # 2.1.2 Betula and alnus facet H ~ DBH min org comparisson  jitter line ---------------------------------------
+ install.packages("Cairo")
  library(Cairo)
  
  # Dateipfad
