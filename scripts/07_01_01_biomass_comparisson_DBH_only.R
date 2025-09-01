@@ -77,14 +77,14 @@ view(bio_func_df %>% filter(peat %in% c("yes", "partly")) %>% select(paper_ID, a
 # 1. Biomass calculations -------------------------------------------------
 # we need the biomass without leafes. 
 # so we have these 3 scenarios: 
-  # leafes are one of many compartiments and possible to be excluded --> possible
-      # L> we calculate all compartiments and only sum up the woody ones 
-  # leafes are included but not possible to be excluded --> included 
-      # L> these functions are excluded
-  # status of leafes is unklnown --> unknown
-      # L> there functions are excluded
-  # the leafes are not available as a compartiment --> not included 
-      # L> no further calcualtions necesarry, we just do the biomass for agb and thats it 
+# leafes are one of many compartiments and possible to be excluded --> possible
+# L> we calculate all compartiments and only sum up the woody ones 
+# leafes are included but not possible to be excluded --> included 
+# L> these functions are excluded
+# status of leafes is unklnown --> unknown
+# L> there functions are excluded
+# the leafes are not available as a compartiment --> not included 
+# L> no further calcualtions necesarry, we just do the biomass for agb and thats it 
 
 
 # 1.1. ALNUS Biomass calculations -------------------------------------------------
@@ -99,8 +99,8 @@ alnus_func <-subset(bio_func_df, species %like% "Alnus glutinosa" &     # select
                       species %like% "Alnus spp." &     # select only Alnus specific species
                       !is.na(function.) &                    # select only those papers with functions
                       compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb")) 
-  
-  
+
+
 
 # select alnus trees at organic sites
 # with incana trees: 822 rows
@@ -111,7 +111,7 @@ tree_data_alnus <- trees_data[trees_data$bot_name %in% c("Alnus glutinosa") &
                                 trees_data$min_org == "org",]  
 alnus_agb_kg_tree <- vector("list", length = nrow(tree_data_alnus))
 for (i in 1:nrow(alnus_func)){
- # i = 23
+  # i = 23
   
   paper_id <- alnus_func$paper_ID[i]# ID of the paper in literature research csv
   func_id <- alnus_func$func_ID[i]  # ID of the function in literature research csv
@@ -123,7 +123,7 @@ for (i in 1:nrow(alnus_func)){
   comp <- alnus_func$compartiment[i] 
   ln_stat <- alnus_func$logarithm_B[i]
   variables <- alnus_func$variables[i] # input variables for respective function 
- # if the ln status is == "ln", we have to later on backtransform the results.
+  # if the ln status is == "ln", we have to later on backtransform the results.
   # to build the function automatically tho, we have to remove the ln from the function. column
   func <- ifelse(!is.na(ln_stat) & ln_stat == "ln" | !is.na(ln_stat) & ln_stat == "log10", 
                  paste0(gsub(".*\\((.*)\\).*", "\\1", sub('\\=.*', '', func)), '=', sub('.*=', '', func)), # select before and after symbol: https://stackoverflow.com/questions/37051288/extract-text-after-a-symbol-in-r
@@ -136,14 +136,14 @@ for (i in 1:nrow(alnus_func)){
   # select only those cooeficients that are needed https://sparkbyexamples.com/r-programming/select-columns-by-condition-in-r/
   coef.df <- as.data.frame((alnus_func[i,13:27]) %>% select_if(~ !all(is.na(.))))
   # create a vector that holds all coefficients as a character string to print it later when the function is build 
-   coef.print <- vector("list", length = ncol(coef.df))
+  coef.print <- vector("list", length = ncol(coef.df))
   for (j in 1:ncol(coef.df)) {
     # j = 1
     # take every coefficient 
     coef.print[[j]] <- paste(colnames(coef.df)[j], '<-', as.numeric(coef.df[,j]),';')
   } 
   # https://www.geeksforgeeks.org/how-to-collapse-a-list-of-characters-into-a-single-string-in-r/
-    coef.print <- paste(coef.print, collapse= '' )
+  coef.print <- paste(coef.print, collapse= '' )
   
   
   ## create function: https://stackoverflow.com/questions/26164078/r-define-a-function-from-character-string
@@ -176,11 +176,11 @@ for (i in 1:nrow(alnus_func)){
                                  , "country" =c(my.country))) # 
   
   tree.df <- tree.df %>% mutate(  B_kg_tree = dplyr::case_when(!is.na(logarithm_B) & logarithm_B == "ln" ~ as.numeric(exp(B_kg_tree)), 
-                                                        !is.na(logarithm_B) & logarithm_B == "log10" ~ as.numeric(10^(B_kg_tree)), 
-                                                        TRUE ~ as.numeric(B_kg_tree))) %>%  # backtransform  the ln 
-                         mutate(  B_kg_tree = dplyr::case_when(unit_B == "kg" ~ as.numeric(B_kg_tree), 
-                                                        unit_B == "g" ~ as.numeric(B_kg_tree)/1000, 
-                                                        TRUE ~ as.numeric(B_kg_tree)))
+                                                               !is.na(logarithm_B) & logarithm_B == "log10" ~ as.numeric(10^(B_kg_tree)), 
+                                                               TRUE ~ as.numeric(B_kg_tree))) %>%  # backtransform  the ln 
+    mutate(  B_kg_tree = dplyr::case_when(unit_B == "kg" ~ as.numeric(B_kg_tree), 
+                                          unit_B == "g" ~ as.numeric(B_kg_tree)/1000, 
+                                          TRUE ~ as.numeric(B_kg_tree)))
   
   alnus_agb_kg_tree[[i]] <- tree.df
   
@@ -190,20 +190,20 @@ for (i in 1:nrow(alnus_func)){
 alnus_agb_kg_tree_df <- as.data.frame(rbindlist(alnus_agb_kg_tree)) %>% arrange(plot_ID, tree_ID, paper_ID)
 
 # summarise those trees biomass that was calculated by compartiment
-  # normal  compatiments without ag: !(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb")) 
+# normal  compatiments without ag: !(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb")) 
 ## total ag
-  # ag for those papers that include already ndl alnus_func$ID[alnus_func$leafes_inkl == "included"] and have a function that calculates agb explicitly 
-  # can include ndl: alnus_func$ID[alnus_func$leafes_inkl == "possible"]  and have a function that calculates agb explicitly 
-  # can include ndl: alnus_func$ID[alnus_func$leafes_inkl == "possible"]  and do not have a function that calculates agb explicitly 
+# ag for those papers that include already ndl alnus_func$ID[alnus_func$leafes_inkl == "included"] and have a function that calculates agb explicitly 
+# can include ndl: alnus_func$ID[alnus_func$leafes_inkl == "possible"]  and have a function that calculates agb explicitly 
+# can include ndl: alnus_func$ID[alnus_func$leafes_inkl == "possible"]  and do not have a function that calculates agb explicitly 
 
 
 ## wood ag 
- # ag that doesnt include leafes alnus_func$ID[alnus_func$leafes_inkl == "not included"]
- # ag that can include leafes but we exclude them: alnus_func$ID[alnus_func$leafes_inkl == "not included"] !(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl"))
+# ag that doesnt include leafes alnus_func$ID[alnus_func$leafes_inkl == "not included"]
+# ag that can include leafes but we exclude them: alnus_func$ID[alnus_func$leafes_inkl == "not included"] !(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl"))
 
 # now do we need thefilter which indentify the papers that do not come with a explicit function for ag  ?
-  # --> yes because we also have papers that have tree compartimens and ag functions 
-  # while if there is a ag function we want to use the results of that function and we want to aviod the ag be added up with the other compartiments 
+# --> yes because we also have papers that have tree compartimens and ag functions 
+# while if there is a ag function we want to use the results of that function and we want to aviod the ag be added up with the other compartiments 
 
 
 # had to replace rbind.fill: https://stackoverflow.com/questions/18003717/efficient-way-to-rbind-data-frames-with-different-columns, https://stackoverflow.com/questions/44464441/r-is-there-a-good-replacement-for-plyrrbind-fill-in-dplyr 
@@ -214,25 +214,25 @@ alnus_agb_kg_tree_df <- rbind(
   setDT(alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb") & alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl %in% c("included", "possible")]) ,]), 
   # join in agb calculate from compartiments based on papers that don´t have seperate agb function but also  allow to exclude leafes: so they have eg. fwb, ndl and sw but no agb compartiment in their list 
   setDT(tree_data_alnus %>% 
-       left_join(., setDT(alnus_agb_kg_tree_df)[  # this is an inner join in data.tabe: https://medium.com/analytics-vidhya/r-data-table-joins-48f00b46ce29 
-       setDT(bio_func_df %>% 
-          filter(leafes_inkl %in% c("possible", "inlcuded")) %>%                 # agb shoul be included or possible to include
-          select(paper_ID, compartiment) %>%                                     # select papaer ID and compartiments 
-          distinct() %>%                                                         # make sure we only select them once
-          mutate(number = str_count(compartiment, "agb")) %>%                    # count the occurence of "agb" per paper and compartiment
-          group_by(paper_ID) %>% dplyr::summarise(mean_agb_number = mean(number)) %>%   # summarise the number of occurences of "agb" per paper 
-          filter(mean_agb_number == 0)),                                          # filter those papers that allow to calculate the "true" agb with leaves but dont have a agb function and by that have to be summed up  
-      on = .(paper_ID), nomatch = NULL] %>% # close inner join data.table
-                dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
-                dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                      # sum up compartiemtns per tree per paper
-                mutate(compartiment = "agb",                                          # name the calculates sum of compartiments agb
-                       func_ID = "agb", 
-                       ID = paste0(paper_ID, "_", func_ID)), 
-              by =  c("plot_ID", "tree_ID")) ),
+          left_join(., setDT(alnus_agb_kg_tree_df)[  # this is an inner join in data.tabe: https://medium.com/analytics-vidhya/r-data-table-joins-48f00b46ce29 
+            setDT(bio_func_df %>% 
+                    filter(leafes_inkl %in% c("possible", "inlcuded")) %>%                 # agb shoul be included or possible to include
+                    select(paper_ID, compartiment) %>%                                     # select papaer ID and compartiments 
+                    distinct() %>%                                                         # make sure we only select them once
+                    mutate(number = str_count(compartiment, "agb")) %>%                    # count the occurence of "agb" per paper and compartiment
+                    group_by(paper_ID) %>% dplyr::summarise(mean_agb_number = mean(number)) %>%   # summarise the number of occurences of "agb" per paper 
+                    filter(mean_agb_number == 0)),                                          # filter those papers that allow to calculate the "true" agb with leaves but dont have a agb function and by that have to be summed up  
+            on = .(paper_ID), nomatch = NULL] %>% # close inner join data.table
+              dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%  #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+              dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                      # sum up compartiemtns per tree per paper
+              mutate(compartiment = "agb",                                          # name the calculates sum of compartiments agb
+                     func_ID = "agb", 
+                     ID = paste0(paper_ID, "_", func_ID)), 
+            by =  c("plot_ID", "tree_ID")) ),
   # biomass of trees where function already EXcludes leaf mass
   setDT((alnus_agb_kg_tree_df[alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb") &          # compartiment ag
-                               alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl == "not included"])   # of papers which have "not included"
-                               , ]) %>% mutate(compartiment = "w_agb")),  
+                                alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl == "not included"])   # of papers which have "not included"
+                              , ]) %>% mutate(compartiment = "w_agb")),  
   # biomass of trees where function does not already excludes leaf mass and we have to sum up the woody compartiments  
   setDT(tree_data_alnus %>% 
           # join the tree info with the agb compartiment per tree
@@ -244,7 +244,7 @@ alnus_agb_kg_tree_df <- rbind(
                       mutate(compartiment = "w_agb",
                              func_ID = "w_agb", 
                              ID = paste0(paper_ID, "_", func_ID)), 
-          by =  c("plot_ID", "tree_ID")) ),
+                    by =  c("plot_ID", "tree_ID")) ),
   fill = T) %>% 
   arrange(plot_ID, tree_ID, paper_ID, func_ID)
 
@@ -333,11 +333,11 @@ for (i in 1:nrow(betula_func)){
                                  , "peat" = c(peat_stat)
                                  , "country" =c(my.country)))
   tree.df <- tree.df %>% mutate(  B_kg_tree = dplyr::case_when(!is.na(logarithm_B) & logarithm_B == "ln" ~ as.numeric(exp(B_kg_tree)), 
-                                                                                 !is.na(logarithm_B) & logarithm_B == "log10" ~ as.numeric(10^(B_kg_tree)), 
-                                                                                 TRUE ~ as.numeric(B_kg_tree))) %>%  # backtransform  the ln 
-                        mutate(  B_kg_tree = dplyr::case_when(unit_B == "kg" ~ as.numeric(B_kg_tree), 
-                                                              unit_B == "g" ~ as.numeric(B_kg_tree)/1000, 
-                                                              TRUE ~ as.numeric(B_kg_tree)))
+                                                               !is.na(logarithm_B) & logarithm_B == "log10" ~ as.numeric(10^(B_kg_tree)), 
+                                                               TRUE ~ as.numeric(B_kg_tree))) %>%  # backtransform  the ln 
+    mutate(  B_kg_tree = dplyr::case_when(unit_B == "kg" ~ as.numeric(B_kg_tree), 
+                                          unit_B == "g" ~ as.numeric(B_kg_tree)/1000, 
+                                          TRUE ~ as.numeric(B_kg_tree)))
   
   betula_agb_kg_tree[[i]] <- tree.df
   
@@ -374,14 +374,14 @@ betula_agb_kg_tree_df <- rbind(
             by =  c("plot_ID", "tree_ID")) ),
   # biomass of trees where function already EXcludes leaf mass
   setDT((betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment %in% c("abg", "agb") &          # compartiment ag
-                                betula_agb_kg_tree_df$ID %in% c(betula_func$ID[betula_func$leafes_inkl == "not included"])   # of papers which have "not included"
-                              , ]) %>% mutate(compartiment = "w_agb")),  
+                                 betula_agb_kg_tree_df$ID %in% c(betula_func$ID[betula_func$leafes_inkl == "not included"])   # of papers which have "not included"
+                               , ]) %>% mutate(compartiment = "w_agb")),  
   # biomass of trees where function does not already excludes leaf mass and we have to sum up the woody compartiments  
   setDT(tree_data_betula %>% 
           # join the tree info with the agb compartiment per tree
           left_join(., (betula_agb_kg_tree_df[!(betula_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl")) &            # select seperate compartiments that are not ag or leafes 
-                                               betula_agb_kg_tree_df$ID %in% c(betula_func$ID[betula_func$leafes_inkl == "possible"],
-                                                                               betula_func$ID[betula_func$leafes_inkl == "not included"]), ]) %>%   # of papers which have "possible"
+                                                betula_agb_kg_tree_df$ID %in% c(betula_func$ID[betula_func$leafes_inkl == "possible"],
+                                                                                betula_func$ID[betula_func$leafes_inkl == "not included"]), ]) %>%   # of papers which have "possible"
                       dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
                       dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
                       mutate(compartiment = "w_agb",
@@ -400,17 +400,17 @@ wagb_tapes <- unique(
   # select remove biomass etc. from the tapes tree dataset to join the wag per single tree in
   setDT(subset(tapes_tree_data, select = -c(B_kg_tree,   N_kg_tree,   C_kg_tree, compartiment))) [setDT( # this is a leaft join in data.table
     # here comes the summary
-  tapes_tree_data [!(tapes_tree_data$compartiment %in% c("ag", "bg", "total", "ndl")),] %>% 
-    group_by(plot_ID, tree_ID) %>% 
-    dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>% 
-    mutate(compartiment = "w_agb",
-           paper_ID = max(na.omit(as.numeric(bio_func_df$paper_ID)))+1, 
-           func_ID = "tapes",
-           ID = paste0(paper_ID, "_", func_ID), 
-           country = "Germany", 
-           country_code = "GER", 
-           peat = "no")
-), on = .(plot_ID, tree_ID) ])
+    tapes_tree_data [!(tapes_tree_data$compartiment %in% c("ag", "bg", "total", "ndl")),] %>% 
+      group_by(plot_ID, tree_ID) %>% 
+      dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>% 
+      mutate(compartiment = "w_agb",
+             paper_ID = max(na.omit(as.numeric(bio_func_df$paper_ID)))+1, 
+             func_ID = "tapes",
+             ID = paste0(paper_ID, "_", func_ID), 
+             country = "Germany", 
+             country_code = "GER", 
+             peat = "no")
+  ), on = .(plot_ID, tree_ID) ])
 
 # 2.1. alnus tapeS wagb compartiement calculation ---------------------------------------------------------
 alnus_wagb_tapes <- wagb_tapes[wagb_tapes$bot_genus %in% c("Alnus") & 
@@ -419,8 +419,8 @@ alnus_wagb_tapes <- wagb_tapes[wagb_tapes$bot_genus %in% c("Alnus") &
 
 # 2.2. betula tapeS wagb compartiement calculation ---------------------------------------------------------
 betula_wagb_tapes <- wagb_tapes[wagb_tapes$bot_genus %in% c("Betula") &
-                                 wagb_tapes$bot_species %in% c("pubescens", "spp.") &
-                                 wagb_tapes$min_org == "org", ]
+                                  wagb_tapes$bot_species %in% c("pubescens", "spp.") &
+                                  wagb_tapes$min_org == "org", ]
 
 
 
@@ -461,12 +461,12 @@ trees_data %>%
            min_org == "org" & 
            compartiment == "ag") %>% 
   group_by(bot_genus, min_org) %>% 
-    dplyr::summarise(mean_DBH = mean(DBH_cm), 
-                     min_DBH = min(DBH_cm), 
-                     max_DBH = max(DBH_cm),
-            mean_H = mean(H_m), 
-            mean_H_old = mean(H_m_old), 
-            n = n() )
+  dplyr::summarise(mean_DBH = mean(DBH_cm), 
+                   min_DBH = min(DBH_cm), 
+                   max_DBH = max(DBH_cm),
+                   mean_H = mean(H_m), 
+                   mean_H_old = mean(H_m_old), 
+                   n = n() )
 
 
 # bot_name         min_org mean_DBH mean_H
@@ -595,9 +595,9 @@ min_dbh_betula = min(betula_wag$DBH_cm)
 max_dbh_betula = max(betula_wag$DBH_cm)
 # 4.2.2. Betula tapes ---------------------------------------------
 betula_wag_tapes <-  trees_data_update_5[compartiment %in% c("w_agb") & 
-                                     bot_genus %in% c("Betula") & 
-                                     min_org == "org" & 
-                                     trees_data_update_5$func_ID == "tapes", ]
+                                           bot_genus %in% c("Betula") & 
+                                           min_org == "org" & 
+                                           trees_data_update_5$func_ID == "tapes", ]
 
 m_B_betula_tapes <- mean(betula_wag_tapes$B_kg_tree)
 sd_B_betula_tapes <- sd(betula_wag_tapes$B_kg_tree)
@@ -610,14 +610,14 @@ boxplot(as.numeric(betula_wag$B_kg_tree) ~ as.factor(betula_wag$ID))
 
 
 
-# 4.1.3. Betula extreme function characteristics ---------------------------
+# 4.2.3. Betula extreme function characteristics ---------------------------
 # summarize mean B per tree per function per species
 betula_wag_mean_func <- betula_wag %>% 
   group_by(paper_ID, func_ID, bot_genus, compartiment) %>% 
   dplyr::summarise(B_kg_tree = mean(B_kg_tree))
 
 
-# 4.1.3.1. min Betula  function characteristics ---------------------------
+# 4.2.3.1. min Betula  function characteristics ---------------------------
 # min biomass
 min(betula_wag$B_kg_tree) # 8.123259
 # min function: 28 
@@ -629,7 +629,7 @@ mean(betula_wag$B_kg_tree[betula_wag$paper_ID == betula_wag$paper_ID[betula_wag$
 min(betula_wag_mean_func$B_kg_tree) # 56.54606
 
 
-# 4.1.3.2. max betula  function characteristics ---------------------------
+# 4.2.3.2. max betula  function characteristics ---------------------------
 # max biomass: 
 max(betula_wag$B_kg_tree) # 2587.323
 # max function: 
@@ -640,22 +640,202 @@ mean(betula_wag$B_kg_tree[betula_wag$paper_ID == betula_wag$paper_ID[betula_wag$
 max(betula_wag_mean_func$B_kg_tree) # 229.5567
 
 
-# 4.2.3. betula difference tapes - all functions ------------------------------------------------------------------
+# 4.2.3.3. betula difference tapes - all functions ------------------------------------------------------------------
 m_B_betula_tapes - m_B_betula
 
 
 
 
 
+# 4.3. Statistical analysis --------------------------------------------------------------------------------
+# 4.3.1. Test for any sign. differences between equations -----------------------------------------------------------------------------
+# lets test for significant differences between the groups but without knowing what nature the differences have
+
+# 4.3.1.1. test for requirements of ANOVA/ Kuskal-Wallis ----------------------------------------------------------
+# requirements for ANOVA:
+# https://www.sthda.com/english/wiki/one-way-anova-test-in-r
+# - The observations are obtained independently and randomly from the population defined by the factor levels
+# - The data of each factor level are normally distributed. --> Shapiro test 
+#- These normal populations have a common variance. (Levene’s test can be used to check this.)
+# - more common for continuous data
+
+# 4.3.1.1.1. test for normality: shapiro ----------------------------------------------------------
+# to test for normality we perform a shapiro test by group: 
+# subset trees dataset by only selecting the WAG of betula and alnus at organic plots 
+trees_data_al_bet_wag <- (trees_data_update_5[compartiment == "w_agb" & 
+                                                bot_name %in% c("Betula pubescens"
+                                                                ,"Betula spp."  # spp is being selected too because we assume alnus and betula at organic plots to be glutinosa/ pubescens
+                                                                ,"Alnus glutinosa" 
+                                                                ,"Alnus spp."
+                                                ) & 
+                                                min_org == "org" & 
+                                                paper_ID != 9, ])
 
 
+# create list for output tibbles
+shap.output <- vector("list", length = nrow(unique(trees_data_al_bet_wag[, c("bot_genus", "ID")])))
 
-
-
-
-
-
+# loop to run shapiro for ever group: Species and function
+for (i in 1:nrow(unique(trees_data_al_bet_wag[, c("bot_genus", "ID")])) ) {
+  #i = 1
   
+  my.func.id <- unique(trees_data_al_bet_wag[, c("bot_genus", "ID")])[i, "ID"]
+  my.spec <- unique(trees_data_al_bet_wag[, c("bot_genus", "ID")])[i, "bot_genus"]
+  # subset data for shapiro
+  df_for_shapiro <- unique(trees_data_al_bet_wag[bot_genus == my.spec & ID == my.func.id, ])
+  # run shapiro test per group
+  shap.output.df <- tidy(shapiro.test(unique(df_for_shapiro$B_kg_tree)) )
+  # put output of shap it in dataframe
+  shap.output[[i]] <- as.data.frame(cbind(my.func.id # add func id ans species 
+                                          , my.spec
+                                          , shap.output.df))
+  #control print
+  print(c(i, my.func.id, my.spec))
+  
+}
+# save output to dataframe
+shap_out_al_bet <- as.data.frame(rbindlist(shap.output))
+
+# interpret results: 
+# https://www.sthda.com/english/wiki/normality-test-in-r#google_vignette
+# https://rstudiodatalab.medium.com/how-to-perform-and-interpret-the-shapiro-wilk-test-in-r-afab5234997d
+# from the output, the p-value > 0.05 implying that the distribution of the data 
+# are not significantly different from normal distribution. 
+# In other words, we can assume the normality.
+# If the p-value is less than 0.05, we reject the null hypothesis that the data is normally distributed.
+# --> p-value > 0.05 --> normality
+
+nrow(shap_out_al_bet["p.value" < 0.05, ])
+# there is no group with p-value above 0.05 so all biomasses of all groups are normally distributed
+
+# 4.3.1.1.2. test common variance: Levene’s test ----------------------------------------------------------
+# https://www.geeksforgeeks.org/r-language/levenes-test-in-r-programming/
+
+levene.output <- vector("list", length =length(unique(trees_data_al_bet_wag$bot_genus) ) )
+for (i in 1:length(unique(trees_data_al_bet_wag$bot_genus) ) ) {
+  #i = 2
+  my.spec <- as.character(unique(trees_data_al_bet_wag$bot_genus)[i])
+  # subset data for levene
+  df_for_levene <- unique(trees_data_al_bet_wag[bot_genus == my.spec, ])
+  
+  # run levene by group 
+  levene.output.df <- tidy(car::leveneTest(B_kg_tree ~ ID, df_for_levene))
+  
+  # bind results of levene it in dataframe
+  levene.output[[i]] <- as.data.frame(cbind( my.spec
+                                             , levene.output.df))
+  
+  #control print
+  print(c(i, my.spec))
+  
+}
+# save output to dataframe
+levene_out_al_bet <- as.data.frame(rbindlist(levene.output))
+
+# interpret results
+# H0: p-value > 0.05 --> All populations variances are equal --> which is what we want
+# H1: p-value < 0.05 --> variances are significantly different 
+nrow(levene_out_al_bet["p.value" < 0.05, ])
+
+
+
+# 4.3.1.2. ANOVA ----------------------------------------------------------
+# we have met the requirements for anova (continuous, normality, common variance)
+# so we do an anova per species to compare all equations
+anova.output <- vector("list", length =length(unique(trees_data_al_bet_wag$bot_genus) ) )
+for (i in 1:length(unique(trees_data_al_bet_wag$bot_genus) ) ) {
+  #i = 2
+  my.spec <- as.character(unique(trees_data_al_bet_wag$bot_genus)[i])
+  # subset data for levene
+  df_for_anova <- unique(trees_data_al_bet_wag[bot_genus == my.spec, ])
+  
+  # run anova by specie and group 
+  res.anova <- aov(B_kg_tree ~ ID, data = df_for_anova)
+  anova.output.df <- tidy(aov(B_kg_tree ~ ID, data = df_for_anova))
+  # bind results of levene it in dataframe
+  anova.output[[i]] <- as.data.frame(cbind( my.spec
+                                            , anova.output.df))
+  
+  
+  #control print
+  print(c(i, my.spec))
+  print(summary(aov(B_kg_tree ~ ID, data = df_for_anova)))
+  
+}
+# save output to dataframe
+anova_out_al_bet <- as.data.frame(rbindlist(anova.output))
+
+
+# interpret results
+# https://www.sthda.com/english/wiki/one-way-anova-test-in-r 
+# As the p-value is less than the significance level 0.05, 
+# we can conclude that there are significant differences 
+# between the groups highlighted with “*" in the model summary.
+anova_out_al_bet[!is.na(as.numeric(anova_out_al_bet$p.value)) & as.numeric(anova_out_al_bet$p.value)< 0.05, ]
+
+## we find a p value below 0.05 for both species -->  so both species 
+## have significant differences within the results of the equations
+
+# some diagnostics
+plot(res.anova, 1)
+plot(res.anova, 2)
+shapiro.test(res.anova$residuals)
+
+
+
+# 4.3.2. test where differneces are: Turkey test ------------------------------------------
+# In one-way ANOVA test, a significant p-value indicates that some of
+# the group means are different, but we don’t know which pairs of groups are different.
+# It’s possible to perform multiple pairwise-comparison, 
+# to determine if the mean difference between specific pairs 
+# of group are statistically significant, e.g. with Tukey multiple pairwise-comparisons
+# As the ANOVA test is significant, we can compute Tukey HSD (Tukey Honest Significant Differences, R function: TukeyHSD()) for performing multiple pairwise-comparison between the means of groups.
+# lets explore the nature of the differences between the groups. 
+# how does TapeS predict in comparisson to all other functions 
+
+
+turkey.output <- vector("list", length =length(unique(trees_data_al_bet_wag$bot_genus) ) )
+for (i in 1:length(unique(trees_data_al_bet_wag$bot_genus) ) ) {
+  #i = 2
+  my.spec <- as.character(unique(trees_data_al_bet_wag$bot_genus)[i])
+  # subset data for levene
+  df_for_anova <- unique(trees_data_al_bet_wag[bot_genus == my.spec, ])
+  
+  # run anova by specie and group 
+  res.aov <- aov(B_kg_tree ~ ID, data = df_for_anova)
+  
+  turkey.output.df <- tidy(TukeyHSD(res.aov))
+  
+  # bind results of levene it in dataframe
+  turkey.output[[i]] <- as.data.frame(cbind( my.spec
+                                             , turkey.output.df))
+  
+  
+  #control print
+  print(c(i, my.spec))
+  print(TukeyHSD(res.aov))
+  
+}
+# save output to dataframe
+turkey_out_al_bet <- as.data.frame(rbindlist(turkey.output))
+
+# interpret results
+# It can be seen from the output, that only the difference  with an adjusted p-value < 0.05 are significant
+
+
+#filter for tapes comparissons: 
+# filter for tapes comparissons that show a significant difference
+turkey_out_al_bet <- setDT(turkey_out_al_bet[str_detect( turkey_out_al_bet$contrast, "tapes"), ])[, `:=`(
+  significant = ifelse(as.numeric(turkey_out_al_bet$adj.p.value) < 0.05,"significant",
+                       ifelse(as.numeric(turkey_out_al_bet$adj.p.value) >= 0.05, "not significant", NA)) )
+]
+# filter for tapes comparissons that dont show a significant difference 
+turkey_out_al_bet[turkey_out_al_bet$significant == "significant", ]
+
+
+
+
+
 stop("this is where biomass comparison singe tree script paper stops")
 
 
@@ -673,16 +853,16 @@ alnus_ag_labels <- alnus_ag %>% group_by(paper_ID, func_ID, ID) %>% dplyr::summa
          label_name = paste0(ID, ", ",country_code))
 
 ggplot(data = ungroup(alnus_ag) # %>% filter(!(ID %in% c("13_1"))) # "16_4" and "16_5" are somehow weird so i kicked it out 
-       )+ 
+)+ 
   geom_point(aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, group = ID, color = ID))+
   geom_smooth(method= "loess", aes(x = DBH_cm, y = B_kg_tree, color = "self_fit"), col = "black")+
   # add labels to plot: https://stackoverflow.com/questions/61415263/add-text-labels-to-geom-smooth-mean-lines
- geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
-           data = alnus_ag_labels # %>% filter(!(ID %in% c("13_1")))
-           )+
+  geom_text(aes(x = DBH_cm+2, y = B_kg_tree, label = label_name, color = label_name), 
+            data = alnus_ag_labels # %>% filter(!(ID %in% c("13_1")))
+  )+
   theme_bw()+
- #theme(legend.position="none")+
+  #theme(legend.position="none")+
   ggtitle("Alnus Biomass kg/tree by diameter cm")
 
 
@@ -770,15 +950,15 @@ ggplot( )+
 # Change the margins of the plot (the fourth is the right margin)
 par(mar = c(4, 4, 2, 10), xpd=TRUE)
 
- grid(nx = NULL, ny = NULL,
-      lty = 2, col = "gray", lwd = 1)
+grid(nx = NULL, ny = NULL,
+     lty = 2, col = "gray", lwd = 1)
 
- # mark only tapes plot
- my.colors <- ifelse(levels(as.factor(alnus_wag$ID)) %like% "tapes" , "red" , # tapes red
-                     ifelse(levels(as.factor(alnus_wag$ID)) %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "grey10",
+# mark only tapes plot
+my.colors <- ifelse(levels(as.factor(alnus_wag$ID)) %like% "tapes" , "red" , # tapes red
+                    ifelse(levels(as.factor(alnus_wag$ID)) %in% c(bio_func_df$ID[bio_func_df$peat == "yes"]), "grey10",
                            ifelse(levels(as.factor(alnus_wag$ID)) %in% c(bio_func_df$ID[bio_func_df$peat == "partly"]), "grey30",
-                            "grey" ) )) # full peat dark grey
-   
+                                  "grey" ) )) # full peat dark grey
+
 # plot 
 plot(alnus_wag$DBH_cm[alnus_wag$ID != "2_w_agb"], alnus_wag$B_kg_tree[alnus_wag$ID != "2_w_agb"], 
      frame = T, 
@@ -885,10 +1065,10 @@ ggplot( )+
               , se = F 
   )+
   scale_color_manual(values = color_map)+
-   geom_smooth(aes(x = DBH_cm, y = B_kg_tree), 
-               method= "loess",
-               data = m_sd_b_be,
-               col = "black")+
+  geom_smooth(aes(x = DBH_cm, y = B_kg_tree), 
+              method= "loess",
+              data = m_sd_b_be,
+              col = "black")+
   geom_smooth(aes(x = DBH_cm, y = m_sd_b_be$low_sd_B_kg_tree), 
               method= "loess",
               data = m_sd_b_be, 
