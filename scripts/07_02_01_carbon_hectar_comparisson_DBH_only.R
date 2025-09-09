@@ -254,6 +254,423 @@ pseudo_mono_mean_func$ID[ pseudo_mono_mean_func$compartiment == "w_agb" & pseudo
 
 
 
+# 4.3.1. Test for any sign. differences between equations -----------------------------------------------------------------------------
+  # lets test for significant differences between the groups but without knowing what nature the differences have
+  
+  # 4.3.1.1. test for requirements of ANOVA/ Kuskal-Wallis ----------------------------------------------------------
+# requirements for ANOVA:
+# https://www.sthda.com/english/wiki/one-way-anova-test-in-r
+# - The observations are obtained independently and randomly from the population defined by the factor levels
+# - The data of each factor level are normally distributed. --> Shapiro test 
+#- These normal populations have a common variance. (Levene’s test can be used to check this.)
+# - more common for continuous data
+
+# 4.3.1.1.1. test for normality: shapiro ----------------------------------------------------------
+# to test for normality we perform a shapiro test by group: 
+# subset trees dataset by only selecting the WAG of betula and alnus at organic plots 
+pseudo_mono_P_al_bet_wag <- (pseudo_mono_P_SP[compartiment == "w_agb" & 
+                                                bot_genus %in% c("Betula",
+                                                                 "Alnus"
+                                                ) &  
+                                                paper_ID != 9, ])
+
+
+# create list for output tibbles
+
+# create list for output tibbles
+shap.output <- vector("list", length = nrow(unique(pseudo_mono_P_al_bet_wag[, c("bot_genus", "ID")])))
+# loop to run shapiro for ever group: Species and function
+for (i in 1:nrow(unique(pseudo_mono_P_al_bet_wag[, c("bot_genus", "ID")])) ) {
+  #i = 1
+  
+  my.func.id <- unique(pseudo_mono_P_al_bet_wag[, c("bot_genus", "ID")])[i, "ID"]
+  my.spec <- unique(pseudo_mono_P_al_bet_wag[, c("bot_genus", "ID")])[i, "bot_genus"]
+  # subset data for shapiro
+  df_for_shapiro <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec & ID == my.func.id, ])
+  # run shapiro test per group
+  shap.output.df <- tidy(shapiro.test(unique(df_for_shapiro$B_t_ha)) )
+  # put output of shap it in dataframe
+  shap.output[[i]] <- as.data.frame(cbind(my.func.id # add func id ans species 
+                                          , my.spec
+                                          , shap.output.df))
+  #control print
+  print(c(i, my.func.id, my.spec))
+  
+}
+# save output to dataframe
+shap_out_al_bet <- as.data.frame(rbindlist(shap.output))
+
+# interpret results: 
+# https://www.sthda.com/english/wiki/normality-test-in-r#google_vignette
+# https://rstudiodatalab.medium.com/how-to-perform-and-interpret-the-shapiro-wilk-test-in-r-afab5234997d
+# from the output, the p-value > 0.05 implying that the distribution of the data 
+# are not significantly different from normal distribution. 
+# In other words, we can assume the normality.
+# If the p-value is less than 0.05, we reject the null hypothesis that the data is normally distributed.
+# --> p-value > 0.05 --> normality
+
+nrow(shap_out_al_bet["p.value" < 0.05, ])
+# there is no group with p-value above 0.05 so all carbon stocks of all groups are normally distributed
+
+# 4.3.1.1.2. test common variance: Levene’s test ----------------------------------------------------------
+# https://www.geeksforgeeks.org/r-language/levenes-test-in-r-programming/
+
+levene.output <- vector("list", length =length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) )
+for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
+  #i = 2
+  my.spec <- as.character(unique(pseudo_mono_P_al_bet_wag$bot_genus)[i])
+  # subset data for levene
+  df_for_levene <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])
+  
+  # run levene by group 
+  levene.output.df <- tidy(car::leveneTest(B_t_ha ~ ID, df_for_levene))
+  
+  # bind results of levene it in dataframe
+  levene.output[[i]] <- as.data.frame(cbind( my.spec
+                                             , levene.output.df))
+  
+  #control print
+  print(c(i, my.spec))
+  
+}
+# save output to dataframe
+levene_out_al_bet <- as.data.frame(rbindlist(levene.output))
+
+# interpret results
+# H0: p-value > 0.05 --> All populations variances are equal --> which is what we want
+# H1: p-value < 0.05 --> variances are significantly different 
+nrow(levene_out_al_bet["p.value" < 0.05, ])
+# there is no species where significant differences betweeen the variabilities within the groups can be found
+# hence there is no p value below 0.05 
+
+
+# 4.3.1.2. ANOVA ----------------------------------------------------------
+# we have met the requirements for anova (continuous, normality, common variance)
+# so we do an anova per species to compare all equations
+anova.output <- vector("list", length =length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) )
+for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
+  #i = 2
+  my.spec <- as.character(unique(pseudo_mono_P_al_bet_wag$bot_genus)[i])
+  # subset data for levene
+  df_for_anova <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])
+  
+  # run anova by specie and group 
+  res.anova <- aov(B_t_ha ~ ID, data = df_for_anova)
+  anova.output.df <- tidy(aov(B_t_ha ~ ID, data = df_for_anova))
+  # bind results of levene it in dataframe
+  anova.output[[i]] <- as.data.frame(cbind( my.spec
+                                            , anova.output.df))
+  
+  
+  #control print
+  print(c(i, my.spec))
+  print(summary(aov(as.numeric(B_t_ha) ~ as.factor(ID), data = df_for_anova)))
+  
+}
+# save output to dataframe
+anova_out_al_bet <- as.data.frame(rbindlist(anova.output))
+
+
+# interpret results
+# https://www.sthda.com/english/wiki/one-way-anova-test-in-r 
+# As the p-value is less than the significance level 0.05, 
+# we can conclude that there are significant differences 
+# between the groups highlighted with “*" in the model summary.
+anova_out_al_bet[!is.na(as.numeric(anova_out_al_bet$p.value)) & as.numeric(anova_out_al_bet$p.value)< 0.05, ]
+
+## we find a p value below 0.05 for both species -->  so both species 
+## have significant differences within the results of the equations
+
+# some diagnostics
+plot(res.anova, 1)
+plot(res.anova, 2)
+plot(res.anova, 3)
+plot(res.anova, 4)
+shapiro.test(res.anova$residuals) # residuals have a p value above 0.05 so they are normally distributed
+
+
+
+# 4.3.2. test where differneces are: Turkey test ------------------------------------------
+# In one-way ANOVA test, a significant p-value indicates that some of
+# the group means are different, but we don’t know which pairs of groups are different.
+# It’s possible to perform multiple pairwise-comparison, 
+# to determine if the mean difference between specific pairs 
+# of group are statistically significant, e.g. with Tukey multiple pairwise-comparisons
+# As the ANOVA test is significant, we can compute Tukey HSD (Tukey Honest Significant Differences, R function: TukeyHSD()) for performing multiple pairwise-comparison between the means of groups.
+# lets explore the nature of the differences between the groups. 
+# how does TapeS predict in comparisson to all other functions 
+
+
+turkey.output <- vector("list", length =length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) )
+for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
+  #i = 2
+  my.spec <- as.character(unique(pseudo_mono_P_al_bet_wag$bot_genus)[i])
+  # subset data for levene
+  df_for_anova <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])
+  
+  # run anova by specie and group 
+  res.aov <- aov(B_t_ha ~ ID, data = df_for_anova)
+  turkey <- TukeyHSD(res.aov)
+  
+  # run turkey and store in dataset 
+  turkey.output.df <- tidy(TukeyHSD(res.aov))
+  
+  # compute letters to show significance
+  print(multcompView::multcompLetters4(res.aov, turkey))
+  
+  # bind results of levene it in dataframe
+  turkey.output[[i]] <- as.data.frame(cbind( my.spec
+                                             , turkey.output.df))
+  
+  
+  #control print
+  print(c(i, my.spec))
+  print(TukeyHSD(res.aov))
+  # compute letters to show significance
+  print(multcompView::multcompLetters4(res.aov, turkey))
+  
+}
+# save output to dataframe
+turkey_out_al_bet <- as.data.frame(rbindlist(turkey.output))
+
+# interpret results
+# It can be seen from the output, that only the difference  with an adjusted p-value < 0.05 are significant
+
+
+#filter for tapes comparissons: 
+# filter for tapes comparissons that show a significant difference
+# setDT(turkey_out_al_bet)[, `:=`(
+#   significance = ifelse(as.numeric(turkey_out_al_bet$adj.p.value) < 0.05,"significant",
+#                        ifelse(as.numeric(turkey_out_al_bet$adj.p.value) >= 0.05, "not significant", NA)) )
+# ]
+
+# filter for tapes comparissons that  show a significant difference 
+turkey_out_al_bet[
+  str_detect(turkey_out_al_bet$contrast, "tapes") & 
+    turkey_out_al_bet$adj.p.value < 0.05, ]
+# filter for tapes comparissons that dont show a significant difference 
+turkey_out_al_bet[str_detect(turkey_out_al_bet$contrast, "tapes") & 
+                    turkey_out_al_bet$adj.p.value >= 0.05, ]
+
+# the anova showed that there are significant differences between all functions but 
+# tapes shows significanct differences only for Betula for equations: 10, 29,  and 6 
+
+# 4.4. Statistical analysis peat vs. no peat --------------------------------------------------------------------------------
+# 4.4.1. Test for any sign. differences between equations -----------------------------------------------------------------------------
+# lets test for significant differences between the groups but without knowing what nature the differences have
+
+# 4.4.1.1. test for requirements of ANOVA/ Kuskal-Wallis ----------------------------------------------------------
+# requirements for ANOVA:
+# https://www.sthda.com/english/wiki/one-way-anova-test-in-r
+# - The observations are obtained independently and randomly from the population defined by the factor levels
+# - The data of each factor level are normally distributed. --> Shapiro test 
+#- These normal populations have a common variance. (Levene’s test can be used to check this.)
+# - more common for continuous data
+
+# 4.4.1.1.1. test for normality: shapiro ----------------------------------------------------------
+# to test for normality we perform a shapiro test by group: 
+# subset trees dataset by only selecting the WAG of betula and alnus at organic plots 
+pseudo_mono_P_al_bet_wag <- (pseudo_mono_P_SP[compartiment == "w_agb" & 
+                                                bot_genus %in% c("Betula",
+                                                                 "Alnus"
+                                                ) &  
+                                                paper_ID != 9, ])
+
+
+# create list for output tibbles
+shap.output <- vector("list", length = nrow(unique(pseudo_mono_P_al_bet_wag[, c("bot_genus", "peat")])))
+
+# loop to run shapiro for ever group: Species and function
+for (i in 1:nrow(unique(pseudo_mono_P_al_bet_wag[, c("bot_genus", "peat")])) ) {
+  #i = 1
+  
+  my.peat <- unique(pseudo_mono_P_al_bet_wag[, c("bot_genus", "peat")])[i, "peat"]
+  my.spec <- unique(pseudo_mono_P_al_bet_wag[, c("bot_genus", "peat")])[i, "bot_genus"]
+  # subset data for shapiro
+  df_for_shapiro <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec & peat == my.peat, ])
+  # run shapiro test per group
+  shap.output.df <- tidy(shapiro.test(unique(df_for_shapiro$B_t_ha)) )
+  # put output of shap it in dataframe
+  shap.output[[i]] <- as.data.frame(cbind(my.peat # add func id ans species 
+                                          , my.spec
+                                          , shap.output.df))
+  #control print
+  print(c(i, my.peat, my.spec))
+  
+}
+# save output to dataframe
+shap_out_al_bet <- as.data.frame(rbindlist(shap.output))
+
+# interpret results: 
+# https://www.sthda.com/english/wiki/normality-test-in-r#google_vignette
+# https://rstudiodatalab.medium.com/how-to-perform-and-interpret-the-shapiro-wilk-test-in-r-afab5234997d
+# from the output, the p-value > 0.05 implying that the distribution of the data 
+# are not significantly different from normal distribution. 
+# In other words, we can assume the normality.
+# If the p-value is less than 0.05, we reject the null hypothesis that the data is normally distributed.
+# --> p-value > 0.05 --> normality
+
+nrow(shap_out_al_bet["p.value" < 0.05, ])
+# there is no group with p-value above 0.05 so all carbon stocks of all groups are normally distributed
+
+# 4.4.1.1.2. test common variance: Levene’s test ----------------------------------------------------------
+# https://www.geeksforgeeks.org/r-language/levenes-test-in-r-programming/
+
+levene.output <- vector("list", length =length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) )
+for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
+  #i = 2
+  my.spec <- as.character(unique(pseudo_mono_P_al_bet_wag$bot_genus)[i])
+  # subset data for levene
+  df_for_levene <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])
+  
+  # run levene by group 
+  levene.output.df <- tidy(car::leveneTest(B_t_ha ~ peat, df_for_levene))
+  
+  # bind results of levene it in dataframe
+  levene.output[[i]] <- as.data.frame(cbind( my.spec
+                                             , levene.output.df))
+  
+  #control print
+  print(c(i, my.spec))
+  
+}
+# save output to dataframe
+levene_out_al_bet <- as.data.frame(rbindlist(levene.output))
+
+# interpret results
+# H0: p-value > 0.05 --> All populations variances are equal --> which is what we want
+# H1: p-value < 0.05 --> variances are significantly different 
+nrow(levene_out_al_bet["p.value" < 0.05, ])
+# there is no species where significant differences betweeen the variabilities within the groups can be found
+# hence there is no p value below 0.05 
+
+
+# 4.4.1.2. ANOVA ----------------------------------------------------------
+# we have met the requirements for anova (continuous, normality, common variance)
+# so we do an anova per species to compare all equations
+anova.output <- vector("list", length =length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) )
+for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
+  #i = 2
+  my.spec <- as.character(unique(pseudo_mono_P_al_bet_wag$bot_genus)[i])
+  # subset data for levene
+  df_for_anova <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])
+  
+  # run anova by specie and group 
+  res.anova <- aov(B_t_ha ~ peat, data = df_for_anova)
+  anova.output.df <- tidy(aov(B_t_ha ~ peat, data = df_for_anova))
+  # bind results of levene it in dataframe
+  anova.output[[i]] <- as.data.frame(cbind( my.spec
+                                            , anova.output.df))
+  
+  
+  #control print
+  print(c(i, my.spec))
+  print(summary(aov(as.numeric(B_t_ha) ~ as.factor(peat), data = df_for_anova)))
+  
+}
+# save output to dataframe
+anova_out_al_bet <- as.data.frame(rbindlist(anova.output))
+
+
+# interpret results
+# https://www.sthda.com/english/wiki/one-way-anova-test-in-r 
+# As the p-value is less than the significance level 0.05, 
+# we can conclude that there are significant differences 
+# between the groups highlighted with “*" in the model summary.
+anova_out_al_bet[!is.na(as.numeric(anova_out_al_bet$p.value)) & as.numeric(anova_out_al_bet$p.value)< 0.05, ]
+
+## we find a p value below 0.05 for both species -->  so both species 
+## have significant differences within the results of the equations
+
+# some diagnostics
+plot(res.anova, 1)
+plot(res.anova, 2)
+plot(res.anova, 3)
+plot(res.anova, 4)
+shapiro.test(res.anova$residuals) # residuals have a p value above 0.05 so they are normally distributed
+
+
+
+# 4.4.2. test where differneces are: Turkey test ------------------------------------------
+# In one-way ANOVA test, a significant p-value indicates that some of
+# the group means are different, but we don’t know which pairs of groups are different.
+# It’s possible to perform multiple pairwise-comparison, 
+# to determine if the mean difference between specific pairs 
+# of group are statistically significant, e.g. with Tukey multiple pairwise-comparisons
+# As the ANOVA test is significant, we can compute Tukey HSD (Tukey Honest Significant Differences, R function: TukeyHSD()) for performing multiple pairwise-comparison between the means of groups.
+# lets explore the nature of the differences between the groups. 
+# how does TapeS predict in comparisson to all other functions 
+
+
+turkey.output <- vector("list", length =length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) )
+for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
+  #i = 2
+  my.spec <- as.character(unique(pseudo_mono_P_al_bet_wag$bot_genus)[i])
+  # subset data for levene
+  df_for_anova <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])
+  
+  # run anova by specie and group 
+  res.aov <- aov(B_t_ha ~ peat, data = df_for_anova)
+  turkey <- TukeyHSD(res.aov)
+  
+  # run turkey and store in dataset 
+  turkey.output.df <- tidy(TukeyHSD(res.aov))
+  
+  # compute letters to show significance
+  print(multcompView::multcompLetters4(res.aov, turkey))
+  
+  # bind results of levene it in dataframe
+  turkey.output[[i]] <- as.data.frame(cbind( my.spec
+                                             , turkey.output.df))
+  
+  
+  #control print
+  print(c(i, my.spec))
+  print(TukeyHSD(res.aov))
+  # compute letters to show significance
+  print(multcompView::multcompLetters4(res.aov, turkey))
+  
+}
+# save output to dataframe
+turkey_out_al_bet <- as.data.frame(rbindlist(turkey.output))
+
+# interpret results
+# It can be seen from the output, that only the difference  with an adjusted p-value < 0.05 are significant
+
+
+#filter for tapes comparissons: 
+# filter for tapes comparissons that show a significant difference
+# setDT(turkey_out_al_bet)[, `:=`(
+#   significance = ifelse(as.numeric(turkey_out_al_bet$adj.p.value) < 0.05,"significant",
+#                        ifelse(as.numeric(turkey_out_al_bet$adj.p.value) >= 0.05, "not significant", NA)) )
+# ]
+
+# filter for tapes comparissons that  show a significant difference 
+turkey_out_al_bet[ turkey_out_al_bet$adj.p.value < 0.05, ]
+# filter for tapes comparissons that dont show a significant difference 
+turkey_out_al_bet[ turkey_out_al_bet$adj.p.value >= 0.05, ]
+
+# the anova showed that there are no significant differences between peat and no peat and partly peat functions 
+# that is supported by the turkey test again, which doesnt show any significant difference 
+# between all the funcitons in regard of their peat status
+
+
+### summary of results: 
+## comparisson of euqations
+# it appears that tapes can shows significant differences for the biomass functions for both species 
+# but no significant differences between tapes and other funcions if we look at the carbon stock for Alnus
+# thus we can conclude that for alnus, looking at the carbon stock it doesnt matter which functino we use
+# for betula however, there are significant differences between tapes and some of the other functions, so we
+# hav conclude that for betula it matters if we use tapes or not
+
+## comparisson peat vs. no peat
+# for the carbon stock there are no differences between the functions in regard to their peat status. 
+# for the carbon stock of both species it does not matter if we use a peat or not peat specific function
+# for the biomass we did find significant differences, but only for alnus, 
+# where peat functions differed significantly from both other groups
+# for betula however, there are no significant differences between the equations regarding their peat status
+# thus we can conclude that if we look at a peat ecosystem stocked with alnus, we have to be careful about our 
+# selection f the function, otherwise not. 
 
 
 

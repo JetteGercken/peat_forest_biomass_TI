@@ -647,7 +647,7 @@ m_B_betula_tapes - m_B_betula
 
 
 
-# 4.3. Statistical analysis --------------------------------------------------------------------------------
+# 4.3. Statistical analysis of biomass equation groups  --------------------------------------------------------------------------------
 # 4.3.1. Test for any sign. differences between equations -----------------------------------------------------------------------------
 # lets test for significant differences between the groups but without knowing what nature the differences have
 
@@ -737,6 +737,7 @@ levene_out_al_bet <- as.data.frame(rbindlist(levene.output))
 # H1: p-value < 0.05 --> variances are significantly different 
 nrow(levene_out_al_bet["p.value" < 0.05, ])
 
+# there are no groups that have significantly different variances 
 
 
 # 4.3.1.2. ANOVA ----------------------------------------------------------
@@ -779,6 +780,8 @@ anova_out_al_bet[!is.na(as.numeric(anova_out_al_bet$p.value)) & as.numeric(anova
 # some diagnostics
 plot(res.anova, 1)
 plot(res.anova, 2)
+plot(res.anova, 3)
+plot(res.anova, 4)
 shapiro.test(res.anova$residuals)
 
 
@@ -803,8 +806,11 @@ for (i in 1:length(unique(trees_data_al_bet_wag$bot_genus) ) ) {
   
   # run anova by specie and group 
   res.aov <- aov(B_kg_tree ~ ID, data = df_for_anova)
+  turkey <- TukeyHSD(res.aov)
   
-  turkey.output.df <- tidy(TukeyHSD(res.aov))
+  
+  # run turkey and safe outout in dataframe 
+  turkey.output.df <- tidy(turkey)
   
   # bind results of levene it in dataframe
   turkey.output[[i]] <- as.data.frame(cbind( my.spec
@@ -814,6 +820,8 @@ for (i in 1:length(unique(trees_data_al_bet_wag$bot_genus) ) ) {
   #control print
   print(c(i, my.spec))
   print(TukeyHSD(res.aov))
+  # compute letters to show significance
+  print(multcompView::multcompLetters4(res.aov, turkey))
   
 }
 # save output to dataframe
@@ -825,18 +833,218 @@ turkey_out_al_bet <- as.data.frame(rbindlist(turkey.output))
 
 #filter for tapes comparissons: 
 # filter for tapes comparissons that show a significant difference
-turkey_out_al_bet <- setDT(turkey_out_al_bet[str_detect( turkey_out_al_bet$contrast, "tapes"), ])[, `:=`(
-  significant = ifelse(as.numeric(turkey_out_al_bet$adj.p.value) < 0.05,"significant",
-                       ifelse(as.numeric(turkey_out_al_bet$adj.p.value) >= 0.05, "not significant", NA)) )
-]
+turkey_out_al_bet_tapes <- setDT(turkey_out_al_bet)[str_detect(turkey_out_al_bet$contrast, "tapes"), ]
 # filter for tapes comparissons that dont show a significant difference 
-turkey_out_al_bet[turkey_out_al_bet$significant == "significant", ]
+turkey_out_al_bet_tapes[turkey_out_al_bet_tapes$adj.p.value >= 0.05, ]
+setDT(turkey_out_al_bet_tapes)[turkey_out_al_bet_tapes$adj.p.value < 0.05, ]
+
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+stop("this is where biomass comparison singe tree script paper stops")
 
 
 
+
+# 4.4. Statistical analysis of biomass by peat/no peat --------------------------------------------------------------------------------
+# 4.4.1. Test for any sign. differences between equations -----------------------------------------------------------------------------
+# lets test for significant differences between the groups but without knowing what nature the differences have
+
+# 4.4.1.1. test for requirements of ANOVA/ Kuskal-Wallis ----------------------------------------------------------
+# requirements for ANOVA:
+# https://www.sthda.com/english/wiki/one-way-anova-test-in-r
+# - The observations are obtained independently and randomly from the population defined by the factor levels
+# - The data of each factor level are normally distributed. --> Shapiro test 
+#- These normal populations have a common variance. (Levene’s test can be used to check this.)
+# - more common for continuous data
+
+# 4.4.1.1.1. test for normality: shapiro ----------------------------------------------------------
+# to test for normality we perform a shapiro test by group: 
+# subset trees dataset by only selecting the WAG of betula and alnus at organic plots 
+trees_data_al_bet_wag <- (trees_data_update_5[compartiment == "w_agb" & 
+                                                bot_name %in% c("Betula pubescens"
+                                                                ,"Betula spp."  # spp is being selected too because we assume alnus and betula at organic plots to be glutinosa/ pubescens
+                                                                ,"Alnus glutinosa" 
+                                                                ,"Alnus spp."
+                                                ) & 
+                                                min_org == "org" & 
+                                                paper_ID != 9, ])
+
+
+# create list for output tibbles
+shap.output <- vector("list", length = nrow(unique(trees_data_al_bet_wag[, c("bot_genus", "peat")])))
+
+# loop to run shapiro for ever group: Species and function
+for (i in 1:nrow(unique(trees_data_al_bet_wag[, c("bot_genus", "peat")])) ) {
+  #i = 1
+  
+  my.peat <- unique(trees_data_al_bet_wag[, c("bot_genus", "peat")])[i, "peat"]
+  my.spec <- unique(trees_data_al_bet_wag[, c("bot_genus", "peat")])[i, "bot_genus"]
+  # subset data for shapiro
+  df_for_shapiro <- unique(trees_data_al_bet_wag[bot_genus == my.spec & ID == my.func.id, ])
+  # run shapiro test per group
+  shap.output.df <- tidy(shapiro.test(unique(df_for_shapiro$B_kg_tree)) )
+  # put output of shap it in dataframe
+  shap.output[[i]] <- as.data.frame(cbind(my.peat # add func id ans species 
+                                          , my.spec
+                                          , shap.output.df))
+  #control print
+  print(c(i, my.peat, my.spec))
+  
+}
+# save output to dataframe
+shap_out_peat_al_bet <- as.data.frame(rbindlist(shap.output))
+
+# interpret results: 
+# https://www.sthda.com/english/wiki/normality-test-in-r#google_vignette
+# https://rstudiodatalab.medium.com/how-to-perform-and-interpret-the-shapiro-wilk-test-in-r-afab5234997d
+# from the output, the p-value > 0.05 implying that the distribution of the data 
+# are not significantly different from normal distribution. 
+# In other words, we can assume the normality.
+# If the p-value is less than 0.05, we reject the null hypothesis that the data is normally distributed.
+# --> p-value > 0.05 --> normality
+
+nrow(shap_out_peat_al_bet["p.value" < 0.05, ])
+# there is no group with p-value above 0.05 so all biomasses of all groups are normally distributed
+
+# 4.3.1.1.2. test common variance: Levene’s test ----------------------------------------------------------
+# https://www.geeksforgeeks.org/r-language/levenes-test-in-r-programming/
+
+levene.output <- vector("list", length =length(unique(trees_data_al_bet_wag$bot_genus) ) )
+for (i in 1:length(unique(trees_data_al_bet_wag$bot_genus) ) ) {
+  #i = 2
+  my.spec <- as.character(unique(trees_data_al_bet_wag$bot_genus)[i])
+  # subset data for levene
+  df_for_levene <- unique(trees_data_al_bet_wag[bot_genus == my.spec, ])
+  
+  # run levene by group 
+  levene.output.df <- tidy(car::leveneTest(B_kg_tree ~ peat, df_for_levene))
+  
+  # bind results of levene it in dataframe
+  levene.output[[i]] <- as.data.frame(cbind( my.spec
+                                             , levene.output.df))
+  
+  #control print
+  print(c(i, my.spec))
+  
+}
+# save output to dataframe
+levene_out_al_bet <- as.data.frame(rbindlist(levene.output))
+
+# interpret results
+# H0: p-value > 0.05 --> All populations variances are equal --> which is what we want
+# H1: p-value < 0.05 --> variances are significantly different 
+nrow(levene_out_al_bet["p.value" < 0.05, ])
+
+# there are no groups that have significantly different variances 
+
+
+# 4.3.1.2. ANOVA ----------------------------------------------------------
+# we have met the requirements for anova (continuous, normality, common variance)
+# so we do an anova per species to compare all equations
+anova.output <- vector("list", length =length(unique(trees_data_al_bet_wag$bot_genus) ) )
+for (i in 1:length(unique(trees_data_al_bet_wag$bot_genus) ) ) {
+  #i = 2
+  my.spec <- as.character(unique(trees_data_al_bet_wag$bot_genus)[i])
+  # subset data for levene
+  df_for_anova <- unique(trees_data_al_bet_wag[bot_genus == my.spec, ])
+  
+  # run anova by specie and group 
+  res.anova <- aov(B_kg_tree ~ peat, data = df_for_anova)
+  anova.output.df <- tidy(aov(B_kg_tree ~ ID, data = df_for_anova))
+  # bind results of levene it in dataframe
+  anova.output[[i]] <- as.data.frame(cbind( my.spec
+                                            , anova.output.df))
+  
+  
+  #control print
+  print(c(i, my.spec))
+  print(summary(aov(B_kg_tree ~ peat, data = df_for_anova)))
+  
+}
+# save output to dataframe
+anova_out_al_bet <- as.data.frame(rbindlist(anova.output))
+
+
+# interpret results
+# https://www.sthda.com/english/wiki/one-way-anova-test-in-r 
+# As the p-value is less than the significance level 0.05, 
+# we can conclude that there are significant differences 
+# between the groups highlighted with “*" in the model summary.
+anova_out_al_bet[!is.na(as.numeric(anova_out_al_bet$p.value)) & as.numeric(anova_out_al_bet$p.value)< 0.05, ]
+
+## we find a p value below 0.05 for both species -->  so both species 
+## have significant differences within the results of the equations that are peat or not peat specific 
+
+# some diagnostics
+plot(res.anova, 1)
+plot(res.anova, 2)
+plot(res.anova, 3)
+plot(res.anova, 4)
+shapiro.test(res.anova$residuals)
+
+
+
+# 4.3.2. test where differneces are: Turkey test ------------------------------------------
+# In one-way ANOVA test, a significant p-value indicates that some of
+# the group means are different, but we don’t know which pairs of groups are different.
+# It’s possible to perform multiple pairwise-comparison, 
+# to determine if the mean difference between specific pairs 
+# of group are statistically significant, e.g. with Tukey multiple pairwise-comparisons
+# As the ANOVA test is significant, we can compute Tukey HSD (Tukey Honest Significant Differences, R function: TukeyHSD()) for performing multiple pairwise-comparison between the means of groups.
+# lets explore the nature of the differences between the groups. 
+# how does TapeS predict in comparisson to all other functions 
+
+
+turkey.output <- vector("list", length =length(unique(trees_data_al_bet_wag$bot_genus) ) )
+for (i in 1:length(unique(trees_data_al_bet_wag$bot_genus) ) ) {
+  #i = 2
+  my.spec <- as.character(unique(trees_data_al_bet_wag$bot_genus)[i])
+  # subset data for levene
+  df_for_anova <- unique(trees_data_al_bet_wag[bot_genus == my.spec, ])
+  
+  # run anova by specie and group 
+  res.aov <- aov(B_kg_tree ~ peat, data = df_for_anova)
+  turkey <- TukeyHSD(res.aov)
+  
+  
+  # run turkey and safe outout in dataframe 
+  turkey.output.df <- tidy(turkey)
+  
+  # bind results of levene it in dataframe
+  turkey.output[[i]] <- as.data.frame(cbind( my.spec
+                                             , turkey.output.df))
+  
+  
+  #control print
+  print(c(i, my.spec))
+  print(TukeyHSD(res.aov))
+  # compute letters to show significance
+  print(multcompView::multcompLetters4(res.aov, turkey))
+  
+}
+# save output to dataframe
+turkey_out_al_bet <- as.data.frame(rbindlist(turkey.output))
+
+# interpret results
+# It can be seen from the output, that only the difference  with an adjusted p-value < 0.05 are significant
+
+
+#filter for tapes comparissons: 
+# filter for tapes comparissons that show a significant difference
+# turkey_out_al_bet_tapes <- setDT(turkey_out_al_bet)[str_detect(turkey_out_al_bet$contrast, "tapes"), ]
+turkey_out_al_bet[turkey_out_al_bet$adj.p.value >= 0.05, ]
+# filter for tapes comparissons that dont show a significant difference 
+setDT(turkey_out_al_bet)[turkey_out_al_bet$adj.p.value < 0.05, ]
+
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# for alnus: for alnus peat functions are different to no and partly peat functions 
+#            but no significant difference between partly peat and no peat
+# for betula there are no signficicant differences at all. not between partly and no peat, peat and no peat, peat and partly peat
 
 
 stop("this is where biomass comparison singe tree script paper stops")
+
+
 
 
 # 4. visuals --------------------------------------------------------------

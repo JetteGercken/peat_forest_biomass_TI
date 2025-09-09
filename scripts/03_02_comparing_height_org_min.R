@@ -129,7 +129,7 @@ top_20_trees <- as.data.frame(rbindlist(top_20_trees_list))
 # fit height model  -------------------------------------------------------
 
 
-
+# look at species distribution of each organic plot by their number share
 view(
   trees_data %>% group_by(min_org, plot_ID, SP_code) %>% dplyr::summarise(n_SP = dplyr::n()) %>% 
     left_join(.,trees_data %>% group_by(min_org, plot_ID) %>% dplyr::summarise(n_tot = dplyr::n()) , by = c("plot_ID", "min_org") ) %>% 
@@ -240,7 +240,7 @@ trees_min_org <- trees_data[trees_data$bot_name %in% c("Betula pubescens", "Alnu
              trees_data$H_method == "sampled", ]
 setDT(trees_min_org)[, `:=`(HD = H_m/DBH_cm)]
 
-wilcox.test(H_m~min_org, data = trees_min_org[trees_min_org$bot_genus == "Betula", ], 
+wilcox.test(DBH_cm~min_org, data = trees_min_org[trees_min_org$bot_genus == "Alnus", ], 
             exact = FALSE, 
             correct = FALSE, 
             conf.int = FALSE)
@@ -258,7 +258,7 @@ trees_data_h_nls <-
               #           by = c("plot_ID" = "bfhnr_2"))%>%
               # mutate(min_org = ifelse(inv == "momok", "org", min_org)) %>% 
               group_by(min_org, bot_name) %>%
-              nls_table( #H_m ~ b0 * (1 - exp( -b1 * DBH_cm))^b2, 
+              forestmangr::nls_table( #H_m ~ b0 * (1 - exp( -b1 * DBH_cm))^b2, 
                 #mod_start = c(b0=23, b1=0.03, b2 =1.3), 
                 H_m ~ 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3,  # Petterson function
                 mod_start = c(b0=1, b1=1), 
