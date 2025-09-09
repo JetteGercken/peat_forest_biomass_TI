@@ -246,6 +246,7 @@ wilcox.test(DBH_cm~min_org, data = trees_min_org[trees_min_org$bot_genus == "Aln
             conf.int = FALSE)
 
 # 2. visuals of comparisson -----------------------------------------------------------------
+# 2.1. nls to draw height curve ------------------------------------------------------
 # fit nls first so we can decide which function ggplot uses t fit the smooth
 # nls : DBH vs. sampled hight of all trees at all plots split by org vs. mineral soil
 trees_data_h_nls <- 
@@ -268,16 +269,21 @@ trees_data_h_nls <-
   mutate(H_m_nls = 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3, 
          H_method_nls = "nls")
 
+# 2.2. export nls coefficients of height curve ------------------------------------------------------
+# export the nls coefficients per species and min/ org categorie
 write.csv(trees_data_h_nls, paste0(out.path, paste(trees_data_h_nls$inv[1], "LT_update_3_petterson", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 
-
+# 2.3. test significance of nls model for height curve ------------------------------------------------------
 # height mod min soil
 model_min <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3, 
                  data = trees_data %>% 
                    #   left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
                    filter(H_method == "sampled" #& compartiment == "ag" 
-                          & min_org == "min")  , 
+                          & min_org == "min"
+                         #  & bot_name == "Alnus glutinosa"
+                         #  & bot_name == "Betula pubescens"
+                          )  , 
                  start = list(a = 1, b = 1))  # Initial guesses for a and b
 
 # Step 4: View the results
@@ -289,12 +295,133 @@ model_org <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3,
                    #left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>%
                    filter(H_method == "sampled"
                           # & compartiment == "ag" 
-                          & min_org == "org")  , 
+                          & min_org == "org"
+                          #  & bot_name == "Alnus glutinosa"
+                           & bot_name == "Betula pubescens"
+                          )  , 
                  start = list(a = 1, b = 1))  # Initial guesses for a and b
 
 # Step 4: View the results
 summary(model_org)
 
+
+# 2.4. test for statistical difference of the coefficients of nls height curves ------------------------------------------------------
+# 2.4.1. coefficient test alnus ------------------------------------------------------
+
+# 2.4.1.1. test for normality alnus coefficients  ----------------------------------
+# b0 
+shapiro.test(trees_data_h_nls[trees_data_h_nls$H_method == "sampled" # select only trees with sampled height as this is what were comparing
+                              &  trees_data_h_nls$bot_name == "Alnus glutinosa", # select alnus (but for min and org plots)
+                              "b0"]) # select variable were testing for normality
+# Shapiro-Wilk normality test
+# data:  trees_data_h_nls[trees_data_h_nls$H_method == "sampled" & trees_data_h_nls$bot_name == "Alnus glutinosa", "b0"]
+# W = 0.62403, p-value < 2.2e-16 --> signidicant --> not normal distributed
+
+# b1 
+shapiro.test(trees_data_h_nls[trees_data_h_nls$H_method == "sampled" # select only trees with sampled height as this is what were comparing
+                              &  trees_data_h_nls$bot_name == "Alnus glutinosa", # select alnus (but for min and org plots)
+                              "b1"]) # select variable were testing for normality
+# Shapiro-Wilk normality test
+# data:  trees_data_h_nls[trees_data_h_nls$H_method == "sampled" & trees_data_h_nls$bot_name == "Alnus glutinosa", "b1"]
+# W = 0.62403, p-value < 2.2e-16 --> signidicant --> not normal distributed
+
+
+
+# 2.4.1.2. wilcoxon test for sign diff. alnus   ----------------------------------
+## both coefficients are not normally distributed
+## thus we have to use a wilcoxon test to compare the coefficients for significant differences
+
+# b0 
+wilcox.test(b0 ~ min_org, data = trees_data_h_nls[
+  trees_data_h_nls$H_method == "sampled" # select only trees with sampled height as this is what were comparing
+  &  trees_data_h_nls$bot_name == "Alnus glutinosa", # select alnus (but for min and org plots)
+  ], 
+  exact = FALSE, 
+  correct = FALSE, 
+  conf.int = FALSE)
+
+# Wilcoxon rank sum test
+# data:  b0 by min_org
+# W = 0, p-value < 2.2e-16 --> significant 
+# alternative hypothesis: true location shift is not equal to 0
+
+
+# b1 
+wilcox.test(b1 ~ min_org, data = trees_data_h_nls[
+  trees_data_h_nls$H_method == "sampled" # select only trees with sampled height as this is what were comparing
+  &  trees_data_h_nls$bot_name == "Alnus glutinosa", # select alnus (but for min and org plots)
+], 
+exact = FALSE, 
+correct = FALSE, 
+conf.int = FALSE)
+
+# Wilcoxon rank sum test
+# data:  b1 by min_org
+# W = 0, p-value < 2.2e-16 --> significant 
+# alternative hypothesis: true location shift is not equal to 0
+
+
+# 2.4.2. coefficient test betula ------------------------------------------------------
+
+# 2.4.2.1. test for normality betula coefficients  ----------------------------------
+# b0 
+shapiro.test(trees_data_h_nls[trees_data_h_nls$H_method == "sampled" # select only trees with sampled height as this is what were comparing
+                              &  trees_data_h_nls$bot_name == "Betula pubescens", # select alnus (but for min and org plots)
+                              "b0"]) # select variable were testing for normality
+
+# Shapiro-Wilk normality test
+# data:  trees_data_h_nls[trees_data_h_nls$H_method == "sampled" & trees_data_h_nls$bot_name == "Betula pubescens", "b0"]
+# W = 0.63464, p-value < 2.2e-16 --> signidicant --> not normal distributed
+
+# b1 
+shapiro.test(trees_data_h_nls[trees_data_h_nls$H_method == "sampled" # select only trees with sampled height as this is what were comparing
+                              &  trees_data_h_nls$bot_name == "Betula pubescens", # select alnus (but for min and org plots)
+                              "b1"]) # select variable were testing for normality
+# Shapiro-Wilk normality test
+# data:  trees_data_h_nls[trees_data_h_nls$H_method == "sampled" & trees_data_h_nls$bot_name == "Alnus glutinosa", "b1"]
+# W = 0.62403, p-value < 2.2e-16 --> signidicant --> not normal distributed
+
+
+
+# 2.4.2.2. wilcoxon test for sign diff. betula   ----------------------------------
+## both coefficients are not normally distributed
+## thus we have to use a wilcoxon test to compare the coefficients for significant differences
+
+# b0 
+wilcox.test(b0 ~ min_org, data = trees_data_h_nls[
+  trees_data_h_nls$H_method == "sampled" # select only trees with sampled height as this is what were comparing
+  &  trees_data_h_nls$bot_name == "Betula pubescens", # select alnus (but for min and org plots)
+], 
+exact = FALSE, 
+correct = FALSE, 
+conf.int = FALSE)
+
+# Wilcoxon rank sum test
+# data:  b0 by min_org
+# W = 0, p-value < 2.2e-16 --> significant 
+# alternative hypothesis: true location shift is not equal to 0
+
+
+# b1 
+wilcox.test(b1 ~ min_org, data = trees_data_h_nls[
+  trees_data_h_nls$H_method == "sampled" # select only trees with sampled height as this is what were comparing
+  &  trees_data_h_nls$bot_name == "Betula pubescens", # select alnus (but for min and org plots)
+], 
+exact = FALSE, 
+correct = FALSE, 
+conf.int = FALSE)
+
+# Wilcoxon rank sum test
+# data:  b1 by min_org
+# W = 0, p-value < 2.2e-16 --> significant 
+# alternative hypothesis: true location shift is not equal to 0
+
+
+
+
+
+
+# 2.5. visualising height of alnus and betula for min and org plots ------------------------------------------------------
 h_DBH_all_SP <- ggplot() +
   geom_point(data = (trees_data %>%
                        filter(H_method == "sampled" 
