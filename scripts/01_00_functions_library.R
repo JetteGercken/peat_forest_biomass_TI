@@ -4,70 +4,71 @@
 # inst_p <- as.data.frame(installed.packages())
 # inst_p <- as.list(inst_p[  !(inst_p$Priority %in% c("base")), "Package"])
 # remove.packages(inst_p, "/home/gercken/R/x86_64-pc-linux-gnu-library/4.4")
+# change just to comit and pull 
 
 # ----- 0. SETUP ---------------------------------------------------------------
 # ----- 0.1. Packages  ---------------------------------------------------------
 ## datamanagement
-  install.packages("usethis")
- install.packages('RPostgreSQL')
-  install.packages("RPostgres")
-  install.packages("DBI")
-  install.packages("here")
-install.packages("readr")
-  install.packages("tidyverse")
-install.packages("tibble")
-install.packages("dplyr")
-  install.packages("data.table")
-  install.packages("broom")
-install.packages("purrr")
-  install.packages("later")
-install.packages("devtools")
-  install.packages("plyr")
-    install.packages("RODBC")
-    install.packages("rstudioapi")
-    install.packages("gsubfn")
-    install.packages("sjmisc")
-  install.packages("stringr")
-    install.packages("readODS")
-  install.packages("countrycode")
-  ## laTex
-   install.packages("stargazer")  #for compatability with Latex
-   install.packages("tikzDevice") #for compatability with Latex#
-  ## visualisation
-   install.packages("ggthemes")
- install.packages("ggplot2")
- install.packages("reshape2") #for multiple y values
- install.packages("ggforce") #for zooming in parts of the plot
- install.packages("ggrepel")
-   options(tz="CA")
-   install.packages("gridExtra")
-   install.packages("plotly")
- #  install.packages("gridGraphics")
-   install.packages("cowplot") # make base r plot into variable
-  ## analysis
-   install.packages("corrplot")
-  install.packages("SciViews")  # this is for ln and stuff --> to make the functions easier
- install.packages("AICcmodavg")
-  install.packages("car")
- # ## forest related
-   if (! require("remotes"))install.packages("remotes")
-remotes::install_github("sollano/forestmangr")
- install.packages(c('plyr', 'systemfit', 'ggpmisc', 'car', 'FinCal', 'shiny', 'miniUI'))
- install.packages("forestmangr")
-   install.packages("rBDAT")
-   install.packages("TapeR")
-   install.packages("pkgbuild")
-   if (! require("remotes"))install.packages("remotes")
-   remotes::install_gitlab("vochr/TapeS", build_vignettes = TRUE)
-   install.packages("magrittr")
-  ## spatial
-   install.packages("sf")
-  #install.packages("rgdal")
-   install.packages("terra")
-   Sys.setenv("R_REMOTES_NO_ERRORS_FROM_WARNINGS" = "true")
-   remotes::install_github("rspatial/terra")
-   install.packages("sfheaders")
-   install.packages("splancs")
+#   install.packages("usethis")
+#  install.packages('RPostgreSQL')
+#   install.packages("RPostgres")
+#   install.packages("DBI")
+#   install.packages("here")
+# install.packages("readr")
+#   install.packages("tidyverse")
+# install.packages("tibble")
+# install.packages("dplyr")
+#   install.packages("data.table")
+#   install.packages("broom")
+# install.packages("purrr")
+#   install.packages("later")
+# install.packages("devtools")
+#   install.packages("plyr")
+#     install.packages("RODBC")
+#     install.packages("rstudioapi")
+#     install.packages("gsubfn")
+#     install.packages("sjmisc")
+#   install.packages("stringr")
+#     install.packages("readODS")
+#   install.packages("countrycode")
+#   ## laTex
+#    install.packages("stargazer")  #for compatability with Latex
+#    install.packages("tikzDevice") #for compatability with Latex#
+#   ## visualisation
+#    install.packages("ggthemes")
+#  install.packages("ggplot2")
+#  install.packages("reshape2") #for multiple y values
+#  install.packages("ggforce") #for zooming in parts of the plot
+#  install.packages("ggrepel")
+#    options(tz="CA")
+#    install.packages("gridExtra")
+#    install.packages("plotly")
+#  #  install.packages("gridGraphics")
+#    install.packages("cowplot") # make base r plot into variable
+#   ## analysis
+#    install.packages("corrplot")
+#   install.packages("SciViews")  # this is for ln and stuff --> to make the functions easier
+#  install.packages("AICcmodavg")
+#   install.packages("car")
+#  # ## forest related
+#    if (! require("remotes"))install.packages("remotes")
+  # remotes::install_github("sollano/forestmangr")
+#  install.packages(c('plyr', 'systemfit', 'ggpmisc', 'car', 'FinCal', 'shiny', 'miniUI'))
+#  install.packages("forestmangr")
+#    install.packages("rBDAT")
+#    install.packages("TapeR")
+#    install.packages("pkgbuild")
+#    if (! require("remotes"))install.packages("remotes")
+#    remotes::install_gitlab("vochr/TapeS", build_vignettes = TRUE)
+#    install.packages("magrittr")
+#   ## spatial
+#    install.packages("sf")
+#   #install.packages("rgdal")
+#    install.packages("terra")
+#    Sys.setenv("R_REMOTES_NO_ERRORS_FROM_WARNINGS" = "true")
+#    remotes::install_github("rspatial/terra")
+#    install.packages("sfheaders")
+#    install.packages("splancs")
 
 # ----- 0.2. require   ---------------------------------------------------------
 ## datamanagement

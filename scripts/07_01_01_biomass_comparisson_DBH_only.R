@@ -72,8 +72,8 @@ bio_func_df$ID <- paste0(bio_func_df$paper_ID,"_", bio_func_df$func_ID)
 bio_func_df <- bio_func_df[!(str_detect(bio_func_df$variables, "age")),]
 write.csv(bio_func_df, paste0(getwd(), out.path, "bio_func_ID.csv"))
 
-view(bio_func_df %>% filter(peat %in% c("yes", "partly")) %>% select(paper_ID, author, year, species) %>% distinct() %>% ungroup()
-)
+# view(bio_func_df %>% filter(peat %in% c("yes", "partly")) %>% select(paper_ID, author, year, species) %>% distinct() %>% ungroup()
+# )
 # 1. Biomass calculations -------------------------------------------------
 # we need the biomass without leafes. 
 # so we have these 3 scenarios: 
@@ -670,7 +670,33 @@ trees_data_al_bet_wag <- (trees_data_update_5[compartiment == "w_agb" &
                                                 ) & 
                                                 min_org == "org" & 
                                                 paper_ID != 9, ])
-
+# as we also want to test the difference between tapes and the mean across all functions, 
+# we are going to add another row per tree that holds the mean abovagrond biomass of that
+# tree across all equations 
+trees_data_al_bet_wag <- rbind(
+  trees_data_al_bet_wag,
+  # as we want to carry on the tree atributes we going to join the summary per tree back together
+  # with the single tree atributes. therefore we have to deslect all function related info first 
+  # and then add it as the end as the mean works like another biomass equation in this comparisson: 
+  trees_data_al_bet_wag %>% select(-c("B_kg_tree", "func_ID", "paper_ID", "ID", 
+                                      "country", "country_code",   "peat", 
+                                      "unit_B", "logarithm_B")) %>% distinct() %>% 
+    left_join(., 
+              trees_data_al_bet_wag %>% 
+                group_by(plot_ID, tree_ID) %>% 
+                summarise(B_kg_tree = mean(B_kg_tree)) %>% # summarise mean of biomass per tree
+                # add "mean" function info
+                mutate(ID = "mean", 
+                       func_ID = "mean", 
+                       paper_ID = "mean", 
+                       country = "all", 
+                       country_code = "all",   
+                       peat = "partly", 
+                       unit_B = "kg", 
+                       logarithm_B = NA), 
+              # join back in with normal tree data 
+              by = c("plot_ID", "tree_ID"))
+)# close r bind 
 
 # create list for output tibbles
 shap.output <- vector("list", length = nrow(unique(trees_data_al_bet_wag[, c("bot_genus", "ID")])))
@@ -836,9 +862,13 @@ turkey_out_al_bet <- as.data.frame(rbindlist(turkey.output))
 turkey_out_al_bet_tapes <- setDT(turkey_out_al_bet)[str_detect(turkey_out_al_bet$contrast, "tapes"), ]
 # filter for tapes comparissons that dont show a significant difference 
 turkey_out_al_bet_tapes[turkey_out_al_bet_tapes$adj.p.value >= 0.05, ]
+# filter for tapes comparissons that  show a significant difference 
 setDT(turkey_out_al_bet_tapes)[turkey_out_al_bet_tapes$adj.p.value < 0.05, ]
 
 # Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+
 
 stop("this is where biomass comparison singe tree script paper stops")
 
@@ -880,7 +910,7 @@ for (i in 1:nrow(unique(trees_data_al_bet_wag[, c("bot_genus", "peat")])) ) {
   my.peat <- unique(trees_data_al_bet_wag[, c("bot_genus", "peat")])[i, "peat"]
   my.spec <- unique(trees_data_al_bet_wag[, c("bot_genus", "peat")])[i, "bot_genus"]
   # subset data for shapiro
-  df_for_shapiro <- unique(trees_data_al_bet_wag[bot_genus == my.spec & ID == my.func.id, ])
+  df_for_shapiro <- unique(trees_data_al_bet_wag[bot_genus == my.spec & peat == my.peat, ])
   # run shapiro test per group
   shap.output.df <- tidy(shapiro.test(unique(df_for_shapiro$B_kg_tree)) )
   # put output of shap it in dataframe
@@ -943,14 +973,14 @@ nrow(levene_out_al_bet["p.value" < 0.05, ])
 # so we do an anova per species to compare all equations
 anova.output <- vector("list", length =length(unique(trees_data_al_bet_wag$bot_genus) ) )
 for (i in 1:length(unique(trees_data_al_bet_wag$bot_genus) ) ) {
-  #i = 2
+  #i = 1
   my.spec <- as.character(unique(trees_data_al_bet_wag$bot_genus)[i])
   # subset data for levene
   df_for_anova <- unique(trees_data_al_bet_wag[bot_genus == my.spec, ])
   
   # run anova by specie and group 
   res.anova <- aov(B_kg_tree ~ peat, data = df_for_anova)
-  anova.output.df <- tidy(aov(B_kg_tree ~ ID, data = df_for_anova))
+  anova.output.df <- tidy(aov(B_kg_tree ~ peat, data = df_for_anova))
   # bind results of levene it in dataframe
   anova.output[[i]] <- as.data.frame(cbind( my.spec
                                             , anova.output.df))
@@ -1043,6 +1073,8 @@ setDT(turkey_out_al_bet)[turkey_out_al_bet$adj.p.value < 0.05, ]
 
 
 stop("this is where biomass comparison singe tree script paper stops")
+
+
 
 
 

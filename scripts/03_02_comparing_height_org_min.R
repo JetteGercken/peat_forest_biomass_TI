@@ -75,51 +75,51 @@ for (i in 1:length(unique(trees_data$plot_ID))) {
   n.20 <- 0.2 * nrow(my.tree.rep.df)
   
   LT_avg_SP_ST_P_list[[i]] <-( my.tree.rep.df %>% 
-     # select only the 20% strongest trees  
-    arrange(desc(DBH_cm)))[1:n.20, ] %>% 
+                                 # select only the 20% strongest trees  
+                                 arrange(desc(DBH_cm)))[1:n.20, ] %>% 
     group_by(plot_ID, inv, min_org,  stand, C_layer, SP_code, H_SP_group) %>% 
     dplyr::summarise(mean_DBH_cm = mean(DBH_cm), 
-              sd_DBH_cm = sd(DBH_cm),
-              Dg_cm = ((sqrt(mean(BA_m2)/pi))*2)*100,  
-              mean_BA_m2 = mean(BA_m2),
-              mean_H_m = mean(H_m), 
-              sd_H_m = sd(H_m), 
-              Hg_m = sum(mean(na.omit(mean_H_m))*sum(BA_m2))/sum(sum(BA_m2)), 
-              Ho_m = NA) %>% 
+                     sd_DBH_cm = sd(DBH_cm),
+                     Dg_cm = ((sqrt(mean(BA_m2)/pi))*2)*100,  
+                     mean_BA_m2 = mean(BA_m2),
+                     mean_H_m = mean(H_m), 
+                     sd_H_m = sd(H_m), 
+                     Hg_m = sum(mean(na.omit(mean_H_m))*sum(BA_m2))/sum(sum(BA_m2)), 
+                     Ho_m = NA) %>% 
     # calculate the height of the tree representing the mean BA of the upper 20% of the stand
     unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE) %>%            # create column matching vectorised coefficients of coeff_SP_P (1.3. functions, h_nls_SP_P, dplyr::pull)
-                left_join(.,coeff_H_SP_P %>%                                              # joining R2 from coeff_SP_P -> R2.x
-                            select(plot_ID, SP_code, R2) %>% 
-                            unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE),   # create column matching vectorised coefficients of coeff_SP_P (1.3. functions, h_nls_SP_P, dplyr::pull)
-                          by = c("plot_ID", "SP_code", "SP_P_ID")) %>% 
-                left_join(., coeff_H_SP %>% select(SP_code, R2),               # joing R2 from coeff_SP data set -> R2.y
-                          by = "SP_code") %>% 
-                mutate(R2_comb = f(R2.x, R2.y, R2.y, R2.x),                               # if R2 is na, put R2 from coeff_SP_P unless R2 from coeff_SP is higher
-                       H_method = case_when(is.na(Ho_m) & !is.na(R2.x) & R2.x > 0.70 | is.na(Ho_m) & R2.x > R2.y & R2.x > 0.70 ~ "coeff_SP_P", 
-                                            is.na(Ho_m) & is.na(R2.x) & R2.y > 0.70| is.na(Ho_m) & R2.x < R2.y & R2.y > 0.70 ~ "coeff_sp",
-                                            is.na(Ho_m) & is.na(R2_comb) & !is.na(Hg_m)| is.na(Ho_m) & R2_comb < 0.70 & !is.na(Hg_m) ~ "ehk_sloboda",
-                                            is.na(Ho_m) & is.na(R2_comb) & is.na(Hg_m)| is.na(Ho_m) & R2_comb < 0.70 & is.na(Hg_m) ~ "h_curtis", 
-                                            TRUE ~ "sampled")) %>% 
-                # When h_m is na but there is a plot and species wise model with R2 above 0.7, use the model to predict the height
-                mutate(Ho_m = as.numeric(case_when(is.na(Ho_m) & !is.na(R2.x) & R2.x > 0.70 | is.na(Ho_m) & R2.x > R2.y & R2.x > 0.70 ~ h_nls_SP_P(SP_P_ID, Dg_cm),
-                                                  # if H_m is na and there is an R2 from coeff_SP_P thats bigger then 0.75 or of theres no R2 from 
-                                                  # coeff_SP_plot that´s bigger then R2 of coeff_SP_P while the given R2 from coeff_SP_P is above 
-                                                  # 0.75 then use the SP_P models
-                                                  is.na(Ho_m) & is.na(R2.x) & R2.y > 0.70 | is.na(Ho_m) & R2.x < R2.y & R2.y > 0.70 ~ h_nls_SP(SP_code, Dg_cm),
-                                                  # when there´s still no model per species or plot, or the R2 of both self-made models is below 0.7 
-                                                  # and hm is na but there is a h_g and d_G
-                                                  is.na(Ho_m) & is.na(R2_comb) & !is.na(Hg_m)| is.na(Ho_m) & R2_comb < 0.70 & !is.na(Hg_m) ~ ehk_sloboda(H_SP_group, Dg_cm*10, mean_DBH_cm*10, Dg_cm*10, Hg_m*10),
-                                                  # when there´s still no model per species or plot, or the R2 of both self-made models is below 0.7 
-                                                  # and hm is na and the Slobody function cannot eb applied because there is no h_g calculatable use the curtis function
-                                                  is.na(Ho_m) & is.na(R2_comb) & is.na(Hg_m)| is.na(Ho_m) & R2_comb < 0.70 & is.na(Hg_m) ~ h_curtis(H_SP_group, Dg_cm*10), 
-                                                  TRUE ~ Ho_m)))
+    left_join(.,coeff_H_SP_P %>%                                              # joining R2 from coeff_SP_P -> R2.x
+                select(plot_ID, SP_code, R2) %>% 
+                unite(SP_P_ID, plot_ID, SP_code, sep = "", remove = FALSE),   # create column matching vectorised coefficients of coeff_SP_P (1.3. functions, h_nls_SP_P, dplyr::pull)
+              by = c("plot_ID", "SP_code", "SP_P_ID")) %>% 
+    left_join(., coeff_H_SP %>% select(SP_code, R2),               # joing R2 from coeff_SP data set -> R2.y
+              by = "SP_code") %>% 
+    mutate(R2_comb = f(R2.x, R2.y, R2.y, R2.x),                               # if R2 is na, put R2 from coeff_SP_P unless R2 from coeff_SP is higher
+           H_method = case_when(is.na(Ho_m) & !is.na(R2.x) & R2.x > 0.70 | is.na(Ho_m) & R2.x > R2.y & R2.x > 0.70 ~ "coeff_SP_P", 
+                                is.na(Ho_m) & is.na(R2.x) & R2.y > 0.70| is.na(Ho_m) & R2.x < R2.y & R2.y > 0.70 ~ "coeff_sp",
+                                is.na(Ho_m) & is.na(R2_comb) & !is.na(Hg_m)| is.na(Ho_m) & R2_comb < 0.70 & !is.na(Hg_m) ~ "ehk_sloboda",
+                                is.na(Ho_m) & is.na(R2_comb) & is.na(Hg_m)| is.na(Ho_m) & R2_comb < 0.70 & is.na(Hg_m) ~ "h_curtis", 
+                                TRUE ~ "sampled")) %>% 
+    # When h_m is na but there is a plot and species wise model with R2 above 0.7, use the model to predict the height
+    mutate(Ho_m = as.numeric(case_when(is.na(Ho_m) & !is.na(R2.x) & R2.x > 0.70 | is.na(Ho_m) & R2.x > R2.y & R2.x > 0.70 ~ h_nls_SP_P(SP_P_ID, Dg_cm),
+                                       # if H_m is na and there is an R2 from coeff_SP_P thats bigger then 0.75 or of theres no R2 from 
+                                       # coeff_SP_plot that´s bigger then R2 of coeff_SP_P while the given R2 from coeff_SP_P is above 
+                                       # 0.75 then use the SP_P models
+                                       is.na(Ho_m) & is.na(R2.x) & R2.y > 0.70 | is.na(Ho_m) & R2.x < R2.y & R2.y > 0.70 ~ h_nls_SP(SP_code, Dg_cm),
+                                       # when there´s still no model per species or plot, or the R2 of both self-made models is below 0.7 
+                                       # and hm is na but there is a h_g and d_G
+                                       is.na(Ho_m) & is.na(R2_comb) & !is.na(Hg_m)| is.na(Ho_m) & R2_comb < 0.70 & !is.na(Hg_m) ~ ehk_sloboda(H_SP_group, Dg_cm*10, mean_DBH_cm*10, Dg_cm*10, Hg_m*10),
+                                       # when there´s still no model per species or plot, or the R2 of both self-made models is below 0.7 
+                                       # and hm is na and the Slobody function cannot eb applied because there is no h_g calculatable use the curtis function
+                                       is.na(Ho_m) & is.na(R2_comb) & is.na(Hg_m)| is.na(Ho_m) & R2_comb < 0.70 & is.na(Hg_m) ~ h_curtis(H_SP_group, Dg_cm*10), 
+                                       TRUE ~ Ho_m)))
   
   top_20_trees_list[[i]] <- ( my.tree.rep.df %>% # select only the 20% strongest trees  
-                      arrange(desc(DBH_cm)))[1:n.20, ] 
+                                arrange(desc(DBH_cm)))[1:n.20, ] 
   
   print(paste(i, my.plot.id))
   
- 
+  
 }
 LT_avg_SP_ST_P <- as.data.frame(rbindlist(LT_avg_SP_ST_P_list))
 top_20_trees <- as.data.frame(rbindlist(top_20_trees_list))
@@ -233,11 +233,11 @@ wilcox.test(DBH_cm~min_org, data = trees_sub[trees_sub$bot_name == "Betula pubes
 # HD means are not different: p-value = 0.1163
 
 trees_min_org <- trees_data[trees_data$bot_name %in% c("Betula pubescens", "Alnus glutinosa") & 
-             trees_data$min_org == "min" &  
-             trees_data$H_method == "sampled"  |
-             trees_data$bot_name %in% c("Betula pubescens", "Betula spp.", "Alnus glutinosa", "Alnus spp.")& 
-             trees_data$min_org == "org" &  
-             trees_data$H_method == "sampled", ]
+                              trees_data$min_org == "min" &  
+                              trees_data$H_method == "sampled"  |
+                              trees_data$bot_name %in% c("Betula pubescens", "Betula spp.", "Alnus glutinosa", "Alnus spp.")& 
+                              trees_data$min_org == "org" &  
+                              trees_data$H_method == "sampled", ]
 setDT(trees_min_org)[, `:=`(HD = H_m/DBH_cm)]
 
 wilcox.test(DBH_cm~min_org, data = trees_min_org[trees_min_org$bot_genus == "Alnus", ], 
@@ -281,9 +281,9 @@ model_min <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3,
                    #   left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2"))%>% 
                    filter(H_method == "sampled" #& compartiment == "ag" 
                           & min_org == "min"
-                         #  & bot_name == "Alnus glutinosa"
-                         #  & bot_name == "Betula pubescens"
-                          )  , 
+                          #  & bot_name == "Alnus glutinosa"
+                          #  & bot_name == "Betula pubescens"
+                   )  , 
                  start = list(a = 1, b = 1))  # Initial guesses for a and b
 
 # Step 4: View the results
@@ -297,8 +297,8 @@ model_org <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3,
                           # & compartiment == "ag" 
                           & min_org == "org"
                           #  & bot_name == "Alnus glutinosa"
-                           & bot_name == "Betula pubescens"
-                          )  , 
+                          & bot_name == "Betula pubescens"
+                   )  , 
                  start = list(a = 1, b = 1))  # Initial guesses for a and b
 
 # Step 4: View the results
@@ -335,10 +335,10 @@ shapiro.test(trees_data_h_nls[trees_data_h_nls$H_method == "sampled" # select on
 wilcox.test(b0 ~ min_org, data = trees_data_h_nls[
   trees_data_h_nls$H_method == "sampled" # select only trees with sampled height as this is what were comparing
   &  trees_data_h_nls$bot_name == "Alnus glutinosa", # select alnus (but for min and org plots)
-  ], 
-  exact = FALSE, 
-  correct = FALSE, 
-  conf.int = FALSE)
+], 
+exact = FALSE, 
+correct = FALSE, 
+conf.int = FALSE)
 
 # Wilcoxon rank sum test
 # data:  b0 by min_org
@@ -462,7 +462,7 @@ ggplot(data = LT_avg_SP_ST_P %>%
 ggplot()+
   geom_jitter(data = top_20_trees %>% 
                 filter(startsWith(bot_name, "Betula")  & H_method == "sampled"| startsWith(bot_name, "Alnus") & H_method == "sampled" 
-                   #    | startsWith(bot_name, "Betula")  & H_method == "coeff_SP_P"| startsWith(bot_name, "Alnus") & H_method == "coeff_SP_P"
+                       #    | startsWith(bot_name, "Betula")  & H_method == "coeff_SP_P"| startsWith(bot_name, "Alnus") & H_method == "coeff_SP_P"
                 ) , 
               aes(x = DBH_cm , y = H_m, colour = as.factor(min_org)))+ 
   geom_smooth(data = left_join(top_20_trees %>% filter(startsWith(bot_name, "Betula") | startsWith(bot_name, "Alnus") ),
@@ -482,17 +482,17 @@ top_20_trees %>%
   filter(bot_name == "Betula pubescens" & H_method == "sampled" |
            bot_name == "Alnus glutinosa" & H_method == "sampled") %>% 
   distinct() %>%  
-              ggplot() +
+  ggplot() +
   geom_boxplot(aes(x = min_org, y = H_m))+
   geom_violin(aes(x = min_org, y = H_m), alpha=0.2) +
   geom_point(aes(x = min_org, y = H_m))+
   facet_wrap(~bot_name)+ 
   geom_label(data = top_20_trees %>% 
-              distinct() %>% 
-              filter(bot_name == "Betula pubescens" & H_method == "sampled" |
-                       bot_name == "Alnus glutinosa" & H_method == "sampled") %>% 
-              group_by(bot_name, min_org) %>% 
-              summarise(n = n()), aes(x = min_org, y = 38, label = n ))
+               distinct() %>% 
+               filter(bot_name == "Betula pubescens" & H_method == "sampled" |
+                        bot_name == "Alnus glutinosa" & H_method == "sampled") %>% 
+               group_by(bot_name, min_org) %>% 
+               summarise(n = n()), aes(x = min_org, y = 38, label = n ))
 
 
 
@@ -500,9 +500,9 @@ top_20_trees %>%
 # by diameter 
 # separeted in organic vs. minearl sites and species (group) (botanical name) only for dominating, vital trees trees 
 ggplot(data = trees_data %>% 
-  filter(startsWith(bot_name, "Betula") & H_method == "sampled" |
-    startsWith(bot_name, "Alnus") & H_method == "sampled")%>% 
-    filter(C_layer %in% c(1) & Kraft %in% c(1)))+ 
+         filter(startsWith(bot_name, "Betula") & H_method == "sampled" |
+                  startsWith(bot_name, "Alnus") & H_method == "sampled")%>% 
+         filter(C_layer %in% c(1) & Kraft %in% c(1)))+ 
   geom_jitter(aes(x = DBH_cm, y = H_m, colour = as.factor(min_org)))+ 
   geom_smooth(aes(x = DBH_cm, y = H_m, colour = as.factor(min_org)))+
   facet_wrap(~bot_name)
@@ -531,7 +531,7 @@ ggplot(data = trees_data %>%
 ggplot(data = trees_data %>% 
          mutate(hd = H_m/DBH_cm) %>% 
          filter(bot_name == "Betula pubescens" & H_method == "sampled" |
-         bot_name == "Alnus glutinosa" & H_method == "sampled")) +
+                  bot_name == "Alnus glutinosa" & H_method == "sampled")) +
   geom_boxplot(aes(x = min_org, y = H_m))+
   geom_violin(aes(x = min_org, y = H_m), alpha=0.2) +
   facet_wrap(~bot_name)
@@ -592,7 +592,7 @@ for (species in species_list) {
   sub_nls_data <- subset(trees_nls_filtered, bot_name == species)
   
   # Plot scatter points
-plot(sub_data$DBH_cm, sub_data$H_m, col = adjustcolor(colors[sub_data$min_org], alpha.f = 0.05),
+  plot(sub_data$DBH_cm, sub_data$H_m, col = adjustcolor(colors[sub_data$min_org], alpha.f = 0.05),
        pch = 16, xlab = "DBH [cm]", ylab = "height [m]", main = species)
   
   # Add smoothed line (if applicable)

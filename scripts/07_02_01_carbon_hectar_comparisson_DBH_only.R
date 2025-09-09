@@ -274,7 +274,27 @@ pseudo_mono_P_al_bet_wag <- (pseudo_mono_P_SP[compartiment == "w_agb" &
                                                 ) &  
                                                 paper_ID != 9, ])
 
-
+# as we want to compare to the mean across all functions too we 
+# add a row per plot and species that hold the mean stock per species and plot across
+# all equations which we are going to treat like a separate function 
+pseudo_mono_P_al_bet_wag <- 
+rbind(
+  pseudo_mono_P_al_bet_wag, 
+  pseudo_mono_P_al_bet_wag %>% 
+              group_by(plot_ID, bot_genus, compartiment) %>% 
+              summarise(B_t_ha = mean(B_t_ha), 
+                        C_t_ha = mean(C_t_ha), 
+                        BA_m2_ha = mean(BA_m2_ha), 
+                        n_ha= mean(n_ha)) %>% 
+              mutate(paper_ID = "mean",
+                     func_ID= "mean",
+                     peat= "partly",
+                     country  = "all", 
+                     ID = "mean", 
+                     country_code = "NA")
+) %>% 
+  arrange(plot_ID)
+  
 # create list for output tibbles
 
 # create list for output tibbles
@@ -288,7 +308,7 @@ for (i in 1:nrow(unique(pseudo_mono_P_al_bet_wag[, c("bot_genus", "ID")])) ) {
   # subset data for shapiro
   df_for_shapiro <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec & ID == my.func.id, ])
   # run shapiro test per group
-  shap.output.df <- tidy(shapiro.test(unique(df_for_shapiro$B_t_ha)) )
+  shap.output.df <- tidy(shapiro.test(unique(df_for_shapiro$C_t_ha)) )
   # put output of shap it in dataframe
   shap.output[[i]] <- as.data.frame(cbind(my.func.id # add func id ans species 
                                           , my.spec
@@ -323,7 +343,7 @@ for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
   df_for_levene <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])
   
   # run levene by group 
-  levene.output.df <- tidy(car::leveneTest(B_t_ha ~ ID, df_for_levene))
+  levene.output.df <- tidy(car::leveneTest(C_t_ha ~ ID, df_for_levene))
   
   # bind results of levene it in dataframe
   levene.output[[i]] <- as.data.frame(cbind( my.spec
@@ -355,8 +375,8 @@ for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
   df_for_anova <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])
   
   # run anova by specie and group 
-  res.anova <- aov(B_t_ha ~ ID, data = df_for_anova)
-  anova.output.df <- tidy(aov(B_t_ha ~ ID, data = df_for_anova))
+  res.anova <- aov(C_t_ha ~ ID, data = df_for_anova)
+  anova.output.df <- tidy(aov(C_t_ha ~ ID, data = df_for_anova))
   # bind results of levene it in dataframe
   anova.output[[i]] <- as.data.frame(cbind( my.spec
                                             , anova.output.df))
@@ -364,7 +384,7 @@ for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
   
   #control print
   print(c(i, my.spec))
-  print(summary(aov(as.numeric(B_t_ha) ~ as.factor(ID), data = df_for_anova)))
+  print(summary(aov(as.numeric(C_t_ha) ~ as.factor(ID), data = df_for_anova)))
   
 }
 # save output to dataframe
@@ -409,7 +429,7 @@ for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
   df_for_anova <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])
   
   # run anova by specie and group 
-  res.aov <- aov(B_t_ha ~ ID, data = df_for_anova)
+  res.aov <- aov(C_t_ha ~ ID, data = df_for_anova)
   turkey <- TukeyHSD(res.aov)
   
   # run turkey and store in dataset 
@@ -453,7 +473,7 @@ turkey_out_al_bet[str_detect(turkey_out_al_bet$contrast, "tapes") &
                     turkey_out_al_bet$adj.p.value >= 0.05, ]
 
 # the anova showed that there are significant differences between all functions but 
-# tapes shows significanct differences only for Betula for equations: 10, 29,  and 6 
+# tapes shows significanct differences only for Betula for equations: 10,  and 6 
 
 # 4.4. Statistical analysis peat vs. no peat --------------------------------------------------------------------------------
 # 4.4.1. Test for any sign. differences between equations -----------------------------------------------------------------------------
@@ -489,7 +509,7 @@ for (i in 1:nrow(unique(pseudo_mono_P_al_bet_wag[, c("bot_genus", "peat")])) ) {
   # subset data for shapiro
   df_for_shapiro <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec & peat == my.peat, ])
   # run shapiro test per group
-  shap.output.df <- tidy(shapiro.test(unique(df_for_shapiro$B_t_ha)) )
+  shap.output.df <- tidy(shapiro.test(unique(df_for_shapiro$C_t_ha)) )
   # put output of shap it in dataframe
   shap.output[[i]] <- as.data.frame(cbind(my.peat # add func id ans species 
                                           , my.spec
@@ -524,7 +544,7 @@ for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
   df_for_levene <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])
   
   # run levene by group 
-  levene.output.df <- tidy(car::leveneTest(B_t_ha ~ peat, df_for_levene))
+  levene.output.df <- tidy(car::leveneTest(C_t_ha ~ peat, df_for_levene))
   
   # bind results of levene it in dataframe
   levene.output[[i]] <- as.data.frame(cbind( my.spec
@@ -556,8 +576,8 @@ for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
   df_for_anova <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])
   
   # run anova by specie and group 
-  res.anova <- aov(B_t_ha ~ peat, data = df_for_anova)
-  anova.output.df <- tidy(aov(B_t_ha ~ peat, data = df_for_anova))
+  res.anova <- aov(C_t_ha ~ peat, data = df_for_anova)
+  anova.output.df <- tidy(aov(C_t_ha ~ peat, data = df_for_anova))
   # bind results of levene it in dataframe
   anova.output[[i]] <- as.data.frame(cbind( my.spec
                                             , anova.output.df))
@@ -565,7 +585,7 @@ for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
   
   #control print
   print(c(i, my.spec))
-  print(summary(aov(as.numeric(B_t_ha) ~ as.factor(peat), data = df_for_anova)))
+  print(summary(aov(as.numeric(C_t_ha) ~ as.factor(peat), data = df_for_anova)))
   
 }
 # save output to dataframe
@@ -579,8 +599,8 @@ anova_out_al_bet <- as.data.frame(rbindlist(anova.output))
 # between the groups highlighted with “*" in the model summary.
 anova_out_al_bet[!is.na(as.numeric(anova_out_al_bet$p.value)) & as.numeric(anova_out_al_bet$p.value)< 0.05, ]
 
-## we find a p value below 0.05 for both species -->  so both species 
-## have significant differences within the results of the equations
+## we cannot find a p value below 0.05 for the peat/mineral categories 
+# --> there are no significant differences between the c stocks calcualted via peat or no peat functions
 
 # some diagnostics
 plot(res.anova, 1)
@@ -610,7 +630,7 @@ for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
   df_for_anova <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])
   
   # run anova by specie and group 
-  res.aov <- aov(B_t_ha ~ peat, data = df_for_anova)
+  res.aov <- aov(C_t_ha ~ peat, data = df_for_anova)
   turkey <- TukeyHSD(res.aov)
   
   # run turkey and store in dataset 
@@ -659,8 +679,8 @@ turkey_out_al_bet[ turkey_out_al_bet$adj.p.value >= 0.05, ]
 ## comparisson of euqations
 # it appears that tapes can shows significant differences for the biomass functions for both species 
 # but no significant differences between tapes and other funcions if we look at the carbon stock for Alnus
-# thus we can conclude that for alnus, looking at the carbon stock it doesnt matter which functino we use
-# for betula however, there are significant differences between tapes and some of the other functions, so we
+# thus we can conclude that for alnus, looking at the carbon stock it doesnt matter if we use tapes or another function
+# for betula however, there are significant differences between tapes and some of the other functions (6 and 10), so we
 # hav conclude that for betula it matters if we use tapes or not
 
 ## comparisson peat vs. no peat
@@ -670,7 +690,7 @@ turkey_out_al_bet[ turkey_out_al_bet$adj.p.value >= 0.05, ]
 # where peat functions differed significantly from both other groups
 # for betula however, there are no significant differences between the equations regarding their peat status
 # thus we can conclude that if we look at a peat ecosystem stocked with alnus, we have to be careful about our 
-# selection f the function, otherwise not. 
+# selection of the function, otherwise not. 
 
 
 
