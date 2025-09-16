@@ -52,9 +52,9 @@
 #   install.packages("car")
 #  # ## forest related
 #    if (! require("remotes"))install.packages("remotes")
-  # remotes::install_github("sollano/forestmangr")
+# remotes::install_github("sollano/forestmangr")
 #  install.packages(c('plyr', 'systemfit', 'ggpmisc', 'car', 'FinCal', 'shiny', 'miniUI'))
-#  install.packages("forestmangr")
+#install.packages("forestmangr")
 #    install.packages("rBDAT")
 #    install.packages("TapeR")
 #    install.packages("pkgbuild")

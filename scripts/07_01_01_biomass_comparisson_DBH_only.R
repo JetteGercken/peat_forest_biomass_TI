@@ -2,7 +2,7 @@
 # Analysis of the forest inventory accompanying the  national soil inventory
 # paper about biomass of alnus and betula at peatland sites
 # Henriette Gercken
-
+# DBH only!!!
 
 # 0.1. packages and functions -------------------------------------------------------------------------------------------------
 source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
@@ -234,18 +234,33 @@ alnus_agb_kg_tree_df <- rbind(
                                 alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl == "not included"])   # of papers which have "not included"
                               , ]) %>% mutate(compartiment = "w_agb")),  
   # biomass of trees where function does not already excludes leaf mass and we have to sum up the woody compartiments  
-  setDT(tree_data_alnus %>% 
-          # join the tree info with the agb compartiment per tree
-          left_join(., (alnus_agb_kg_tree_df[!(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl")) &            # select seperate compartiments that are not ag or leafes 
-                                               alnus_agb_kg_tree_df$ID %in% c(alnus_func$ID[alnus_func$leafes_inkl == "possible"],
-                                                                              alnus_func$ID[alnus_func$leafes_inkl == "not included"]), ]) %>%   # of papers which have "possible"
-                      dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
-                      dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
-                      mutate(compartiment = "w_agb",
-                             func_ID = "w_agb", 
-                             ID = paste0(paper_ID, "_", func_ID)), 
-                    by =  c("plot_ID", "tree_ID")) ),
-  fill = T) %>% 
+  setDT(tree_data_alnus) %>% 
+    # join the tree info with the agb compartiment per tree
+    left_join(., rbind((alnus_agb_kg_tree_df[!(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl")) &            # select seperate compartiments that are not ag or leafes 
+                                               alnus_agb_kg_tree_df$ID %in% c(
+                                                 alnus_func$ID[alnus_func$leafes_inkl == "possible"] # of papers which have "possible"
+                                                 # alnus_func$ID[alnus_func$leafes_inkl == "not included"]
+                                               ), ]), 
+                       # here we have filter for those wag functions that dont have a function for ag 
+                       # but have separate compartiments that allow to calcualte wag like we did further up 
+                       (alnus_agb_kg_tree_df[!(alnus_agb_kg_tree_df$compartiment %in% c("abg", "agb")),]) %>% 
+                         semi_join(., 
+                                   bio_func_df %>% 
+                                     filter(leafes_inkl %in% c("not included")) %>%                 # agb shoul not be included
+                                     select(paper_ID, compartiment) %>%                                     # select papaer ID and compartiments 
+                                     distinct() %>%                                                         # make sure we only select them once
+                                     mutate(number = str_count(compartiment, "agb")) %>%                    # count the occurence of "agb" per paper and compartiment
+                                     group_by(paper_ID) %>% dplyr::summarise(mean_agb_number = mean(number)) %>%   # summarise the number of occurences of "agb" per paper 
+                                     filter(mean_agb_number == 0), 
+                                   by = "paper_ID")
+    ) %>% # close rbind  
+      dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+      dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
+      mutate(compartiment = "w_agb",
+             func_ID = "w_agb", 
+             ID = paste0(paper_ID, "_", func_ID)), 
+    by =  c("plot_ID", "tree_ID")),
+  fill = T) %>% # close rbind from beginning 
   arrange(plot_ID, tree_ID, paper_ID, func_ID)
 
 
@@ -376,20 +391,53 @@ betula_agb_kg_tree_df <- rbind(
   setDT((betula_agb_kg_tree_df[betula_agb_kg_tree_df$compartiment %in% c("abg", "agb") &          # compartiment ag
                                  betula_agb_kg_tree_df$ID %in% c(betula_func$ID[betula_func$leafes_inkl == "not included"])   # of papers which have "not included"
                                , ]) %>% mutate(compartiment = "w_agb")),  
+  
   # biomass of trees where function does not already excludes leaf mass and we have to sum up the woody compartiments  
-  setDT(tree_data_betula %>% 
-          # join the tree info with the agb compartiment per tree
-          left_join(., (betula_agb_kg_tree_df[!(betula_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl")) &            # select seperate compartiments that are not ag or leafes 
-                                                betula_agb_kg_tree_df$ID %in% c(betula_func$ID[betula_func$leafes_inkl == "possible"],
-                                                                                betula_func$ID[betula_func$leafes_inkl == "not included"]), ]) %>%   # of papers which have "possible"
-                      dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
-                      dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
-                      mutate(compartiment = "w_agb",
-                             func_ID = "w_agb", 
-                             ID = paste0(paper_ID, "_", func_ID)), 
-                    by =  c("plot_ID", "tree_ID")) ),
-  fill = T) %>% 
+  setDT(tree_data_betula) %>% 
+    # join the tree info with the agb compartiment per tree
+    left_join(., rbind((betula_agb_kg_tree_df[!(betula_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl")) &            # select seperate compartiments that are not ag or leafes 
+                                                betula_agb_kg_tree_df$ID %in% c(
+                                                  betula_func$ID[betula_func$leafes_inkl == "possible"] # of papers which have "possible"
+                                                  # alnus_func$ID[alnus_func$leafes_inkl == "not included"]
+                                                ), ]), 
+                       # here we have filter for those wag functions that dont have a function for ag 
+                       # but have separate compartiments that allow to calcualte wag like we did further up 
+                       (betula_agb_kg_tree_df[!(betula_agb_kg_tree_df$compartiment %in% c("abg", "agb")),]) %>% 
+                         semi_join(., 
+                                   bio_func_df %>% 
+                                     filter(leafes_inkl %in% c("not included")) %>%                 # agb shoul not be included
+                                     select(paper_ID, compartiment) %>%                                     # select papaer ID and compartiments 
+                                     distinct() %>%                                                         # make sure we only select them once
+                                     mutate(number = str_count(compartiment, "agb")) %>%                    # count the occurence of "agb" per paper and compartiment
+                                     group_by(paper_ID) %>% dplyr::summarise(mean_agb_number = mean(number)) %>%   # summarise the number of occurences of "agb" per paper 
+                                     filter(mean_agb_number == 0), 
+                                   by = "paper_ID")
+    ) %>% # close rbind  
+      dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+      dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
+      mutate(compartiment = "w_agb",
+             func_ID = "w_agb", 
+             ID = paste0(paper_ID, "_", func_ID)), 
+    by =  c("plot_ID", "tree_ID")),
+  fill = T) %>% # close rbind from beginning 
   arrange(plot_ID, tree_ID, paper_ID, func_ID)
+
+
+
+# # biomass of trees where function does not already excludes leaf mass and we have to sum up the woody compartiments  
+# setDT(tree_data_betula %>% 
+#         # join the tree info with the agb compartiment per tree
+#         left_join(., (betula_agb_kg_tree_df[!(betula_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl")) &            # select seperate compartiments that are not ag or leafes 
+#                                               betula_agb_kg_tree_df$ID %in% c(betula_func$ID[betula_func$leafes_inkl == "possible"],
+#                                                                               betula_func$ID[betula_func$leafes_inkl == "not included"]), ]) %>%   # of papers which have "possible"
+#                     dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+#                     dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
+#                     mutate(compartiment = "w_agb",
+#                            func_ID = "w_agb", 
+#                            ID = paste0(paper_ID, "_", func_ID)), 
+#                   by =  c("plot_ID", "tree_ID")) ),
+# fill = T) %>% 
+# arrange(plot_ID, tree_ID, paper_ID, func_ID)
 
 
 
@@ -458,8 +506,13 @@ stop("biomass comparisson end")
 trees_data %>% 
   filter(bot_genus %in% c("Alnus", "Betula") & 
            bot_species %in% c("glutinosa", "pubescens", "spp.") & 
-           min_org == "org" & 
-           compartiment == "ag") %>% 
+           min_org == "org" 
+         #  & compartiment == "ag"
+         | bot_name %in% c("Alnus glutinosa", "Betula pubescens") & 
+           min_org == "min" 
+         # & compartiment == "ag"
+  ) %>% 
+  distinct() %>% 
   group_by(bot_genus, min_org) %>% 
   dplyr::summarise(mean_DBH = mean(DBH_cm), 
                    min_DBH = min(DBH_cm), 
@@ -469,22 +522,14 @@ trees_data %>%
                    n = n() )
 
 
-# bot_name         min_org mean_DBH mean_H
-# <chr>            <chr>      <dbl>  <dbl>
-# 1 Alnus glutinosa  min       25.4   19.9
-# 2 Alnus glutinosa  org         20.8   17.6
-# 3 Betula pubescens min         18.0   17.6
-# 4 Betula pubescens org         17.0   16.0
-
-# bot_genus min_org mean_DBH min_DBH max_DBH mean_H mean_H_old
-# <chr>     <chr>      <dbl>   <dbl>   <dbl>  <dbl>      <dbl>
-#  Alnus     min         25.4     7.2    60.0   19.9       20.0
-#  Alnus     org         21.1     7.1    61.4   17.6       17.6
-#  Betula    min         18.0     7      38.2   17.6       17.7
-#  Betula    org         16.7     7.1    50     16.2       16.6
+# bot_genus min_org    mean_DBH   min_DBH  max_DBH    mean_H     mean_H_old     n
+# 1 Alnus     min         25.4     7.2      60.0      19.9       20.0          425
+# 2 Alnus     org         21.1     7.1      61.4      17.6       17.6          817
+# 3 Betula    min         18.0     7        38.2      17.6       17.7          200
+# 4 Betula    org         16.7     7.1      50        16.2       16.6          518
 
 
-trees_data %>% 
+tapes_tree_data %>% 
   filter(H_method == "sampled" & compartiment == "ag") %>% 
   group_by(bot_name, min_org) %>% 
   dplyr::summarise(mean_DBH = mean(DBH_cm), 
@@ -860,14 +905,15 @@ turkey_out_al_bet <- as.data.frame(rbindlist(turkey.output))
 #filter for tapes comparissons: 
 # filter for tapes comparissons that show a significant difference
 turkey_out_al_bet_tapes <- setDT(turkey_out_al_bet)[str_detect(turkey_out_al_bet$contrast, "tapes"), ]
-# filter for tapes comparissons that dont show a significant difference 
+# filter for tapes comparissons that DONT show a significant difference 
 turkey_out_al_bet_tapes[turkey_out_al_bet_tapes$adj.p.value >= 0.05, ]
 # filter for tapes comparissons that  show a significant difference 
 setDT(turkey_out_al_bet_tapes)[turkey_out_al_bet_tapes$adj.p.value < 0.05, ]
 
 # Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-
+# export turkey resutls 
+write.csv(turkey_out_al_bet, paste0(getwd(), out.path, paste(trees_data_update_5$inv[1], "turkey_output_B_species", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 
 stop("this is where biomass comparison singe tree script paper stops")
@@ -1060,16 +1106,19 @@ turkey_out_al_bet <- as.data.frame(rbindlist(turkey.output))
 
 
 #filter for tapes comparissons: 
-# filter for tapes comparissons that show a significant difference
+# filter for tapes comparissons that dont show a significant difference
 # turkey_out_al_bet_tapes <- setDT(turkey_out_al_bet)[str_detect(turkey_out_al_bet$contrast, "tapes"), ]
 turkey_out_al_bet[turkey_out_al_bet$adj.p.value >= 0.05, ]
-# filter for tapes comparissons that dont show a significant difference 
+# filter for tapes comparissons that show a significant difference 
 setDT(turkey_out_al_bet)[turkey_out_al_bet$adj.p.value < 0.05, ]
 
 # Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 # for alnus: for alnus peat functions are different to no and partly peat functions 
 #            but no significant difference between partly peat and no peat
 # for betula there are no signficicant differences at all. not between partly and no peat, peat and no peat, peat and partly peat
+
+# export turkey resutls 
+write.csv(turkey_out_al_bet, paste0(getwd(), out.path, paste(trees_data_update_5$inv[1], "turkey_output_B_peat", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 
 stop("this is where biomass comparison singe tree script paper stops")
