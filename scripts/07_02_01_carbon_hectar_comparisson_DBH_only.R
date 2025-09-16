@@ -75,9 +75,9 @@ pseudo_mono_P_SP <- trees_org %>%
   # now we summarise all the t/ha values of the cirlces per plot
   dplyr::group_by(plot_ID, paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
   dplyr::summarise(B_t_ha = sum(B_CCS_t_ha), 
-            C_t_ha = sum(C_CCS_t_ha), 
-           BA_m2_ha = sum(BA_CCS_m2_ha), 
-            n_ha = sum(n_trees_CCS_ha)) 
+                   C_t_ha = sum(C_CCS_t_ha), 
+                   BA_m2_ha = sum(BA_CCS_m2_ha), 
+                   n_ha = sum(n_trees_CCS_ha)) 
 
 
 # add country code to data set for lables
@@ -88,10 +88,10 @@ write.csv(pseudo_mono_P_SP, paste0(getwd(), out.path, "C_stock_ha_pseudo_mono_P_
 
 # 1.3. mean stock pseudo-mono-stands: by calculation method  ---------------------------------------------------------
 pseudo_mono_mean_func <- pseudo_mono_P_SP %>% 
-    group_by(paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
-                                dplyr::summarise(mean_B_t_ha = mean(B_t_ha), 
-                                          mean_C_t_ha = mean(C_t_ha), 
-                                          mean_n_ha = mean(n_ha)) %>% 
+  group_by(paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
+  dplyr::summarise(mean_B_t_ha = mean(B_t_ha), 
+                   mean_C_t_ha = mean(C_t_ha), 
+                   mean_n_ha = mean(n_ha)) %>% 
   distinct() %>% 
   arrange(bot_genus, paper_ID,  func_ID, country, ID,compartiment)
 
@@ -150,7 +150,8 @@ m_tapes_betula <- mean(na.omit(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mea
 # percent difference: 33.69055 %, 28.85649tons
 ((m_tapes_betula - m_nfi_aLHn)/m_nfi_aLHn)*100 
 
-
+# diff mean all equations betula and NFI mean 
+m_all_func_betula - m_nfi_aLHn
 
 
 
@@ -255,9 +256,9 @@ pseudo_mono_mean_func$ID[ pseudo_mono_mean_func$compartiment == "w_agb" & pseudo
 
 
 # 4.3.1. Test for any sign. differences between equations -----------------------------------------------------------------------------
-  # lets test for significant differences between the groups but without knowing what nature the differences have
-  
-  # 4.3.1.1. test for requirements of ANOVA/ Kuskal-Wallis ----------------------------------------------------------
+# lets test for significant differences between the groups but without knowing what nature the differences have
+
+# 4.3.1.1. test for requirements of ANOVA/ Kuskal-Wallis ----------------------------------------------------------
 # requirements for ANOVA:
 # https://www.sthda.com/english/wiki/one-way-anova-test-in-r
 # - The observations are obtained independently and randomly from the population defined by the factor levels
@@ -278,23 +279,23 @@ pseudo_mono_P_al_bet_wag <- (pseudo_mono_P_SP[compartiment == "w_agb" &
 # add a row per plot and species that hold the mean stock per species and plot across
 # all equations which we are going to treat like a separate function 
 pseudo_mono_P_al_bet_wag <- 
-rbind(
-  pseudo_mono_P_al_bet_wag, 
-  pseudo_mono_P_al_bet_wag %>% 
-              group_by(plot_ID, bot_genus, compartiment) %>% 
-              summarise(B_t_ha = mean(B_t_ha), 
-                        C_t_ha = mean(C_t_ha), 
-                        BA_m2_ha = mean(BA_m2_ha), 
-                        n_ha= mean(n_ha)) %>% 
-              mutate(paper_ID = "mean",
-                     func_ID= "mean",
-                     peat= "partly",
-                     country  = "all", 
-                     ID = "mean", 
-                     country_code = "NA")
-) %>% 
+  rbind(
+    pseudo_mono_P_al_bet_wag, 
+    pseudo_mono_P_al_bet_wag %>% 
+      group_by(plot_ID, bot_genus, compartiment) %>% 
+      summarise(B_t_ha = mean(B_t_ha), 
+                C_t_ha = mean(C_t_ha), 
+                BA_m2_ha = mean(BA_m2_ha), 
+                n_ha= mean(n_ha)) %>% 
+      mutate(paper_ID = "mean",
+             func_ID= "mean",
+             peat= "partly",
+             country  = "all", 
+             ID = "mean", 
+             country_code = "NA")
+  ) %>% 
   arrange(plot_ID)
-  
+
 # create list for output tibbles
 
 # create list for output tibbles
@@ -474,6 +475,11 @@ turkey_out_al_bet[str_detect(turkey_out_al_bet$contrast, "tapes") &
 
 # the anova showed that there are significant differences between all functions but 
 # tapes shows significanct differences only for Betula for equations: 10,  and 6 
+
+
+# export turkey c species and eq. ID results
+write.csv(turkey_out_al_bet, paste0(getwd(), out.path, paste(trees_data$inv[1], "turkey_output_C_species", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+
 
 # 4.4. Statistical analysis peat vs. no peat --------------------------------------------------------------------------------
 # 4.4.1. Test for any sign. differences between equations -----------------------------------------------------------------------------
@@ -670,6 +676,10 @@ turkey_out_al_bet[ turkey_out_al_bet$adj.p.value < 0.05, ]
 # filter for tapes comparissons that dont show a significant difference 
 turkey_out_al_bet[ turkey_out_al_bet$adj.p.value >= 0.05, ]
 
+# export turkey c peat results
+write.csv(turkey_out_al_bet, paste0(getwd(), out.path, paste(trees_data$inv[1], "turkey_output_C_peat", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+
+
 # the anova showed that there are no significant differences between peat and no peat and partly peat functions 
 # that is supported by the turkey test again, which doesnt show any significant difference 
 # between all the funcitons in regard of their peat status
@@ -706,18 +716,18 @@ values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus")
                                   & pseudo_mono_P_SP$paper_ID !=9]
 
 names <-  setDT(pseudo_mono_P_SP[pseudo_mono_P_SP$bot_genus %in% c("Alnus") 
-                             & pseudo_mono_P_SP$compartiment == "w_agb" 
-                             & pseudo_mono_P_SP$paper_ID !=9,])[, `:=`(
-                               "names" = paste0(paper_ID, ", ", ifelse(func_ID != "w_agb", paste0(func_ID, ", ") , ""), country_code) )]$names
+                                 & pseudo_mono_P_SP$compartiment == "w_agb" 
+                                 & pseudo_mono_P_SP$paper_ID !=9,])[, `:=`(
+                                   "names" = paste0(paper_ID, ", ", ifelse(func_ID != "w_agb", paste0(func_ID, ", ") , ""), country_code) )]$names
 
 # assign colors: # mark only tapes plot 
 farbe <-  setDT(pseudo_mono_P_SP[pseudo_mono_P_SP$bot_genus %in% c("Alnus") 
                                  & pseudo_mono_P_SP$compartiment == "w_agb" 
                                  & pseudo_mono_P_SP$paper_ID !=9,])[, `:=`(
                                    "farbe" = ifelse(ID %like% c("tapes") , "red" , # tapes red
-                                                  ifelse(peat == "yes",  "blue" , # "#53868B",
-                                                         ifelse(peat == "partly", "turquoise1", # "#7AC5CD",
-                                                                "grey" ) )))]$farbe
+                                                    ifelse(peat == "yes",  "blue" , # "#53868B",
+                                                           ifelse(peat == "partly", "turquoise1", # "#7AC5CD",
+                                                                  "grey" ) )))]$farbe
 
 # bind colors, names and values together 
 alnus_wag <- as.data.frame(cbind(names, values, farbe))
@@ -747,8 +757,8 @@ segments(x0 = 0.5,
          y1 = mean(as.numeric(na.omit(alnus_wag$values))), col = "black", lwd = 2) #functions mean
 # means of every function
 points(as.numeric(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") 
-                                         & pseudo_mono_mean_func$compartiment == "w_agb"
-                                         & pseudo_mono_mean_func$paper_ID !=9]) 
+                                                    & pseudo_mono_mean_func$compartiment == "w_agb"
+                                                    & pseudo_mono_mean_func$paper_ID !=9]) 
        , col = "black",  pch = 16)
 # legend
 legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", 
@@ -906,7 +916,7 @@ abline(h=mean(as.numeric(alnus_wag$values)), col = "blue") #functions mean
 
 
 # N. 2.2.betula c stock ha barplot ------------------------------------------
-  values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
+values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
 names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
 betula_wag <- as.data.frame(cbind(names, values))
 
