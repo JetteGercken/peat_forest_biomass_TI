@@ -2,7 +2,7 @@
 # Analysis of the forest inventory accompanying the  national soil inventory
 # paper about biomass of alnus and betula at peatland sites
 # Henriette Gercken
-# DBH only!!!
+
 
 # 0.1. packages and functions -------------------------------------------------------------------------------------------------
 source(paste0(getwd(), "/scripts/01_00_functions_library.R"))
@@ -270,8 +270,8 @@ alnus_agb_kg_tree_df <- rbind(
 
 # 1.2. BETULA  -------------------------------------------------
 # now we will try to implement a loop for all biomass functions in the list 
-# select all biomass functions that calculate aboveground biomass, are for Alnus trees, and don´t need to be backtransformed
-betula_func <- subset(bio_func_df, species %like% "Betula pubescens" &     # select only Alnus specific species
+# select all biomass functions that calculate aboveground biomass, are for betula trees, and don´t need to be backtransformed
+betula_func <- subset(bio_func_df, species %like% "Betula pubescens" &     # select only betula specific species
                         !is.na(function.) &                    # select only those papers with functions
                         compartiment %in% c("ndl", "fwb", "sw", "swb", "stb", "stw", "agb"))            # select only those paper which have leafes not icluded or a possible compartimentalisation
 
@@ -394,7 +394,7 @@ betula_agb_kg_tree_df <- rbind(
   
   # biomass of trees where function does not already excludes leaf mass and we have to sum up the woody compartiments  
   setDT(tree_data_betula) %>% 
-    # join the tree info with the agb compartiment per tree
+    # join the tree info with the compartiment per tree
     left_join(., rbind((betula_agb_kg_tree_df[!(betula_agb_kg_tree_df$compartiment %in% c("abg", "agb", "ndl")) &            # select seperate compartiments that are not ag or leafes 
                                                 betula_agb_kg_tree_df$ID %in% c(
                                                   betula_func$ID[betula_func$leafes_inkl == "possible"] # of papers which have "possible"
@@ -413,16 +413,31 @@ betula_agb_kg_tree_df <- rbind(
                                      filter(mean_agb_number == 0), 
                                    by = "paper_ID")
     ) %>% # close rbind  
-      dplyr::group_by(plot_ID, tree_ID, paper_ID, peat, country, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
+      mutate(
+        # here we adjust the paper ID if we find that they have multiple equations for the same compartment: 
+        # i startet with something like this but if were being honest now is not the time and i know its eq. 29 so fuck this 
+        # ifelse(paper_ID %in% unique(unique(betula_func[!(betula_func$compartiment %in% c("agb")), c("paper_ID", "func_ID", "compartiment")]) %>% group_by(paper_ID, compartiment) %>% summarise(n_comp = n()) %>% filter(n_comp > 1) %>% dplyr::pull(paper_ID)), 
+        #        paste0(paper_ID, ))
+        paper_ID_provisory = ifelse(paper_ID == 29 & func_ID %in% c(1:5), paste0(paper_ID, 11), 
+                                    ifelse(paper_ID == 29 & func_ID %in% c(6:10), paste0(paper_ID, 12), 
+                                           paper_ID))) %>% 
+      dplyr::group_by(plot_ID, tree_ID, paper_ID, paper_ID_provisory, peat, country, unit_B, logarithm_B) %>%              #  group by tree per plot per paper as we ahve to sum up the different compartiments originating from the same paper (and not all available compartiments per tree)
       dplyr::summarise(B_kg_tree = sum(B_kg_tree)) %>%                                                        # sum up compartiemtns per tree per paper
       mutate(compartiment = "w_agb",
-             func_ID = "w_agb", 
-             ID = paste0(paper_ID, "_", func_ID)), 
+             func_ID = ifelse(paper_ID_provisory == 2911, "11", 
+                              ifelse(paper_ID_provisory == 2912, "12", "w_agb")), 
+             ID = paste0(paper_ID, "_", func_ID)
+      ), 
     by =  c("plot_ID", "tree_ID")),
   fill = T) %>% # close rbind from beginning 
-  arrange(plot_ID, tree_ID, paper_ID, func_ID)
+  arrange(plot_ID, tree_ID, paper_ID, func_ID) 
 
-
+# we have to think of another issue here where we sum up the wag: 
+# there is an equations 29 from norway where we have 2 equations for each compartment. 
+# whats happening right now is that they are summed up to a quite high wag. 
+# doesnt happen for the ag because we join that one in just by compartment without summarizing things
+# therefore we need another filter identifying equations that have the same compartment twice and then change 
+# the func id or paper to something specific in between.
 
 # # biomass of trees where function does not already excludes leaf mass and we have to sum up the woody compartiments  
 # setDT(tree_data_betula %>% 
@@ -679,7 +694,7 @@ min(betula_wag_mean_func$B_kg_tree) # 56.54606
 max(betula_wag$B_kg_tree) # 2587.323
 # max function: 
 betula_wag$paper_ID[betula_wag$B_kg_tree == max(betula_wag$B_kg_tree)] # 20
-betula_wag_mean_func$paper_ID[betula_wag_mean_func$B_kg_tree == max(betula_wag_mean_func$B_kg_tree)] # 29!!!!
+betula_wag_mean_func$paper_ID[betula_wag_mean_func$B_kg_tree == max(betula_wag_mean_func$B_kg_tree)] # 20!!!!
 # mean of max function: 
 mean(betula_wag$B_kg_tree[betula_wag$paper_ID == betula_wag$paper_ID[betula_wag$B_kg_tree == max(betula_wag$B_kg_tree)]]) # 164.8527
 max(betula_wag_mean_func$B_kg_tree) # 229.5567
@@ -1126,6 +1141,92 @@ stop("this is where biomass comparison singe tree script paper stops")
 
 
 
+# development of differences between mean and tapes -----------------------
+
+
+# alnus glutinosa tapes mean diff ---------------------------------------------------------
+# differences between diff tapes mean bevore and after 30cm
+# select only trees with tapes 
+(trees_data_al_bet_wag[trees_data_al_bet_wag$ID %in% c("41_tapes") & trees_data_al_bet_wag$bot_genus == "Alnus" , ]) %>% 
+  left_join(., 
+            # join mean bio per tree in to calcualte diff
+            (trees_data_al_bet_wag[trees_data_al_bet_wag$ID %in% c("mean") & trees_data_al_bet_wag$bot_genus == "Alnus" , c("plot_ID", "tree_ID", "B_kg_tree")]) %>% rename("B_kg_tree_mean" = "B_kg_tree")
+            , by = c("plot_ID", "tree_ID")) %>% 
+  # calculate diff between tapes and bio mean 
+  mutate(B_diff_tapes_mean = B_kg_tree - B_kg_tree_mean, 
+         B_diff_tapes_mean_share = (B_kg_tree - B_kg_tree_mean)/(B_kg_tree)) %>% 
+  # group into small and big trees with dbh 30 as threshold 
+  mutate(small_big = ifelse(DBH_class < 30, "small", "big")) %>% 
+  group_by(small_big) %>% 
+  # caculate mean diff between tapes and mean for small and big trees 
+  summarise(mean_diff_small_big = mean(B_diff_tapes_mean),
+            mean_share_small_big = mean(B_diff_tapes_mean_share))
+
+
+(trees_data_al_bet_wag[trees_data_al_bet_wag$ID %in% c("41_tapes") & trees_data_al_bet_wag$bot_genus == "Alnus" , ]) %>% 
+  left_join(., 
+            # join mean bio per tree in to calcualte diff
+            (trees_data_al_bet_wag[trees_data_al_bet_wag$ID %in% c("mean") & trees_data_al_bet_wag$bot_genus == "Alnus" , c("plot_ID", "tree_ID", "B_kg_tree")]) %>% rename("B_kg_tree_mean" = "B_kg_tree")
+            , by = c("plot_ID", "tree_ID")) %>% 
+  # calculate diff between tapes and bio mean 
+  mutate(B_diff_tapes_mean = B_kg_tree - B_kg_tree_mean, 
+         B_diff_share = (B_kg_tree - B_kg_tree_mean)/B_kg_tree) %>% 
+  group_by(DBH_class) %>% 
+  summarise(mean_diff = mean(B_diff_tapes_mean), 
+            mean_diff_share = mean(B_diff_share)) 
+# %>% 
+#   mutate(small_big = ifelse(DBH_class < 30, "small", "big")) %>% 
+#   group_by(small_big) %>% 
+#   # caculate mean diff between tapes and mean for small and big trees 
+#   summarise(mean_diff_small_big = mean(mean_diff),
+#             mean_share_small_big = mean(mean_diff_share))
+
+
+trees_data_al_bet_wag %>% 
+  group_by(peat, bot_genus) %>% 
+  summarise(cv = sd(B_kg_tree)/mean(B_kg_tree)) %>% 
+  arrange(bot_genus)
+
+trees_data_al_bet_wag %>% 
+  group_by(DBH_class, bot_genus) %>% 
+  summarise(cv = sd(B_kg_tree)/mean(B_kg_tree)) %>% 
+  arrange(bot_genus)
+
+
+# betula pubescens tapes mean diff --------------------------------------------
+(trees_data_al_bet_wag[trees_data_al_bet_wag$ID %in% c("41_tapes") & trees_data_al_bet_wag$bot_name == "Betula pubescens" , ]) %>% 
+  left_join(., 
+            # join mean bio per tree in to calcualte diff
+            (trees_data_al_bet_wag[trees_data_al_bet_wag$ID %in% c("mean") & trees_data_al_bet_wag$bot_name == "Betula pubescens" , c("plot_ID", "tree_ID", "B_kg_tree")]) %>% rename("B_kg_tree_mean" = "B_kg_tree")
+            , by = c("plot_ID", "tree_ID")) %>% 
+  # calculate diff between tapes and bio mean 
+  mutate(B_diff_tapes_mean = B_kg_tree - B_kg_tree_mean, 
+         B_diff_share = (B_kg_tree - B_kg_tree_mean)/B_kg_tree) %>% 
+  group_by(DBH_class) %>% 
+  summarise(mean_diff = mean(B_diff_tapes_mean), 
+            mean_diff_share = mean(B_diff_share))
+# group into small and big trees with dbh 30 as threshold 
+# mutate(small_big = ifelse(DBH_class < 30, "small", "big")) %>% 
+# group_by(small_big) %>% 
+# # caculate mean diff between tapes and mean for small and big trees 
+# summarise(mean_diff_small_big = mean(B_diff_tapes_mean))
+
+
+(trees_data_al_bet_wag[trees_data_al_bet_wag$ID %in% c("41_tapes") & trees_data_al_bet_wag$bot_genus == "Betula" , ]) %>% 
+  left_join(., 
+            # join mean bio per tree in to calcualte diff
+            (trees_data_al_bet_wag[trees_data_al_bet_wag$ID %in% c("mean") & trees_data_al_bet_wag$bot_genus == "Betula" , c("plot_ID", "tree_ID", "B_kg_tree")]) %>% rename("B_kg_tree_mean" = "B_kg_tree")
+            , by = c("plot_ID", "tree_ID")) %>% 
+  # calculate diff between tapes and bio mean 
+  mutate(B_diff_tapes_mean = B_kg_tree - B_kg_tree_mean, 
+         B_diff_tapes_mean_share = (B_kg_tree - B_kg_tree_mean)/(B_kg_tree)) %>% 
+  # group into small and big trees with dbh 30 as threshold 
+  mutate(small_big = ifelse(DBH_class < 30, "small", "big")) %>% 
+  group_by(small_big) %>% 
+  # caculate mean diff between tapes and mean for small and big trees 
+  summarise(mean_diff_small_big = mean(B_diff_tapes_mean),
+            mean_share_small_big = mean(B_diff_tapes_mean_share))
+
 
 
 # 4. visuals --------------------------------------------------------------
@@ -1311,7 +1412,8 @@ ggplot(data = ungroup(betula_ag) # %>% filter(!(ID %in% c("13_1"))) # "16_4" and
 # avbovegroun biomass of alnus trees in kg by diameter, without ln functions and those that have multiple compartiments yet 
 betula_wag <-  trees_data_update_5[compartiment %in% c("w_agb") & bot_genus %in% c("Betula") & min_org == "org", ]
 
-betula_wag_labels <- betula_wag %>% group_by(paper_ID, func_ID, peat, country, ID) %>% dplyr::summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
+betula_wag_labels <- betula_wag %>% group_by(paper_ID, func_ID, peat, country, ID) %>% 
+  dplyr::summarise(DBH_cm = max(DBH_cm), B_kg_tree = max(B_kg_tree)) %>% 
   mutate(country_code = countrycode(country, origin = 'country.name', destination = 'iso3c'),
          ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
          label_name =  paste0(paper_ID, ", ", ifelse(func_ID != "w_agb", paste0(func_ID, ", ") , ""), country_code)) %>% 

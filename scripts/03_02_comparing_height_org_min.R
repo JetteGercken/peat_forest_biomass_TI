@@ -192,6 +192,12 @@ setDT(trees_sub)[, `:=`(HD = H_m/DBH_cm)]
 # n_min_alnus: nrow(unique(trees_sub[trees_sub$min_org == "min" & trees_sub$bot_name == "Betula pubescens", c("plot_ID", "tree_ID")])) -> 99 
 
 
+# test normality of dbh
+shapiro.test(trees_sub$DBH_cm)
+# Shapiro-Wilk normality test
+# 
+# data:  trees_sub$H_m
+# W = 0.99187, p-value = 2.307e-16 --> significant --> not normally 
 
 # test normality of height
 shapiro.test(trees_sub$H_m)
@@ -216,15 +222,16 @@ wilcox.test(HD~min_org, data = trees_sub,
 # DBH_cm for alnus and betula together is significanlty different: p-value = 0.00169
 
 
-wilcox.test(DBH_cm~min_org, data = trees_sub[trees_sub$bot_name == "Alnus glutinosa", ], 
+wilcox.test(H_m~min_org, data = trees_sub[trees_sub$bot_name == "Alnus glutinosa", ], 
             exact = FALSE, 
             correct = FALSE, 
             conf.int = FALSE)
-# DBH mean for alnus are different: p-value = 0.0003553
+# DBH mean for alnus are different: p-value = 0.0003553, mean DBH peat: 
 # H_m  means for Alnus are different: p-value = 5.058e-06 
 # HD means are not different: p-value = 0.8471 
+mean(trees_sub[trees_sub$bot_name == "Betula pubescens" & trees_sub$min_org == "min",]$DBH_cm)
 
-wilcox.test(DBH_cm~min_org, data = trees_sub[trees_sub$bot_name == "Betula pubescens", ], 
+wilcox.test(H_m~min_org, data = trees_sub[trees_sub$bot_name == "Betula pubescens", ], 
             exact = FALSE, 
             correct = FALSE, 
             conf.int = FALSE)
@@ -304,6 +311,10 @@ model_org <- nls(H_m ~ 1.3 + (DBH_cm / (a + b * DBH_cm))^3,
 # Step 4: View the results
 summary(model_org)
 
+
+
+# model alnus 
+unique(trees_data_h_nls[trees_data_h_nls$bot_name == "Alnus glutinosa" & trees_data_h_nls$H_method == "sampled",][, c("min_org", "b0", "b1")])
 
 # 2.4. test for statistical difference of the coefficients of nls height curves ------------------------------------------------------
 # 2.4.1. coefficient test alnus ------------------------------------------------------
