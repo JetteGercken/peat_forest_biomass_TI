@@ -2,7 +2,7 @@
 # Analysis of the forest inventory accompanying the  national soil inventory
 # paper about biomass of alnus and betula at peatland sites
 # Henriette Gercken
-# summarizing Ha stocks of single tree biomass based on *DBH only*!!!!
+# summarizing Ha stocks of single tree biomass based on *DBH only*!!!
 
 
 # here we summarize all individual tree stocks per species, plot and hectar (only stocks and ba)

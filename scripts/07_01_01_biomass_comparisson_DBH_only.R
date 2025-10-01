@@ -2,6 +2,7 @@
 # Analysis of the forest inventory accompanying the  national soil inventory
 # paper about biomass of alnus and betula at peatland sites
 # Henriette Gercken
+# DBH only!!!!!!!
 
 
 # 0.1. packages and functions -------------------------------------------------------------------------------------------------

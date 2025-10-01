@@ -140,7 +140,7 @@ view(
 
 
 
-# statistical comparisson -------------------------------------------------
+### statistical comparisson  H by DBH class-------------------------------------------------
 # all sp together statistical comparisson -------------------------------------------------
 trees_sub_all <-  trees_data[trees_data$H_method == "sampled", ]
 setDT(trees_sub_all)[, `:=`(HD = H_m/DBH_cm)]
@@ -252,27 +252,208 @@ wilcox.test(DBH_cm~min_org, data = trees_min_org[trees_min_org$bot_genus == "Aln
             correct = FALSE, 
             conf.int = FALSE)
 
-# 2. visuals of comparisson -----------------------------------------------------------------
+
+### Alnus betula statistical comparisson dbh classes --------------------------------------- 
+# shapiro test H by dbh class -------------------------------------------------
+# subset data 
+trees_sub_bet_all <-  trees_data[trees_data$H_method == "sampled" & trees_data$bot_name == "Betula pubescens" | 
+                                   trees_data$bot_name == "Alnus glutinosa", ] %>% 
+  mutate(new_DBH_class = case_when(DBH_cm <= 10 ~ 10, 
+                                   DBH_cm > 10 & DBH_cm<=20 ~20, 
+                                   DBH_cm > 20 & DBH_cm<=30 ~30, 
+                                   DBH_cm > 30 & DBH_cm<=40 ~40, 
+                                   DBH_cm > 40 & DBH_cm<=50 ~50,
+                                   DBH_cm > 50 & DBH_cm<=60 ~60,
+                                   DBH_cm > 60 & DBH_cm<=70 ~70,
+                                   TRUE ~ 80))
+setDT(trees_sub_bet_all)[, `:=`(HD = H_m/DBH_cm)]
+
+# create list for output tibbles
+shap.output.h <- vector("list", length = nrow( unique(trees_sub_bet_all[, c("bot_name", "new_DBH_class")]) ) )
+# run shapiro per species and dbh class
+for (i in 1:nrow( unique(trees_sub_bet_all[, c("bot_name", "new_DBH_class")])) ) {
+  
+  # i = 2
+  my.species <- as.character(unique(trees_sub_bet_all[, c("bot_name", "new_DBH_class")])[i, "bot_name"])
+  my.dbh.class <- as.numeric(unique(trees_sub_bet_all[, c("bot_name", "new_DBH_class")])[i, "new_DBH_class"])
+  my.variable <- as.numeric(trees_sub_bet_all$H_m[trees_sub_bet_all$bot_name == my.species & 
+                                     trees_sub_bet_all$new_DBH_class == my.dbh.class])
+  
+  # if there are more then 5000 samples we have to randomly select 5000 rows because shapiro doesnt work otherwise
+  if (length(my.variable) > 5000){
+    my.variable.check <- my.variable[sample(length (my.variable), 4999, ), ]
+  }else{
+    my.variable.check <- my.variable
+  }
+  
+  # if there are less then 3 variable values shapiro cant run either and we have to set it to na 
+  if(isTRUE(length(my.variable.check) < 5000 & length(my.variable.check) > 3) == T){
+    # do shapiro test for dbh 
+    shap.output.df <- tidy(shapiro.test(my.variable.check))
+    # do shapiro test for dbh 
+    shap.output.df <- tidy(shapiro.test(my.variable.check)) 
+    # put output of shap it in dataframe
+    shap.output.h[[i]] <- as.data.frame(cbind(my.species # add func id ans species 
+                                              , my.dbh.class
+                                              , shap.output.df))
+  }else{
+    # put output of shap it in dataframe
+    shap.output.h[[i]] <- as.data.frame(cbind(my.species # add func id ans species 
+                                              , my.dbh.class
+                                              , "statistic" = NA
+                                              , "p.value" = NA
+                                              , "method" = NA  ))
+  }
+  
+  # check output
+  print(paste(i , my.species, my.dbh.class, sep = ","))
+ 
+   
+}
+shap_out_h_al_bet <- as.data.frame(rbindlist(shap.output.h))
+shap_out_h_al_bet[,c("my.dbh.class"
+                     , "p.value"
+                     , "statistic")] <- lapply(shap_out_h_al_bet[,c("my.dbh.class"
+                                                                    , "p.value"
+                                                                    , "statistic")], as.numeric)
+
+# interpret shapiro results: 
+# is there a row where data is normally distributed (p-value > 0.05)
+shap_out_h_al_bet[!is.na(shap_out_h_al_bet$p.value) & shap_out_h_al_bet$p.value > 0.05,]
+# yeah plenty. those will get a t.test
+
+# are there not normaly distribtured h per dbh class? 
+shap_out_h_al_bet[!is.na(shap_out_h_al_bet$p.value) & shap_out_h_al_bet$p.value <= 0.05,]
+# yeah some. those will get a wilk rank test 
+
+
+
+# wilk rank test for non parametric h data by dbh group -------------------
+# subset dataset by non-normal distribution
+trees_sub_bet_al_non_para <- trees_sub_bet_all %>% 
+  inner_join(., 
+            (shap_out_h_al_bet[!is.na(shap_out_h_al_bet$p.value) & 
+                                shap_out_h_al_bet$p.value <= 0.05, c("my.species", "my.dbh.class")]), 
+            by = c("bot_name" = "my.species", "new_DBH_class" = "my.dbh.class")
+)
+
+# create list for output tibbles
+wilk.output.h <- vector("list", length = nrow(unique(trees_sub_bet_al_non_para[, c("bot_name", "new_DBH_class")])) )
+for (i in 1:nrow( unique(trees_sub_bet_al_non_para[, c("bot_name", "new_DBH_class")])) ) {
+  
+  # i = 2
+  my.species <- as.character(unique(trees_sub_bet_al_non_para[, c("bot_name", "new_DBH_class")])[i, "bot_name"])
+  my.dbh.class <- as.numeric(unique(trees_sub_bet_al_non_para[, c("bot_name", "new_DBH_class")])[i, "new_DBH_class"])
+  test.df <- (trees_sub_bet_al_non_para[trees_sub_bet_al_non_para$bot_name == my.species & 
+                                          trees_sub_bet_al_non_para$new_DBH_class == my.dbh.class, ])
+  diff_mean_org_min = mean(test.df$H_m[test.df$min_org == "org"]) - mean(test.df$H_m[test.df$min_org == "min"])
+  
+  # perform wilc test
+  wilk.df <- tidy(wilcox.test(H_m~min_org, data = test.df, 
+              exact = FALSE, 
+              correct = FALSE, 
+              conf.int = FALSE))
+  
+    # put output of shap it in dataframe
+  wilk.output.h[[i]] <- as.data.frame(cbind(my.species # add func id ans species 
+                                              , my.dbh.class
+                                            , diff_mean_org_min
+                                              , wilk.df[, c("p.value", "method")] ))
+  
+  
+  # check output
+  print(paste(i , my.species, my.dbh.class, sep = ","))
+  
+  
+}
+wilk_output_h_al_bet <- as.data.frame(rbindlist(wilk.output.h))
+
+
+# t.test for  parametric h data by dbh group -------------------
+# subset dataset by normal distribution
+trees_sub_bet_al_para <- trees_sub_bet_all %>% 
+  inner_join(., 
+             (shap_out_h_al_bet[!is.na(shap_out_h_al_bet$p.value) & 
+                                  shap_out_h_al_bet$p.value > 0.05, c("my.species", "my.dbh.class")]), 
+             by = c("bot_name" = "my.species", "new_DBH_class" = "my.dbh.class"))
+# create list for output tibbles
+t.test.output.h <- vector("list", length = nrow(unique(trees_sub_bet_al_para[, c("bot_name", "new_DBH_class")])) )
+# run shapiro per species and dbh class
+for (i in 1:nrow( unique(trees_sub_bet_al_para[, c("bot_name", "new_DBH_class")])) ) {
+  
+  # i = 7
+  my.species <- as.character(unique(trees_sub_bet_al_para[, c("bot_name", "new_DBH_class")])[i, "bot_name"])
+  my.dbh.class <- as.numeric(unique(trees_sub_bet_al_para[, c("bot_name", "new_DBH_class")])[i, "new_DBH_class"])
+  test.df <- (trees_sub_bet_al_para[trees_sub_bet_al_para$bot_name == my.species & 
+                                      trees_sub_bet_al_para$new_DBH_class == my.dbh.class, ])
+  # calcualte mean diff
+  diff_mean_org_min = mean(test.df$H_m[test.df$min_org == "org"]) - mean(test.df$H_m[test.df$min_org == "min"])
+  
+  t <- try(t.test(test.df$H_m[test.df$min_org == "min"], test.df$H_m[test.df$min_org == "org"]))
+
+  # perform  t.test
+  if( "try-error" %in% class(t) ){
+    
+    t.test.output.h[[i]] <- as.data.frame(cbind(my.species # add func id ans species 
+                                                , my.dbh.class
+                                                , diff_mean_org_min
+                                                , "p.value" = NA
+                                                , "method" = NA ))
+  }else{
+    t.test.df <- tidy(t.test(test.df$H_m[test.df$min_org == "min"], test.df$H_m[test.df$min_org == "org"]) )
+    # put output of shap it in dataframe
+    t.test.output.h[[i]] <- as.data.frame(cbind(my.species # add func id ans species 
+                                                , my.dbh.class
+                                                , diff_mean_org_min
+                                                , t.test.df[, c("p.value", "method")] ))
+  }
+  
+  
+  
+  # check output
+  print(paste(i , my.species, my.dbh.class, sep = ","))
+  
+}
+t_test_output_h_al_bet <- as.data.frame(rbindlist(t.test.output.h))
+
+
+# bind resutls of stat tests together 
+# betula dbh class 45 and 50 are missing cause they had to few individuals 
+min_org_h_comp_dbh_classes <- rbind(
+  t_test_output_h_al_bet #  my.species my.dbh.class diff_mean_org_min              p.value                  method
+  , wilk_output_h_al_bet # my.species my.dbh.class diff_mean_org_min      p.value                 method
+  ) %>% arrange(my.species, as.numeric(my.dbh.class))
+
+min_org_h_comp_dbh_classes[min_org_h_comp_dbh_classes$p.value <= 0.05,]
+
+# export dbh class comparison results -------------
+write.csv(min_org_h_comp_dbh_classes, paste0(out.path, "hd_comp_results_dbh_classes.csv"), row.names = FALSE, fileEncoding = "UTF-8")
+
+
+
+
+
+
+
+
+
 # 2.1. nls to draw height curve ------------------------------------------------------
 # fit nls first so we can decide which function ggplot uses t fit the smooth
 # nls : DBH vs. sampled hight of all trees at all plots split by org vs. mineral soil
 trees_data_h_nls <- 
-  left_join(trees_data %>% filter(H_method == "sampled")
-            #%>% left_join(., soil_types_db %>% select(bfhnr_2 , min_org), by = c("plot_ID" = "bfhnr_2")) %>% 
-            # mutate(min_org = ifelse(inv == "momok", "org", min_org)),
-            ,trees_data %>% filter(H_method == "sampled") %>%
-              # left_join(., soil_types_db %>% 
-              #             select(bfhnr_2 , min_org), 
-              #           by = c("plot_ID" = "bfhnr_2"))%>%
-              # mutate(min_org = ifelse(inv == "momok", "org", min_org)) %>% 
-              group_by(min_org, bot_name) %>%
+  left_join(
+    # take only sampled trees 
+    trees_data %>% filter(H_method == "sampled")
+    ## calculate coefficients and join them in 
+            ,trees_data %>% filter(H_method == "sampled") %>% # select only sampled trees 
+              group_by(min_org, bot_name) %>%                 # group by mineral/ organic status of the site and botanical name (not by plot!)
               forestmangr::nls_table( #H_m ~ b0 * (1 - exp( -b1 * DBH_cm))^b2, 
                 #mod_start = c(b0=23, b1=0.03, b2 =1.3), 
-                H_m ~ 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3,  # Petterson function
+                H_m ~ 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3,  # Petterson function: make forest manager use petterson function to model height curve
                 mod_start = c(b0=1, b1=1), 
                 output = "table", 
-                .groups = c("min_org", "bot_name")),
-            by = c("min_org", "bot_name")) %>% 
+                .groups = c("min_org", "bot_name")),          # fit one model per species and site type
+            by = c("min_org", "bot_name")) %>%                # join coefficients in to      
   mutate(H_m_nls = 1.3 + (DBH_cm / (b0 + b1 * DBH_cm))^3, 
          H_method_nls = "nls")
 
@@ -429,10 +610,9 @@ conf.int = FALSE)
 
 
 
+# 3. visuals of comparisson -----------------------------------------------------------------
 
-
-
-# 2.5. visualising height of alnus and betula for min and org plots ------------------------------------------------------
+# 3.1.. visualising height of alnus and betula for min and org plots ------------------------------------------------------
 h_DBH_all_SP <- ggplot() +
   geom_point(data = (trees_data %>%
                        filter(H_method == "sampled" 
