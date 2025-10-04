@@ -2,7 +2,7 @@
 # Analysis of the forest inventory accompanying the  national soil inventory
 # paper about biomass of alnus and betula at peatland sites
 # Henriette Gercken
-# summarizing Ha stocks of single tree biomass based on *DBH only*!!!
+# summarizing Ha stocks of single tree biomass based on *DBH only*!!!!
 
 
 # here we summarize all individual tree stocks per species, plot and hectar (only stocks and ba)
@@ -424,7 +424,7 @@ shapiro.test(res.anova$residuals) # residuals have a p value above 0.05 so they 
 
 turkey.output <- vector("list", length =length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) )
 for (i in 1:length(unique(pseudo_mono_P_al_bet_wag$bot_genus) ) ) {
-  #i = 2
+  #i = 1
   my.spec <- as.character(unique(pseudo_mono_P_al_bet_wag$bot_genus)[i])
   # subset data for levene
   df_for_anova <- unique(pseudo_mono_P_al_bet_wag[bot_genus == my.spec, ])

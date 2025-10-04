@@ -429,7 +429,11 @@ min_org_h_comp_dbh_classes[min_org_h_comp_dbh_classes$p.value <= 0.05,]
 # export dbh class comparison results -------------
 write.csv(min_org_h_comp_dbh_classes, paste0(out.path, "hd_comp_results_dbh_classes.csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
-
+min_org_h_comp_dbh_classes %>% 
+  mutate(small_big = ifelse(my.dbh.class >= 30, "big", "small")) %>% 
+  group_by(small_big, my.species) %>% 
+ #  filter(!is.na(diff_mean_org_min)) %>% 
+  summarise(mean_diff = mean(abs(as.numeric(diff_mean_org_min))))
 
 
 
