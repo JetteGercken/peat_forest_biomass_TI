@@ -3,7 +3,7 @@
 # paper about biomass of alnus and betula at peatland sites
 # Henriette Gercken
 # summarizing Ha stocks of single tree biomass based on *DBH only*!!!!
-
+# MIN ONLY!!!!!!''''
 
 # here we summarize all individual tree stocks per species, plot and hectar (only stocks and ba)
 # but we only select our organic sites with the different biomass calculation methods
@@ -27,7 +27,7 @@ out.path <- ("/output/out_data/")
 # hbi BE dataset: this dataset contains the inventory data of the tree inventory accompanying the second national soil inventory
 # here we should actually import a dataset called "HBI_trees_update_3.csv" which contains plot area and stand data additionally to 
 # tree data
-trees_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_6_1.csv"), sep = ",", dec = ".")
+trees_data <- read.delim(file = paste0(getwd(), out.path, "HBI_LT_update_6_3.csv"), sep = ",", dec = ".")
 trees_removed <- read.delim(file = paste0(getwd(), out.path, trees_data$inv[1], "_LT_removed.csv"), sep = ",", dec = ".")
 
 # import stand component wise summaries:
@@ -40,30 +40,35 @@ LT_summary <-read.delim(file = paste0(getwd(), out.path, "HBI_LT_stocks_ha_all_g
 # # filter only those trees and functions that were part of the single tree biomass analysis
 # only select our organic sites with the different biomass calculation methods
 # & only the alnus and betula trees 
-trees_org <- subset(trees_data, min_org == "org" & bot_genus %in% c("Betula") & bot_species %in% c("pubescens", "spp.")| 
-                      min_org == "org" & bot_genus %in% c( "Alnus") & bot_species %in% c("glutinosa", "spp.") & paper_ID != 9)
+trees_min <- subset(trees_data, min_org == "min" & bot_genus %in% c("Betula") & bot_species %in% c("pubescens")| 
+                      min_org == "min" & bot_genus %in% c( "Alnus") & bot_species %in% c("glutinosa") & paper_ID != 9)
 
 # join bot spec and genus to LT_summary 
 LT_summary <- setDT(LT_summary)[setDT(unique(trees_data[, c("plot_ID", "inv", "min_org")])) , on = c("plot_ID", "inv") ,allow.cartesian=T]
 LT_summary <- setDT(LT_summary)[,SP_code :=(tolower(SP_code))][setDT(SP_names_com_ID_tapeS)[,char_code_ger_lowcase:=(tolower(Chr_code_ger))], on = c("SP_code" = "char_code_ger_lowcase")]
-LT_summary_org <- subset(LT_summary, min_org == "org" & bot_genus %in% c("Betula", "Alnus"))
+LT_summary_min <- subset(LT_summary, min_org == "min" & bot_genus %in% c("Betula", "Alnus"))
+
+# stock data organic 
+# stockper species per plot in pseudo mono stands
+pseudo_mono_P_SP_org <- read.delim(file = paste0(getwd(), out.path, "C_stock_ha_pseudo_mono_P_SP.csv"), sep = ",", dec = ".")
+pseudo_mono_mean_func_org <- read.delim(file = paste0(getwd(), out.path, "C_stock_ha_pseudo_mono_func.csv"), sep = ",", dec = ".")
 
 
 
 # 1. CALCULATIONS ---------------------------------------------------------
 # 1.1. BA related plot_A_ha ---------------------------------------------------------
 # add BA share to tres dataset by species, plot and inv
-trees_org <- setDT(trees_org)[setDT(unique(LT_summary_org[, c("plot_ID", "inv", "SP_code", "BA_percent")])) , on = c("plot_ID", "inv", "SP_code") ,allow.cartesian=T]
+trees_min <- setDT(trees_min)[setDT(unique(LT_summary_min[, c("plot_ID", "inv", "SP_code", "BA_percent")])) , on = c("plot_ID", "inv", "SP_code") ,allow.cartesian=T]
 # calculate relative plot area per species
-trees_org[, plot_A_ha_SP := (plot_A_ha*(BA_percent/100))] 
-trees_org[, paper_ID := (ifelse(trees_org$func_ID == "tapes", max(na.omit(trees_org$paper_ID))+1 , paper_ID))]
-trees_org[, ID:= (ifelse(trees_org$func_ID == "tapes", paste0(paper_ID, "_", func_ID), trees_org$ID)  )]
-# add paper id to trees_org
+trees_min[, plot_A_ha_SP := (plot_A_ha*(BA_percent/100))] 
+trees_min[, paper_ID := (ifelse(trees_min$func_ID == "tapes", max(na.omit(trees_min$paper_ID))+1 , paper_ID))]
+trees_min[, ID:= (ifelse(trees_min$func_ID == "tapes", paste0(paper_ID, "_", func_ID), trees_min$ID)  )]
+# add paper id to trees_min
 
 
 
 # 1.2. pseudo-mono-stands: stock by plot & species, using realtive plot area ---------------------------------------------------------
-pseudo_mono_P_SP <- trees_org %>% 
+pseudo_mono_P_SP <- trees_min %>% 
   # calculate stock per CCS and then per ha 
   group_by(plot_ID, CCS_r_m, paper_ID, func_ID, peat,  country, ID, bot_genus, compartiment, plot_A_ha_SP,plot_A_ha, BA_percent) %>% 
   # convert Biomass into tons per hectar and sum it up per sampling circuit 
@@ -75,30 +80,33 @@ pseudo_mono_P_SP <- trees_org %>%
   # now we summarise all the t/ha values of the cirlces per plot
   dplyr::group_by(plot_ID, paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
   dplyr::summarise(B_t_ha = sum(B_CCS_t_ha), 
-            C_t_ha = sum(C_CCS_t_ha), 
-           BA_m2_ha = sum(BA_CCS_m2_ha), 
-            n_ha = sum(n_trees_CCS_ha)) 
+                   C_t_ha = sum(C_CCS_t_ha), 
+                   BA_m2_ha = sum(BA_CCS_m2_ha), 
+                   n_ha = sum(n_trees_CCS_ha)) 
 
 
 # add country code to data set for lables
 setDT(pseudo_mono_P_SP)[, `:=` (country_code = countrycode(pseudo_mono_P_SP$country, origin = 'country.name', destination = 'iso3c'))]
 
-write.csv(pseudo_mono_P_SP, paste0(getwd(), out.path, "C_stock_ha_pseudo_mono_P_SP.csv"))
 
 
 # 1.3. mean stock pseudo-mono-stands: by calculation method  ---------------------------------------------------------
 pseudo_mono_mean_func <- pseudo_mono_P_SP %>% 
-    group_by(paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
-                                dplyr::summarise(mean_B_t_ha = mean(B_t_ha), 
-                                          mean_C_t_ha = mean(C_t_ha), 
-                                          mean_n_ha = mean(n_ha)) %>% 
+  group_by(paper_ID, func_ID, peat, country, ID, bot_genus, compartiment) %>% 
+  dplyr::summarise(mean_B_t_ha = mean(B_t_ha), 
+                   mean_C_t_ha = mean(C_t_ha), 
+                   mean_n_ha = mean(n_ha)) %>% 
   distinct() %>% 
   arrange(bot_genus, paper_ID,  func_ID, country, ID,compartiment)
 
 
+
+# 1.4. EXPORT -------------------------------------------------------------
 # export for visuals
 # this is the mean c stock per function based on the hectar values per plot per function calculated in pseudo_mono_P_SP
-write.csv(pseudo_mono_mean_func, paste0(getwd(), out.path, "C_stock_ha_pseudo_mono_func.csv"))
+write.csv(pseudo_mono_mean_func, paste0(getwd(), out.path, "C_stock_ha_pseudo_mono_func_min.csv"))
+write.csv(pseudo_mono_P_SP, paste0(getwd(), out.path, "C_stock_ha_pseudo_mono_P_SP_min.csv"))
+
 
 
 
@@ -256,9 +264,9 @@ pseudo_mono_mean_func$ID[ pseudo_mono_mean_func$compartiment == "w_agb" & pseudo
 
 
 # 4.3.1. Test for any sign. differences between equations -----------------------------------------------------------------------------
-  # lets test for significant differences between the groups but without knowing what nature the differences have
-  
-  # 4.3.1.1. test for requirements of ANOVA/ Kuskal-Wallis ----------------------------------------------------------
+# lets test for significant differences between the groups but without knowing what nature the differences have
+
+# 4.3.1.1. test for requirements of ANOVA/ Kuskal-Wallis ----------------------------------------------------------
 # requirements for ANOVA:
 # https://www.sthda.com/english/wiki/one-way-anova-test-in-r
 # - The observations are obtained independently and randomly from the population defined by the factor levels
@@ -279,23 +287,23 @@ pseudo_mono_P_al_bet_wag <- (pseudo_mono_P_SP[compartiment == "w_agb" &
 # add a row per plot and species that hold the mean stock per species and plot across
 # all equations which we are going to treat like a separate function 
 pseudo_mono_P_al_bet_wag <- 
-rbind(
-  pseudo_mono_P_al_bet_wag, 
-  pseudo_mono_P_al_bet_wag %>% 
-              group_by(plot_ID, bot_genus, compartiment) %>% 
-              summarise(B_t_ha = mean(B_t_ha), 
-                        C_t_ha = mean(C_t_ha), 
-                        BA_m2_ha = mean(BA_m2_ha), 
-                        n_ha= mean(n_ha)) %>% 
-              mutate(paper_ID = "mean",
-                     func_ID= "mean",
-                     peat= "partly",
-                     country  = "all", 
-                     ID = "mean", 
-                     country_code = "NA")
-) %>% 
+  rbind(
+    pseudo_mono_P_al_bet_wag, 
+    pseudo_mono_P_al_bet_wag %>% 
+      group_by(plot_ID, bot_genus, compartiment) %>% 
+      summarise(B_t_ha = mean(B_t_ha), 
+                C_t_ha = mean(C_t_ha), 
+                BA_m2_ha = mean(BA_m2_ha), 
+                n_ha= mean(n_ha)) %>% 
+      mutate(paper_ID = "mean",
+             func_ID= "mean",
+             peat= "partly",
+             country  = "all", 
+             ID = "mean", 
+             country_code = "NA")
+  ) %>% 
   arrange(plot_ID)
-  
+
 # create list for output tibbles
 
 # create list for output tibbles
@@ -478,7 +486,7 @@ turkey_out_al_bet[str_detect(turkey_out_al_bet$contrast, "tapes") &
 
 
 # export turkey c species and eq. ID results
-write.csv(turkey_out_al_bet, paste0(getwd(), out.path, paste(trees_data$inv[1], "turkey_output_C_species", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(turkey_out_al_bet, paste0(getwd(), out.path, paste(trees_data$inv[1], "turkey_output_C_species_min", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 
 # 4.4. Statistical analysis peat vs. no peat --------------------------------------------------------------------------------
@@ -677,7 +685,7 @@ turkey_out_al_bet[ turkey_out_al_bet$adj.p.value < 0.05, ]
 turkey_out_al_bet[ turkey_out_al_bet$adj.p.value >= 0.05, ]
 
 # export turkey c peat results
-write.csv(turkey_out_al_bet, paste0(getwd(), out.path, paste(trees_data$inv[1], "turkey_output_C_peat", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(turkey_out_al_bet, paste0(getwd(), out.path, paste(trees_data$inv[1], "turkey_output_C_peat_min", sep = "_"), ".csv"), row.names = FALSE, fileEncoding = "UTF-8")
 
 
 # the anova showed that there are no significant differences between peat and no peat and partly peat functions 
@@ -704,6 +712,54 @@ write.csv(turkey_out_al_bet, paste0(getwd(), out.path, paste(trees_data$inv[1], 
 
 
 
+# 4.5. test min c stocks against org c stocks -----------------------------
+# we already know the data is normally distributed. what were going to do now is a t test of the mineral vs. organic data. 
+pseudo_mono_P_al_bet_wag_min <- (pseudo_mono_P_SP[compartiment == "w_agb" & 
+                                                bot_genus %in% c("Betula",
+                                                                 "Alnus"
+                                                ) &  
+                                                paper_ID != 9, ])[, `:=`(
+                                                  "site_type_plot" = "mineral"
+                                                )]
+pseudo_mono_P_al_bet_wag_org <- (setDT(pseudo_mono_P_SP_org)[compartiment == "w_agb" & 
+                                                bot_genus %in% c("Betula",
+                                                                 "Alnus"
+                                                ) &  
+                                                paper_ID != 9, ])[, `:=`(
+                                                  "site_type_plot" = "peat"
+                                                )]
+
+t.test(as.numeric(na.omit(pseudo_mono_P_al_bet_wag_min$C_t_ha[pseudo_mono_P_al_bet_wag_min$bot_genus == "Betula"])), 
+       as.numeric(na.omit(pseudo_mono_P_al_bet_wag_org$C_t_ha[pseudo_mono_P_al_bet_wag_min$bot_genus == "Betula"])))
+
+# # result alnus: 
+# Welch Two Sample t-test
+# 
+# data:  as.numeric(na.omit(pseudo_mono_P_al_bet_wag_min$C_t_ha[pseudo_mono_P_al_bet_wag_min$bot_genus == "Alnus"])) and as.numeric(na.omit(pseudo_mono_P_al_bet_wag_org$C_t_ha[pseudo_mono_P_al_bet_wag_min$bot_genus == "Alnus"]))
+# t = 6.2067, df = 616.24, p-value = 9.94e-10
+# alternative hypothesis: true difference in means is not equal to 0
+# 95 percent confidence interval:
+#   14.16661 27.28072
+# sample estimates:
+#   mean of x mean of y 
+# 89.61506  68.89139 
+
+
+## result betula: 
+# Welch Two Sample t-test
+# 
+# data:  as.numeric(na.omit(pseudo_mono_P_al_bet_wag_min$C_t_ha[pseudo_mono_P_al_bet_wag_min$bot_genus == "Betula"])) and as.numeric(na.omit(pseudo_mono_P_al_bet_wag_org$C_t_ha[pseudo_mono_P_al_bet_wag_min$bot_genus == "Betula"]))
+# t = 3.0267, df = 543.95, p-value = 0.00259
+# alternative hypothesis: true difference in means is not equal to 0
+# 95 percent confidence interval:
+#   3.595071 16.890160
+# sample estimates:
+#   mean of x mean of y 
+# 72.76320  62.52058 
+
+
+
+
 # 2. visuals --------------------------------------------------------------
 # https://bwi.info/inhalt1.3.aspx?Text=3.14%20Kohlenstoff%20[kg/ha]%20nach%20Baumartengruppe%20und%20Altersklasse%20(rechnerischer%20Reinbestand)&prRolle=public&prInv=THG2017&prKapitel=3.14
 # mean c stock of "andere Laubhölzer niedlriger Lebensdauer (aLn) according to BWI: 52859 kg ha-1 
@@ -716,18 +772,18 @@ values <- pseudo_mono_P_SP$C_t_ha[pseudo_mono_P_SP$bot_genus %in% c("Alnus")
                                   & pseudo_mono_P_SP$paper_ID !=9]
 
 names <-  setDT(pseudo_mono_P_SP[pseudo_mono_P_SP$bot_genus %in% c("Alnus") 
-                             & pseudo_mono_P_SP$compartiment == "w_agb" 
-                             & pseudo_mono_P_SP$paper_ID !=9,])[, `:=`(
-                               "names" = paste0(paper_ID, ", ", ifelse(func_ID != "w_agb", paste0(func_ID, ", ") , ""), country_code) )]$names
+                                 & pseudo_mono_P_SP$compartiment == "w_agb" 
+                                 & pseudo_mono_P_SP$paper_ID !=9,])[, `:=`(
+                                   "names" = paste0(paper_ID, ", ", ifelse(func_ID != "w_agb", paste0(func_ID, ", ") , ""), country_code) )]$names
 
 # assign colors: # mark only tapes plot 
 farbe <-  setDT(pseudo_mono_P_SP[pseudo_mono_P_SP$bot_genus %in% c("Alnus") 
                                  & pseudo_mono_P_SP$compartiment == "w_agb" 
                                  & pseudo_mono_P_SP$paper_ID !=9,])[, `:=`(
                                    "farbe" = ifelse(ID %like% c("tapes") , "red" , # tapes red
-                                                  ifelse(peat == "yes",  "blue" , # "#53868B",
-                                                         ifelse(peat == "partly", "turquoise1", # "#7AC5CD",
-                                                                "grey" ) )))]$farbe
+                                                    ifelse(peat == "yes",  "blue" , # "#53868B",
+                                                           ifelse(peat == "partly", "turquoise1", # "#7AC5CD",
+                                                                  "grey" ) )))]$farbe
 
 # bind colors, names and values together 
 alnus_wag <- as.data.frame(cbind(names, values, farbe))
@@ -757,8 +813,8 @@ segments(x0 = 0.5,
          y1 = mean(as.numeric(na.omit(alnus_wag$values))), col = "black", lwd = 2) #functions mean
 # means of every function
 points(as.numeric(pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Alnus") 
-                                         & pseudo_mono_mean_func$compartiment == "w_agb"
-                                         & pseudo_mono_mean_func$paper_ID !=9]) 
+                                                    & pseudo_mono_mean_func$compartiment == "w_agb"
+                                                    & pseudo_mono_mean_func$paper_ID !=9]) 
        , col = "black",  pch = 16)
 # legend
 legend("topleft", legend = c("tapeS", "literature eq. peat", "literature eq. partly peat", "literature eq.", 
@@ -858,7 +914,7 @@ boxplot(data$value ~ data$names ,
 
 
 
-view(trees_org[trees_org$bot_genus %in% c("Betula") & trees_org$paper_ID %in% c("34", "36"),])
+view(trees_min[trees_min$bot_genus %in% c("Betula") & trees_min$paper_ID %in% c("34", "36"),])
 # n. soiltype to lt but not needed ----------------------------------------
 # add soil type to LT_summary
 LT_summary <- setDT(LT_summary)[
@@ -916,7 +972,7 @@ abline(h=mean(as.numeric(alnus_wag$values)), col = "blue") #functions mean
 
 
 # N. 2.2.betula c stock ha barplot ------------------------------------------
-  values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
+values <- pseudo_mono_mean_func$mean_C_t_ha[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
 names <- pseudo_mono_mean_func$ID[pseudo_mono_mean_func$bot_genus %in% c("Betula") & pseudo_mono_mean_func$compartiment == "w_agb"]
 betula_wag <- as.data.frame(cbind(names, values))
 

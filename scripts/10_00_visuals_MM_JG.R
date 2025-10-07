@@ -1,7 +1,6 @@
 # Thuenen Institute - Bodenschutz und Waldzustand
 # Analysis of the forest inventory accompanying the national soil inventory
 # visualisation script
-# this is jettes try in ading legend to the visuals 
 
 # path to latex for tikz(): # C:\Users\gercken\AppData\Local\Programs\MiKTeX\miktex\bin\x64\pdflatex.exe
 # options(tikzLatex = "C:/Program Files/texstudio/texstudio.exe")
@@ -34,6 +33,8 @@ trees_height_peterson <- read.delim(file = paste0(out.path, "HBI_LT_update_3_pet
 # indiviual biomass data 
 # only dbh based, no measured heights 
 trees_data_bio <- read.delim(file = paste0(out.path, "HBI_LT_update_6_1.csv"), sep = ",", dec = ".")
+trees_data_bio_min <- read.delim(file = paste0(out.path, "HBI_LT_update_6_3.csv"), sep = ",", dec = ".")
+
 
 
 
@@ -41,6 +42,11 @@ trees_data_bio <- read.delim(file = paste0(out.path, "HBI_LT_update_6_1.csv"), s
 # stockper species per plot in pseudo mono stands
 pseudo_mono_P_SP <- read.delim(file = paste0(out.path, "C_stock_ha_pseudo_mono_P_SP.csv"), sep = ",", dec = ".")
 pseudo_mono_mean_func <- read.delim(file = paste0(out.path, "C_stock_ha_pseudo_mono_func.csv"), sep = ",", dec = ".")
+
+
+# stock data min sites
+pseudo_mono_P_SP_min <- read.delim(file = paste0(out.path, "C_stock_ha_pseudo_mono_P_SP_min.csv"), sep = ",", dec = ".")
+pseudo_mono_mean_func_min <- read.delim(file = paste0(out.path, "C_stock_ha_pseudo_mono_func_min.csv"), sep = ",", dec = ".")
 
 
 
@@ -269,7 +275,7 @@ trees_height_data %>%
 
 
 
-
+###### ORGANIC SITES ------------------------------------------------------------
 
 # 1.2. BIOMASS ------------------------------------------------------------
 install.packages("ggrepel")
@@ -278,6 +284,23 @@ library(ggrepel)
 # 1.2.1. Alnus biomass -------------------------------------------
 
 # 1.2.1.1. alnus biomass data wrangling -----------------------------------
+# min data alnus 
+alnus_wag_min <- setDT(trees_data_bio_min %>%
+        filter(compartiment == "w_agb",
+               bot_genus == "Alnus",
+               bot_species %in% c("glutinosa"),
+               min_org == "min",
+               paper_ID != 9) %>%
+        mutate(
+          ID = ifelse(is.na(ID), paste0(paper_ID, "_", func_ID), ID),
+          farbe = case_when(
+            grepl("tapes", ID, ignore.case = TRUE) ~ "darkorange1",
+            peat == "yes" ~ "blue",
+            peat == "partly" ~ "turquoise2",
+            TRUE ~ "grey50"
+          )
+        ) )
+
 # Alnus-Datensatz filtern
 alnus_wag <- trees_data_bio %>%
   filter(compartiment == "w_agb",
@@ -310,10 +333,16 @@ alnus_wag_labels <- alnus_wag %>%
   distinct()
 
 # Mittelwerte und Standardabweichungen pro Messpunkt berechnen
+# B_kg_tree = mean of tree,  sd_B_kg_tree up_sd_B_kg_tree low_sd_B_kg_tree 0 standard deviation of trees biomass 
 m_b_al <- setDT(alnus_wag)[ID != "9_w_agb", .(B_kg_tree = mean(B_kg_tree, na.rm = TRUE)), by = .(plot_ID, tree_ID, compartiment, DBH_cm)]
 sd_b_al <- setDT(alnus_wag)[ID != "9_w_agb", .(sd_B_kg_tree = sd(B_kg_tree, na.rm = TRUE)), by = .(plot_ID, tree_ID, compartiment, DBH_cm)]
+# calculate mean biomass for mineral sites per tree across all equations
+m_b_al_min <- setDT(alnus_wag_min)[ID != "9_w_agb", .(B_kg_tree_min = mean(B_kg_tree, na.rm = TRUE)), by = .(plot_ID, tree_ID, compartiment, DBH_cm)]
+# join means and sds together
 m_sd_b_al <- m_b_al[sd_b_al, on = .(plot_ID, tree_ID, compartiment, DBH_cm)]
-m_sd_b_al[, `:=`(
+m_sd_b_al <- m_sd_b_al %>% full_join(., m_b_al_min, by = c("plot_ID", "tree_ID", "compartiment", "DBH_cm"))
+
+setDT(m_sd_b_al)[, `:=`(
   up_sd_B_kg_tree = B_kg_tree + sd_B_kg_tree,
   low_sd_B_kg_tree = B_kg_tree - sd_B_kg_tree
 )]
@@ -360,12 +389,19 @@ alnus_bio <- ggplot() +
   scale_color_manual(values = color_map) +
   
   # Standard-Kurve + SD-Bereiche (optional, falls vorhanden)
-  geom_smooth(data = m_sd_b_al, aes(x = DBH_cm, y = B_kg_tree),
+ 
+  geom_smooth(data = m_sd_b_al[!is.na(m_sd_b_al$B_kg_tree), ], aes(x = DBH_cm, y = B_kg_tree),
               method = "loess", color = "red", se = F) +
-  geom_smooth(data = m_sd_b_al, aes(x = DBH_cm, y = low_sd_B_kg_tree),
+  # geom_point(data = m_sd_b_al[!is.na(m_sd_b_al$B_kg_tree), ], aes(x = DBH_cm, y = B_kg_tree),
+  #              color = "red") +
+  geom_smooth(data = m_sd_b_al[!is.na(m_sd_b_al$B_kg_tree), ], aes(x = DBH_cm, y = low_sd_B_kg_tree),
               method = "loess", color = "red", linetype = "dashed", se = FALSE) +
-  geom_smooth(data = m_sd_b_al, aes(x = DBH_cm, y = up_sd_B_kg_tree),
+  geom_smooth(data = m_sd_b_al[!is.na(m_sd_b_al$B_kg_tree), ], aes(x = DBH_cm, y = up_sd_B_kg_tree),
               method = "loess", color = "red", linetype = "dashed", se = FALSE) +
+  # geom_point(data = m_sd_b_al[!is.na(m_sd_b_al$B_kg_tree_min), ], aes(x = DBH_cm, y = B_kg_tree_min),
+  #            color = "yellow") +
+  geom_smooth(data = m_sd_b_al[!is.na(m_sd_b_al$B_kg_tree_min), ], aes(x = DBH_cm, y = B_kg_tree_min),
+              method = "loess", color = "yellow", linetype = 1, se = F) +
   
   # Labels mit geom_text_repel, die sich von den Punkten nach rechts oben absetzen
   geom_text_repel(
@@ -386,14 +422,14 @@ alnus_bio <- ggplot() +
   xlim(0, 75) +
   theme_bw() +
   theme(
-    legend.position = "none",
+    legend.position = "right",
     text = element_text(size = 25),        # Schriftgröße
     axis.text = element_text(size = 20),
     legend.text = element_text(size = 25),
     legend.title = element_blank(),
     axis.text.x = element_text(hjust = 1)
   )  +
-  theme(legend.position = "none") +
+  theme(legend.position = "right") +
   
   # Achsenbeschriftungen
   xlab("Diameter at breast height [cm]") +
@@ -1088,6 +1124,271 @@ hist(trees_sub$DBH_cm[trees_sub$bot_genus == "Betula"],
      ylab = "Density", 
      freq = F)
 lines(dens_betula)
+
+
+
+
+#### MINERAL SITES -----------------------------------------------------------
+# 1.3. CARBON STOCK -------------------------------------------------------
+# carbon stock if national carbon inventory (CI 2017): 
+# total carbon: 52859
+# aboveground carbon: 41811 kg/ ha
+
+# assign names to carbon stock hectar summery
+setDT(pseudo_mono_mean_func_min)[, `:=`( "names" = paste0(pseudo_mono_mean_func_min$paper_ID, ", ", 
+                                                          ifelse(pseudo_mono_mean_func_min$func_ID != "w_agb", paste0(pseudo_mono_mean_func_min$func_ID, ", ") , ""), 
+                                                          countrycode(pseudo_mono_mean_func_min$country, origin = 'country.name', destination = 'iso3c')) )]
+
+
+# this is for outlayer plotting ggplot
+n_fun <- function(x){
+  return(data.frame(y = 0.95*70,
+                    label = ""))
+}
+
+# 1.3.1. Alnus carbon stock -----------------------------------------------
+
+# subset for boxplot
+
+# pseudo_mono_P_SP species are already filtered into alnus glutinosa ans betula pubescens and additionally alsnus or betula spp. for org plots
+values <- pseudo_mono_P_SP_min$C_t_ha[pseudo_mono_P_SP_min$bot_genus %in% c("Alnus") 
+                                      & pseudo_mono_P_SP_min$compartiment == "w_agb"
+                                      & pseudo_mono_P_SP_min$paper_ID !=9]
+
+names <-  setDT(pseudo_mono_P_SP_min[pseudo_mono_P_SP_min$bot_genus %in% c("Alnus") 
+                                     & pseudo_mono_P_SP_min$compartiment == "w_agb" 
+                                     & pseudo_mono_P_SP_min$paper_ID !=9,])[, `:=`(
+                                       "names" = paste0(paper_ID, ", ", ifelse(func_ID != "w_agb", paste0(func_ID, ", ") , ""), country_code) )]$names
+
+# assign colors: # mark only tapes plot 
+farbe <-  setDT(pseudo_mono_P_SP_min[pseudo_mono_P_SP_min$bot_genus %in% c("Alnus") 
+                                     & pseudo_mono_P_SP_min$compartiment == "w_agb" 
+                                     & pseudo_mono_P_SP_min$paper_ID !=9,])[, `:=`(
+                                       "farbe" = ifelse(ID %like% c("tapes") , "darkorange1" , # tapes red
+                                                        ifelse(peat == "yes",  "blue" , # "#53868B",
+                                                               ifelse(peat == "partly", "turquoise1", # "#7AC5CD",
+                                                                      "grey50" ) )))]$farbe
+
+# bind colors, names and values together 
+alnus_wag <- as.data.frame(cbind(names, values, farbe))
+
+color_map <- setNames(alnus_wag$farbe, alnus_wag$ID)
+
+# mark only tapes plot
+my.colors <- unique(alnus_wag[,c("names", "farbe")])$farbe
+
+
+# 1.3.1.2. ggplot boxplot alnus c stock ha  -------------------------------
+
+# change names
+alnus_wag$names <- gsub(", tapes", "", alnus_wag$names)
+
+# gleiche Namensanpassung auch hier
+pseudo_mono_mean_func_min$names <- gsub(", tapes", "", pseudo_mono_mean_func_min$names)
+
+# Letters to annotate
+# letters_vec <- c("b", "ab", "ab", "a", "ab", "ab", "ab", "ab", "ab")
+#              27_w_agb 40_w_agb  39_w_agb  23_4     23_5     42_tapes    mean  32_w_agb.  28_w_agb.  14_w_agb     24_1 
+letters_vec <- c("a",     "ab" ,   "abc" ,   "abc" ,   "abc",    "abc" ,   #"abc" 
+                 "abc" ,   "abc" ,    "bc" ,     "c")
+
+# Create a data frame for annotation
+annot_df <- data.frame(
+  names = unique(alnus_wag$names),  # same order as x-axis
+  letters = letters_vec,
+  y_pos = max(as.numeric(alnus_wag$values), na.rm = TRUE) + 55  # slightly above boxes
+)
+
+
+x_vals <- as.numeric(factor(unique(alnus_wag$names)))
+
+mean_val <- mean(as.numeric(na.omit(alnus_wag$values)))
+
+# deine Daten vorbereiten ----
+alnus_wag$farbe_cat <- factor(alnus_wag$farbe,
+                              levels = c("darkorange1", "red", "blue", "turquoise1", "grey50"),
+                              labels = c("Riedel & Kändler\n(2017, TapeS)", "overall mean", "peatland", "peatland & mineral", "mineral"))
+
+
+# Boxplot mit ggplot ----
+alnus_c <- ggplot(data = alnus_wag, 
+                  aes(x = as.factor(names), y = as.numeric(values))) +
+  stat_boxplot(geom = 'errorbar', width = 0.3, linewidth = 1, aes(color = farbe_cat)) +
+  geom_boxplot(outliers = TRUE,
+               outlier.color = "black",
+               outlier.fill = "white",
+               outlier.shape = 8,
+               linewidth = 1, 
+               fill = "white",
+               aes(color = farbe_cat)) + 
+  stat_summary(fun.data = n_fun, geom = "text", hjust = 0.5) +
+  scale_color_manual(
+    values = c("Riedel & Kändler\n(2017, TapeS)" = "darkorange1",
+               "overall mean" = "red",
+               "peatland" = "blue",
+               "peatland & mineral" = "turquoise1",
+               "mineral" = "grey50")
+  ) +
+  labs(x = "Biomass equation", y = expression("Carbon stock [t "*ha^{-1}*"]"), 
+       color = "Legend") +
+  coord_cartesian(ylim = c(0, 275.1831)) +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    text = element_text(size = 25),
+    axis.text = element_text(size = 20),
+    legend.text = element_text(size = 25),
+    legend.title = element_blank(),
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
+  ) +
+  # Linie für Gesamtmittel
+  geom_segment(data = data.frame(x = min(x_vals) - 0.38,
+                                 xend = max(x_vals) + 0.38,
+                                 y = mean_val,
+                                 yend = mean_val,
+                                 farbe_cat = "overall mean"),
+               aes(x = x, xend = xend, y = y, yend = yend, color = farbe_cat),
+               inherit.aes = FALSE,
+               linewidth = 1) +
+  # Punkte für Funktionsmittel
+  geom_point(
+    data = setDT(pseudo_mono_mean_func)[bot_genus %in% "Alnus" &
+                                          compartiment == "w_agb" &
+                                          paper_ID != 9, ],
+    aes(x = as.factor(names), 
+        y = as.numeric(mean_C_t_ha)), 
+    color = "black", size = 3
+  ) + 
+  geom_text(
+    data = annot_df,
+    aes(x = names, y = y_pos, label = letters),
+    inherit.aes = FALSE,
+    size = 8
+  )
+
+
+alnus_c
+
+
+# 1.3.2. Betula C stock boxplot-----------------------------------------------------
+dev.off()
+# subset for boxplot
+values <- pseudo_mono_P_SP_min$C_t_ha[pseudo_mono_P_SP_min$bot_genus %in% c("Betula") 
+                                      & pseudo_mono_P_SP_min$compartiment == "w_agb"]
+
+names <-  setDT(pseudo_mono_P_SP_min[pseudo_mono_P_SP_min$bot_genus %in% c("Betula") 
+                                     & pseudo_mono_P_SP_min$compartiment == "w_agb" 
+                                     & pseudo_mono_P_SP_min$paper_ID !=9,])[, `:=`(
+                                       "names" = paste0(paper_ID, ", ", ifelse(func_ID != "w_agb", paste0(func_ID, ", ") , ""), country_code) )]$names
+
+# assign colors: # mark only tapes plot 
+farbe <-  setDT(pseudo_mono_P_SP_min[pseudo_mono_P_SP_min$bot_genus %in% c("Betula") 
+                                     & pseudo_mono_P_SP_min$compartiment == "w_agb" ,
+])[, `:=`(
+  "farbe" = ifelse(ID %like% c("tapes") , "darkorange1" , # tapes red
+                   ifelse(peat == "yes",  "blue" , # "#53868B",
+                          ifelse(peat == "partly", "turquoise1", # "#7AC5CD",
+                                 "grey50" ) )))]$farbe
+
+# bind colors, names and values together 
+betula_wag <- as.data.frame(cbind(names, values, farbe))
+
+color_map <- setNames(betula_wag$farbe, betula_wag$ID)
+
+# mark only tapes plot
+my.colors <- unique(betula_wag[,c("names", "farbe")])$farbe 
+
+
+
+# ggplot boxplot mean c stock per  function -------------------------------
+# Werte typisieren
+betula_wag <- betula_wag[!betula_wag$names %in% c("NA, NANA"), ]
+
+#change names
+betula_wag$names <- gsub(", tapes", "", betula_wag$names)
+
+# gleiche Namensanpassung auch hier
+pseudo_mono_mean_func$names <- gsub(", tapes", "", pseudo_mono_mean_func_min$names)
+
+# Letters to annotate
+# letters_vec <- c("bcd", "bcd", "d", "bcd", "ab", "d", "cd", "bc", "ab", "ab", "bcd", "a", "bc")
+#.              20_1 19_w_agb  8_w_agb 42_tapes 15_w_agb  7_w_agb    29_12     mean 
+letters_vec <- c("a"  ,"a"      ,"a"    , "ab"     ,"ab"   , "abc"    ,"abc"   # ,"abc" 
+                 # 26_w_agb      1_2      1_1    29_11     11_2 10_w_agb  6_w_agb 
+                 , "abc",    "abc"  ,  "abc" ,   "abc" ,    "bc" ,     "c"  ,    "c" )
+
+# Create a data frame for annotation
+annot_df <- data.frame(
+  names = unique(betula_wag$names),  # same order as x-axis
+  letters = letters_vec,
+  y_pos = max(as.numeric(betula_wag$values), na.rm = TRUE) + 20  # slightly above boxes
+)
+
+# x-Positionen für Mittelwertlinie
+x_vals <- as.numeric(factor(unique(betula_wag$names)))
+
+# Gesamtmittelwert berechnen
+mean_val <- mean(as.numeric(na.omit(betula_wag$values)))
+
+# deine Daten vorbereiten ----
+betula_wag$farbe_cat <- factor(betula_wag$farbe,
+                               levels = c("darkorange1", "red", "blue", "turquoise1", "grey50"),
+                               labels = c("Riedel & Kändler\n(2017, TapeS)", "overall mean", "peatland", "peatland & mineral", "mineral"))
+
+
+betula_wag$names <- factor(betula_wag$names, levels = unique(betula_wag$names))
+
+
+
+betula_c <- ggplot(data = betula_wag, aes(x = names, y = as.numeric(values))) +
+  stat_boxplot(geom = 'errorbar', width = 0.3, linewidth = 1, aes(color = farbe_cat)) +
+  geom_boxplot(outliers = TRUE,
+               outlier.fill = "white",
+               outlier.size = 2,
+               outlier.shape = 8,
+               linewidth = 1,
+               fill = "white",
+               aes(color = farbe_cat)) +
+  stat_summary(fun.data = n_fun, geom = "text", hjust = 0.5) +
+  scale_color_manual(values = c("Riedel & Kändler\n(2017, TapeS)" = "darkorange1",
+                                "overall mean" = "red",
+                                "peatland" = "blue",
+                                "peatland & mineral" = "turquoise1",
+                                "mineral" = "grey50")) +
+  labs(x = "Biomass equation", y = expression("Carbon stock [t "*ha^{-1}*"]"), color = "Legend") +
+  coord_cartesian(ylim = c(0, 275.1831)) +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    text = element_text(size = 25),
+    axis.text = element_text(size = 20),
+    legend.text = element_text(size = 25),
+    legend.title = element_blank(),
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)
+  ) +
+  # Linie für Gesamtmittelwert
+  geom_segment(data = data.frame(x = min(x_vals) - 0.38,
+                                 xend = max(x_vals) + 0.38,
+                                 y = mean_val,
+                                 yend = mean_val,
+                                 farbe_cat = "overall mean"),
+               aes(x = x, xend = xend, y = y, yend = yend, color = farbe_cat),
+               inherit.aes = FALSE,
+               linewidth = 1) +
+  # Punkte für Funktionsmittelwerte
+  geom_point(data = setDT(pseudo_mono_mean_func)[bot_genus %in% "Betula" & compartiment == "w_agb", ],
+             aes(x = names, y = as.numeric(mean_C_t_ha)), color = "black", size = 3) +
+  # Buchstaben über Boxplots
+  geom_text(data = annot_df, aes(x = names, y = y_pos, label = letters),
+            inherit.aes = FALSE, size = 8)
+
+# Plot anzeigen
+betula_c
+
+
+
+
+
 
 
 # 2. EXPORT ------------------------------------------------------------------
